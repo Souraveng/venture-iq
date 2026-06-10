@@ -12,6 +12,12 @@ export interface Project {
   totalAgents: number;
   status: "intake" | "active" | "draft" | "complete";
   intakeComplete: boolean;
+  marketIntel?: Record<string, any>;
+  financialIntel?: Record<string, any>;
+  finalReport?: Record<string, any>;
+  researchPlan?: string[];
+  isAnalyzing?: boolean;
+  analysis?: any;
 }
 
 interface ProjectStore {

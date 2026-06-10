@@ -2,6 +2,7 @@
 import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
+import { useProjectStore } from "@/store/useProjectStore";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid,
@@ -43,6 +44,11 @@ const fundingBreakdown = [
 const ACC = "#daf264";
 
 export default function FinancialsPage() {
+  const { projects, activeId } = useProjectStore();
+  const activeProject = projects.find((p) => p.id === activeId);
+
+  const hasFinanceData = !!activeProject?.financialIntel?.projection;
+
   return (
     <ProjectGuard>
     <DashboardLayout>
@@ -52,10 +58,17 @@ export default function FinancialsPage() {
             <div className="flex items-center gap-2 mb-1">
               <span style={{ color: ACC }}>◆</span>
               <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(218, 242, 100, 0.1)", color: ACC }}>Finance Agent · Running</span>
+                style={{ 
+                  background: hasFinanceData ? "rgba(218, 242, 100, 0.1)" : "rgba(251, 191, 36, 0.1)", 
+                  color: hasFinanceData ? ACC : "#fbbf24" 
+                }}>
+                Finance Agent · {hasFinanceData ? "Done" : "Pending Run"}
+              </span>
             </div>
             <h1 className="text-2xl font-bold text-white">Financial Model</h1>
-            <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>3-year projections · EV Startup India</p>
+            <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
+              3-year projections · {activeProject?.name || "EV Startup India"}
+            </p>
           </div>
           <div className="flex gap-2">
             <button className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>↓ Excel</button>
@@ -83,6 +96,15 @@ export default function FinancialsPage() {
             </motion.div>
           ))}
         </div>
+
+        {activeProject?.financialIntel?.projection && (
+          <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
+            <h3 className="font-semibold text-sm text-white mb-2">AI Agent Financial Projections</h3>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
+              {activeProject.financialIntel.projection}
+            </p>
+          </div>
+        )}
 
         {/* Revenue & cashflow chart */}
         <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>

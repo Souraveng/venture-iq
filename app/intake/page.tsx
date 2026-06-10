@@ -57,13 +57,43 @@ export default function IntakePage() {
 
   async function handleLaunch() {
     setLaunching(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    updateProject(activeId, {
-      status: "active",
-      intakeComplete: true,
-      progress: 5,
-    });
-    router.push("/dashboard");
+    try {
+      // 1. Call your new autonomous backend
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'validate', data: { idea: idea } })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.error) {
+        throw new Error(result.error || `Pipeline failed with status: ${response.status}`);
+      }
+
+      // 2. Update the Zustand Store with the real data
+      updateProject(activeId, {
+        status: "active",
+        intakeComplete: true,
+        progress: 100,
+        agentsDone: 5,
+        marketIntel: result.marketIntel || {},
+        financialIntel: result.financialIntel || {},
+        finalReport: result.finalReport || {},
+        researchPlan: result.researchPlan || [],
+      });
+    } catch (error) {
+      console.error("Pipeline invocation error:", error);
+      updateProject(activeId, {
+        status: "active",
+        intakeComplete: true,
+        progress: 20,
+        agentsDone: 2,
+      });
+    } finally {
+      setLaunching(false);
+      router.push("/dashboard");
+    }
   }
 
   // Show nothing until hydration confirms which state we're in

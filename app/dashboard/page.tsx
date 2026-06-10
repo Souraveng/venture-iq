@@ -7,13 +7,6 @@ import { motion } from "framer-motion";
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
 import { useProjectStore } from "@/store/useProjectStore";
 
-const scores = [
-  { label: "Startup Readiness",  value: 74, color: "#daf264" },
-  { label: "Opportunity Score",  value: 88, color: "#daf264" },
-  { label: "Risk Score",         value: 32, color: "#ef4444" },
-  { label: "Market Potential",   value: 91, color: "#daf264" },
-];
-
 const agentStatus = [
   { name: "Market Research", icon: "◎", status: "done",    output: "Market Analysis Report", time: "2m 14s" },
   { name: "Competitor Analysis", icon: "⬡", status: "done", output: "Competitor Matrix + SWOT", time: "3m 02s" },
@@ -50,9 +43,59 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 }
 
 export default function DashboardPage() {
-  const { projects, activeId } = useProjectStore();
+  const { projects, activeId, updateProject } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId)!;
   const [editOpen, setEditOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const readiness = activeProject?.finalReport?.readinessScore ?? 74;
+  const opportunity = activeProject?.finalReport?.readinessScore ? Math.min(100, Math.round(readiness * 1.15)) : 88;
+  const risk = activeProject?.finalReport?.readinessScore ? Math.max(0, Math.round(100 - readiness)) : 32;
+  const market = activeProject?.finalReport?.readinessScore ? Math.min(100, Math.round(readiness * 1.2)) : 91;
+
+  const scores = [
+    { label: "Startup Readiness",  value: readiness, color: "#daf264" },
+    { label: "Opportunity Score",  value: opportunity, color: "#daf264" },
+    { label: "Risk Score",         value: risk, color: risk > 50 ? "#ef4444" : "#daf264" },
+    { label: "Market Potential",   value: market, color: "#daf264" },
+  ];
+
+  async function handleRerun() {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "full",
+          data: {
+            name: activeProject.name,
+            description: activeProject.description,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Rerun failed");
+      }
+
+      const result = await response.json();
+      console.log("Rerun result:", result);
+
+      updateProject(activeId, {
+        marketIntel: result.marketIntel || {},
+        financialIntel: result.financialIntel || {},
+        finalReport: result.finalReport || {},
+        researchPlan: result.researchPlan || [],
+        agentsDone: 5,
+        progress: 100,
+      });
+    } catch (e) {
+      console.error("Failed to rerun:", e);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <ProjectGuard>
@@ -65,7 +108,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold mt-0.5 text-white">Startup Builder Overview</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
             Building: <span className="font-semibold" style={{ color: "var(--accent)" }}>{activeProject.name}</span>
-            &nbsp;·&nbsp; {activeProject.agentsDone} of {activeProject.totalAgents} agents completed
+            &nbsp;·&nbsp; {loading ? "Re-running pipeline..." : `${activeProject.agentsDone} of ${activeProject.totalAgents} agents completed`}
           </p>
         </motion.div>
 
@@ -86,9 +129,12 @@ export default function DashboardPage() {
             style={{ background: "rgba(218,242,100,0.1)", color: "var(--accent)", border: "1px solid rgba(218,242,100,0.2)" }}>
             ✎ Edit idea
           </button>
-          <button className="text-xs px-3 py-1.5 rounded-lg font-medium text-white"
+          <button 
+            onClick={handleRerun}
+            disabled={loading}
+            className="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-opacity disabled:opacity-50"
             style={{ background: "var(--accent)", color: "#0a0a0a" }}>
-            ⟳ Re-run all
+            {loading ? "Running..." : "⟳ Re-run all"}
           </button>
         </div>
 
@@ -99,6 +145,16 @@ export default function DashboardPage() {
             {scores.map((s) => <ScoreGauge key={s.label} {...s} />)}
           </div>
         </div>
+
+        {/* Dynamic AI Summary section */}
+        {activeProject?.finalReport?.summary && (
+          <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
+            <h2 className="text-sm font-semibold mb-2 text-white">AI Agent Executive Summary (Live Graph Output)</h2>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
+              {activeProject.finalReport.summary}
+            </p>
+          </div>
+        )}
 
         {/* Agent pipeline */}
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
@@ -180,6 +236,15 @@ export default function DashboardPage() {
             </motion.div>
           ))}
         </div>
+
+        {activeProject?.finalReport?.financialProjection && (
+          <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.03)", border: "1px solid var(--card-border)" }}>
+            <h2 className="text-sm font-semibold mb-2 text-white">AI Financial Evaluation & Capital Allocation</h2>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
+              {activeProject.finalReport.financialProjection}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Edit project slide-over */}

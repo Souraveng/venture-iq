@@ -2,6 +2,7 @@
 import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
+import { useProjectStore } from "@/store/useProjectStore";
 
 const competitors = [
   { name: "Ather Energy",     type: "Direct",   funding: "$380M", stage: "Series E", market: "India",         pricing: "$1,200/yr", threat: 90, strengths: ["Brand", "Hardware+SW", "Network"],     weaknesses: ["Closed ecosystem", "High price"] },
@@ -46,6 +47,16 @@ const swotColors = {
 };
 
 export default function CompetitorsPage() {
+  const { projects, activeId } = useProjectStore();
+  const activeProject = projects.find((p) => p.id === activeId);
+
+  const dynamicSwot = activeProject?.marketIntel?.swot ? {
+    Strengths: activeProject.marketIntel.swot.strengths || [],
+    Weaknesses: activeProject.marketIntel.swot.weaknesses || [],
+    Opportunities: activeProject.marketIntel.swot.opportunities || [],
+    Threats: activeProject.marketIntel.swot.threats || [],
+  } : swotData;
+
   return (
     <ProjectGuard>
     <DashboardLayout>
@@ -163,7 +174,7 @@ export default function CompetitorsPage() {
         <div>
           <h3 className="font-semibold text-sm text-white mb-3">SWOT Analysis — Your Startup</h3>
           <div className="grid grid-cols-2 gap-3">
-            {(Object.entries(swotData) as [keyof typeof swotColors, string[]][]).map(([category, items]) => {
+            {(Object.entries(dynamicSwot) as [keyof typeof swotColors, string[]][]).map(([category, items]) => {
               const cfg = swotColors[category];
               return (
                 <div key={category} className="rounded-xl p-4"
