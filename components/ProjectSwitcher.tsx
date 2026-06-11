@@ -6,7 +6,7 @@ import { useProjectStore } from "@/store/useProjectStore";
 
 export default function ProjectSwitcher({ collapsed }: { collapsed: boolean }) {
   const { projects, activeId, setActive, addProject } = useProjectStore();
-  const active = projects.find((p) => p.id === activeId)!;
+  const active = projects.find((p) => p.id === activeId);
   const [open, setOpen] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
@@ -21,6 +21,20 @@ export default function ProjectSwitcher({ collapsed }: { collapsed: boolean }) {
     document.addEventListener("mousedown", handle);
     return () => document.removeEventListener("mousedown", handle);
   }, []);
+
+  if (!active) {
+    return (
+      <div className="w-full flex items-center gap-2.5 rounded-xl p-2.5"
+        style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: 0.5 }}>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold bg-white/10 animate-pulse" />
+        {!collapsed && (
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-xs font-semibold text-white truncate animate-pulse">Syncing...</p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const initials = active.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 

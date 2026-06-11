@@ -1,0 +1,16 @@
+steps:
+  # 1. Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$COMMIT_SHA',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:latest',
+      '.'
+    ]
+
+  # 2. Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app']
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$COMMIT_SHA'

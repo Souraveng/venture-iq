@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import StoreSync from "@/components/StoreSync";
 
 export const metadata: Metadata = {
   title: "Constellate — Multi-Agent Orchestration",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <StoreSync />
+        {children}
+      </body>
     </html>
   );
 }

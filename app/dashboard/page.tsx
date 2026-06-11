@@ -54,14 +54,20 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 
 export default function DashboardPage() {
   const { projects, activeId, updateProject, addNotification, addAuditEntry } = useProjectStore();
-  const activeProject = projects.find((p) => p.id === activeId)!;
+  const activeProject = projects.find((p) => p.id === activeId);
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const decReport = activeProject?.decisionReport || null;
-  const readiness = decReport ? decReport.ventureReadiness.score : (activeProject?.finalReport?.readinessScore ?? 74);
+  if (!activeProject) {
+    return <ProjectGuard>null</ProjectGuard>;
+  }
+
+  const projectName = activeProject.name;
+  const projectDesc = activeProject.description;
+  const decReport = activeProject.decisionReport || null;
+  const readiness = decReport ? decReport.ventureReadiness.score : (activeProject.finalReport?.readinessScore ?? 74);
   const opportunity = decReport ? decReport.opportunityScore.score : 85;
-  const risk = activeProject?.riskIntel?.overallRiskIndex?.score ?? 32;
+  const risk = activeProject.riskIntel?.overallRiskIndex?.score ?? 32;
   const confidence = decReport ? decReport.confidence.score : 82;
 
   const scores = [
@@ -78,7 +84,7 @@ export default function DashboardPage() {
       user: "Founder",
       avatar: "FO",
       action: "executed.pipeline",
-      target: activeProject.name,
+      target: projectName,
       severity: "low",
     });
 
@@ -94,8 +100,8 @@ export default function DashboardPage() {
           mode: "full",
           stream: true,
           data: {
-            name: activeProject.name,
-            description: activeProject.description,
+            name: projectName,
+            description: projectDesc,
           },
           geminiApiKey,
         }),
@@ -170,7 +176,7 @@ export default function DashboardPage() {
                   user: "system",
                   avatar: "SY",
                   action: `completed.${nodeKey}`,
-                  target: activeProject.name,
+                  target: projectName,
                   severity: "info",
                 });
               } else if (parsed.event === "complete") {
@@ -192,7 +198,7 @@ export default function DashboardPage() {
                   user: "system",
                   avatar: "SY",
                   action: "completed.pipeline",
-                  target: activeProject.name,
+                  target: projectName,
                   severity: "info",
                 });
               } else if (parsed.event === "error") {

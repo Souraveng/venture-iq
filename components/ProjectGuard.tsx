@@ -10,25 +10,45 @@ import { useProjectStore } from "@/store/useProjectStore";
  */
 export default function ProjectGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { projects, activeId } = useProjectStore();
-  const [ready, setReady] = useState(false);
+  const { projects, activeId, syncFromDatabase } = useProjectStore();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // After hydration, check intake status
+    async function load() {
+      await syncFromDatabase();
+      setLoading(false);
+    }
+    load();
+  }, [syncFromDatabase]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    // After hydration and DB sync, check intake status
     const active = projects.find((p) => p.id === activeId);
     if (!active) {
-      // No active project at all — go home
       router.replace("/");
       return;
     }
     if (!active.intakeComplete) {
-      // Project exists but not briefed — go to intake
       router.replace("/intake");
       return;
     }
-    setReady(true);
-  }, [activeId, projects]);
+  }, [loading, activeId, projects, router]);
 
-  if (!ready) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-t-accent border-muted animate-spin" />
+          <p className="text-xs font-semibold" style={{ color: "var(--muted-fg)" }}>Syncing workspace with Cloud SQL...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const active = projects.find((p) => p.id === activeId);
+  if (!active || !active.intakeComplete) return null;
+
   return <>{children}</>;
 }

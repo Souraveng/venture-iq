@@ -70,6 +70,7 @@ interface ProjectStore {
   projects: Project[];
   activeId: string;
   setActive: (id: string) => void;
+  syncFromDatabase: () => Promise<void>;
   addProject: (name: string, description: string) => void;
   updateProject: (id: string, patch: Partial<Project>) => void;
   removeProject: (id: string) => void;
@@ -80,50 +81,41 @@ interface ProjectStore {
   addAuditEntry: (projectId: string, entry: Omit<AuditEntry, "ts" | "ip">) => void;
 }
 
-const defaultProjects: Project[] = [
-  {
-    id: "proj-1",
-    name: "EV Startup Platform",
-    description: "Electric vehicle charging infrastructure + fleet management SaaS for India market",
-    createdAt: "Jun 8, 2026",
-    progress: 100,
-    agentsDone: 15,
-    totalAgents: 15,
-    status: "active",
-    intakeComplete: true,
-    chatMap: {},
-    notifications: [
-      { id: 1, title: "Report generation completed", body: "Pitch deck containing 12 slides generated successfully.", time: "2h ago", severity: "success", agent: "Report Generation", read: false },
-      { id: 2, title: "Decision Engine complete", body: "Investment verdict PROCEED compiled with 82% confidence.", time: "2h ago", severity: "success", agent: "Decision Engine", read: false }
-    ],
-    auditLogs: [
-      { ts: "11/06/2026, 23:45:12", user: "system", avatar: "SY", action: "completed.pipeline", target: "EV Startup Platform", ip: "system", severity: "info" },
-      { ts: "11/06/2026, 23:40:02", user: "Founder", avatar: "FO", action: "executed.pipeline", target: "EV Startup Platform", ip: "127.0.0.1", severity: "low" }
-    ]
-  },
-  {
-    id: "proj-2",
-    name: "D2C Health Brand",
-    description: "Direct-to-consumer Ayurvedic supplement brand targeting urban millennials",
-    createdAt: "Jun 5, 2026",
-    progress: 20,
-    agentsDone: 1,
-    totalAgents: 15,
-    status: "draft",
-    intakeComplete: true,
-    chatMap: {},
-    notifications: [],
-    auditLogs: []
-  },
-];
+const syncProjectToDb = async (project: Project) => {
+  try {
+    await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(project),
+    });
+  } catch (err) {
+    console.error("Error syncing project to PostgreSQL:", err);
+  }
+};
 
 export const useProjectStore = create<ProjectStore>()(
   persist(
-    (set) => ({
-      projects: defaultProjects,
-      activeId: "proj-1",
+    (set, get) => ({
+      projects: [],
+      activeId: "",
 
       setActive: (id) => set({ activeId: id }),
+
+      syncFromDatabase: async () => {
+        try {
+          const res = await fetch("/api/projects");
+          if (res.ok) {
+            const data = await res.json();
+            set({ projects: data });
+            const currentActiveId = get().activeId;
+            if (data.length > 0 && (!currentActiveId || !data.find((p: any) => p.id === currentActiveId))) {
+              set({ activeId: data[0].id });
+            }
+          }
+        } catch (error) {
+          console.error("Failed to sync from database:", error);
+        }
+      },
 
       addProject: (name, description) => {
         const newProject: Project = {
@@ -153,12 +145,16 @@ export const useProjectStore = create<ProjectStore>()(
           ]
         };
         set((s) => ({ projects: [...s.projects, newProject], activeId: newProject.id }));
+        syncProjectToDb(newProject);
       },
 
       updateProject: (id, patch) => {
-        set((s) => ({
-          projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
-        }));
+        set((s) => {
+          const updated = s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p));
+          const targetProj = updated.find((p) => p.id === id);
+          if (targetProj) syncProjectToDb(targetProj);
+          return { projects: updated };
+        });
       },
 
       removeProject: (id) => {
@@ -169,28 +165,34 @@ export const useProjectStore = create<ProjectStore>()(
             activeId: remaining.length > 0 ? remaining[remaining.length - 1].id : "",
           };
         });
+        fetch(`/api/projects/${id}`, { method: "DELETE" }).catch((err) =>
+          console.error("Failed to delete project:", err)
+        );
       },
 
       addChatMessage: (projectId, agentName, message) => {
-        set((s) => ({
-          projects: s.projects.map((p) => {
+        set((s) => {
+          const updated = s.projects.map((p) => {
             if (p.id !== projectId) return p;
             const chatMap = p.chatMap || {};
             const history = chatMap[agentName] || [];
-            return {
+            const newProj = {
               ...p,
               chatMap: {
                 ...chatMap,
                 [agentName]: [...history, message]
               }
             };
-          })
-        }));
+            syncProjectToDb(newProj);
+            return newProj;
+          });
+          return { projects: updated };
+        });
       },
 
       addNotification: (projectId, notification) => {
-        set((s) => ({
-          projects: s.projects.map((p) => {
+        set((s) => {
+          const updated = s.projects.map((p) => {
             if (p.id !== projectId) return p;
             const list = p.notifications || [];
             const newId = list.length > 0 ? Math.max(...list.map(n => n.id)) + 1 : 1;
@@ -200,41 +202,50 @@ export const useProjectStore = create<ProjectStore>()(
               time: "Just now",
               read: false
             };
-            return {
+            const newProj = {
               ...p,
               notifications: [item, ...list]
             };
-          })
-        }));
+            syncProjectToDb(newProj);
+            return newProj;
+          });
+          return { projects: updated };
+        });
       },
 
       markNotificationsRead: (projectId) => {
-        set((s) => ({
-          projects: s.projects.map((p) => {
+        set((s) => {
+          const updated = s.projects.map((p) => {
             if (p.id !== projectId) return p;
-            return {
+            const newProj = {
               ...p,
               notifications: (p.notifications || []).map(n => ({ ...n, read: true }))
             };
-          })
-        }));
+            syncProjectToDb(newProj);
+            return newProj;
+          });
+          return { projects: updated };
+        });
       },
 
       dismissNotification: (projectId, notificationId) => {
-        set((s) => ({
-          projects: s.projects.map((p) => {
+        set((s) => {
+          const updated = s.projects.map((p) => {
             if (p.id !== projectId) return p;
-            return {
+            const newProj = {
               ...p,
               notifications: (p.notifications || []).filter(n => n.id !== notificationId)
             };
-          })
-        }));
+            syncProjectToDb(newProj);
+            return newProj;
+          });
+          return { projects: updated };
+        });
       },
 
       addAuditEntry: (projectId, entry) => {
-        set((s) => ({
-          projects: s.projects.map((p) => {
+        set((s) => {
+          const updated = s.projects.map((p) => {
             if (p.id !== projectId) return p;
             const logs = p.auditLogs || [];
             const item: AuditEntry = {
@@ -242,17 +253,21 @@ export const useProjectStore = create<ProjectStore>()(
               ts: new Date().toLocaleString("en-GB"),
               ip: "127.0.0.1"
             };
-            return {
+            const newProj = {
               ...p,
               auditLogs: [item, ...logs]
             };
-          })
-        }));
+            syncProjectToDb(newProj);
+            return newProj;
+          });
+          return { projects: updated };
+        });
       }
     }),
     {
-      name: "startupos-projects",       // localStorage key
+      name: "startupos-projects-meta", // Persist only the active project ID selected in the browser
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ activeId: state.activeId }),
     }
   )
 );
