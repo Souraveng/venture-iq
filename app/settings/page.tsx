@@ -1,6 +1,6 @@
 "use client";
 import ProjectGuard from "@/components/ProjectGuard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -25,6 +25,34 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Team");
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInvite, setShowInvite] = useState(false);
+  const [geminiKey, setGeminiKey] = useState("");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGeminiKey(localStorage.getItem("gemini_api_key") || "");
+    }
+  }, []);
+
+  async function handleSaveGeminiKey() {
+    setSaveStatus("saving");
+    try {
+      const res = await fetch("/api/settings/save-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ geminiApiKey: geminiKey }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save API key");
+
+      localStorage.setItem("gemini_api_key", geminiKey);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("error");
+    }
+  }
 
   return (
     <ProjectGuard>
@@ -185,6 +213,32 @@ export default function SettingsPage() {
                   + Generate key
                 </button>
               </div>
+
+              {/* Gemini API Key Form Card */}
+              <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Gemini API Key</h3>
+                  <p className="text-xs text-gray-400 mt-1">Configure your own Google Gemini Developer API key. Used to run the LangGraph pipeline.</p>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="password"
+                    value={geminiKey}
+                    onChange={(e) => setGeminiKey(e.target.value)}
+                    placeholder="Enter your GEMINI_API_KEY..."
+                    className="flex-1 bg-transparent text-xs outline-none px-3 py-2 rounded-lg font-mono"
+                    style={{ background: "var(--background)", border: "1px solid var(--card-border)", color: "white" }} 
+                  />
+                  <button 
+                    onClick={handleSaveGeminiKey}
+                    disabled={saveStatus === "saving"}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-black transition-all"
+                    style={{ background: "var(--accent)" }}>
+                    {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : saveStatus === "error" ? "✕ Error" : "Save key"}
+                  </button>
+                </div>
+              </div>
+
               <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
                 {[
                   { name: "Production API", key: "sk-live-••••••••Kx9p", created: "Jan 12, 2026", lastUsed: "2 min ago",  status: "active" },

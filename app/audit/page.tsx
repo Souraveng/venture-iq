@@ -4,23 +4,7 @@ import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 
-const auditLog = [
-  { ts: "10/06/2026, 01:15:51", user: "Sarah Chen",   avatar: "SC", action: "edited.instructions",  target: "Atlas",           ip: "192.168.1.42", severity: "medium" },
-  { ts: "10/06/2026, 01:08:51", user: "Marcus Lee",   avatar: "ML", action: "executed.workflow",     target: "Lead-to-Demo",    ip: "10.0.0.55",   severity: "low"    },
-  { ts: "10/06/2026, 01:01:51", user: "auto.scaled",  avatar: "SY", action: "scaled.agent",          target: "Orion ×3",        ip: "system",       severity: "info"   },
-  { ts: "10/06/2026, 00:54:51", user: "Priya Patel",  avatar: "PP", action: "approved.outreach",     target: "142 contacts",    ip: "172.16.0.8",  severity: "medium" },
-  { ts: "10/06/2026, 00:47:51", user: "system",       avatar: "SY", action: "rotated.api_key",       target: "Stripe",          ip: "system",       severity: "info"   },
-  { ts: "10/06/2026, 00:40:51", user: "Sarah Chen",   avatar: "SC", action: "paused.agent",          target: "Cipher",          ip: "192.168.1.42", severity: "medium" },
-  { ts: "10/06/2026, 00:33:51", user: "system",       avatar: "SY", action: "rate_limit.hit",        target: "OpenAI",          ip: "system",       severity: "high"   },
-  { ts: "10/06/2026, 00:26:51", user: "Demo Admin",   avatar: "DA", action: "invited.member",        target: "Aisha Mohamed",   ip: "203.0.113.9", severity: "low"    },
-  { ts: "10/06/2026, 00:19:51", user: "Marcus Lee",   avatar: "ML", action: "deleted.workflow",      target: "Draft Pipeline",  ip: "10.0.0.55",   severity: "high"   },
-  { ts: "10/06/2026, 00:12:51", user: "Priya Patel",  avatar: "PP", action: "updated.billing",       target: "Pro plan",        ip: "172.16.0.8",  severity: "medium" },
-  { ts: "10/06/2026, 00:05:51", user: "system",       avatar: "SY", action: "backup.completed",      target: "workspace-db",    ip: "system",       severity: "info"   },
-  { ts: "09/06/2026, 23:58:51", user: "Sarah Chen",   avatar: "SC", action: "created.workflow",      target: "Churn Predictor", ip: "192.168.1.42", severity: "low"    },
-  { ts: "09/06/2026, 23:51:51", user: "system",       avatar: "SY", action: "memory.pruned",         target: "Vega 40k→30k",   ip: "system",       severity: "info"   },
-  { ts: "09/06/2026, 23:44:51", user: "Diego Alvarez",avatar: "DV", action: "viewed.audit_log",      target: "all",             ip: "198.51.100.4", severity: "info"   },
-  { ts: "09/06/2026, 23:37:51", user: "Demo Admin",   avatar: "DA", action: "changed.role",          target: "Marcus → Admin",  ip: "203.0.113.9", severity: "high"   },
-];
+import { useProjectStore } from "@/store/useProjectStore";
 
 const severityStyle: Record<string, { color: string; bg: string }> = {
   high:   { color: "#f87171", bg: "rgba(239,68,68,0.1)"    },
@@ -54,14 +38,18 @@ function getActionColor(action: string) {
 
 const avatarColors: Record<string, string> = {
   SC: "#818cf8", ML: "#34d399", SY: "#4a4a6a",
-  PP: "#f472b6", DA: "#fbbf24", DV: "#2dd4bf",
+  PP: "#f472b6", DA: "#fbbf24", DV: "#2dd4bf", FO: "#daf264",
 };
 
 export default function AuditPage() {
+  const { projects, activeId } = useProjectStore();
+  const activeProject = projects.find((p) => p.id === activeId);
+  const auditLogs = activeProject?.auditLogs || [];
+
   const [search, setSearch] = useState("");
   const [sevFilter, setSevFilter] = useState("all");
 
-  const filtered = auditLog.filter((e) => {
+  const filtered = auditLogs.filter((e) => {
     const matchSearch = search === "" ||
       e.user.toLowerCase().includes(search.toLowerCase()) ||
       e.action.toLowerCase().includes(search.toLowerCase()) ||
@@ -76,7 +64,7 @@ export default function AuditPage() {
       <div className="p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Audit Log</h1>
-          <p className="text-sm text-gray-400 mt-1">Complete record of all workspace activity and changes.</p>
+          <p className="text-sm text-gray-400 mt-1">Complete record of all workspace activity and changes for {activeProject?.name}.</p>
         </div>
 
         {/* Controls */}
@@ -126,7 +114,7 @@ export default function AuditPage() {
 
           <div style={{ background: "var(--background)" }}>
             {filtered.map((entry, i) => {
-              const sev = severityStyle[entry.severity];
+              const sev = severityStyle[entry.severity] || { color: "#818cf8", bg: "rgba(99,102,241,0.1)" };
               return (
                 <motion.div key={i}
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
@@ -172,7 +160,7 @@ export default function AuditPage() {
         </div>
 
         <p className="text-xs text-gray-600 text-center">
-          Showing {filtered.length} of {auditLog.length} entries · Logs retained for 90 days
+          Showing {filtered.length} of {auditLogs.length} entries · Logs retained for 90 days
         </p>
       </div>
     </DashboardLayout>

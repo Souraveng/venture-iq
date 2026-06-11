@@ -2,221 +2,312 @@
 import ProjectGuard from "@/components/ProjectGuard";
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import AgentBadge from "@/components/AgentBadge";
+import { useProjectStore } from "@/store/useProjectStore";
 import { motion, AnimatePresence } from "framer-motion";
 
-const swimlanes = [
+const departments = [
   {
-    agent: "Atlas", role: "Research", color: "#818cf8",
-    steps: [
-      { label: "Submitted brief", status: "done", time: "09:00:02" },
-      { label: "Search · 12 results", status: "done", time: "09:00:18" },
-      { label: "Synthesized brief", status: "done", time: "09:01:04" },
-    ],
+    name: "Research Dept",
+    role: "Ingestion & Extraction",
+    color: "#818cf8",
+    agents: [
+      { name: "Opportunity Understanding", key: "opportunity" },
+      { name: "Research Planner", key: "planner" },
+      { name: "Evidence Researcher", key: "research" },
+      { name: "Fact Extractor", key: "extractor" }
+    ]
   },
   {
-    agent: "Vega", role: "Planning", color: "#34d399",
-    steps: [
-      { label: "Received brief", status: "done", time: "09:01:05" },
-      { label: "Plan generated", status: "done", time: "09:01:42" },
-      { label: "Handed to Orion", status: "done", time: "09:01:43" },
-    ],
+    name: "Intelligence Dept",
+    role: "Validation & Sizing",
+    color: "#34d399",
+    agents: [
+      { name: "Validation Agent", key: "validator" },
+      { name: "Knowledge Retriever", key: "retriever" },
+      { name: "Market Intelligence", key: "market" },
+      { name: "Competitor Intelligence", key: "competitor" },
+      { name: "SWOT Intelligence", key: "swot" }
+    ]
   },
   {
-    agent: "Orion", role: "Execution", color: "#fbbf24",
-    steps: [
-      { label: "Code written", status: "done", time: "09:02:10" },
-      { label: "Tests passing", status: "done", time: "09:02:55" },
-      { label: "Handed to Lyra", status: "running", time: "09:03:01" },
-    ],
+    name: "Synthesis Dept",
+    role: "Modeling & Milestones",
+    color: "#fbbf24",
+    agents: [
+      { name: "Risk Intelligence", key: "risk" },
+      { name: "Financial Intelligence", key: "financial" },
+      { name: "Venture Analyst", key: "analyst" },
+      { name: "Founder Roadmap", key: "roadmap" }
+    ]
   },
   {
-    agent: "Lyra", role: "QA", color: "#f472b6",
-    steps: [
-      { label: "Tests passed", status: "pending", time: "" },
-      { label: "Review complete", status: "pending", time: "" },
-      { label: "Delivered ✓", status: "pending", time: "" },
-    ],
-  },
+    name: "Decision & Delivery",
+    role: "Verdict & Exports",
+    color: "#f472b6",
+    agents: [
+      { name: "Decision Engine", key: "decision" },
+      { name: "Report Generation", key: "report" }
+    ]
+  }
 ];
 
-const messages = [
-  { from: "Atlas", to: "Vega", msg: "Research complete. Passing brief with 12 sources.", ts: "09:01:04", color: "#818cf8" },
-  { from: "Vega", to: "Orion", msg: "Plan generated: 4 tasks, estimated 90s runtime.", ts: "09:01:43", color: "#34d399" },
-  { from: "Orion", to: "Lyra", msg: "Code written and tests passing locally. Sending for QA.", ts: "09:03:01", color: "#fbbf24" },
-];
+const allAgentsList = departments.flatMap(d => d.agents);
 
-const connections = [
-  { from: "Atlas", to: "Vega" }, { from: "Vega", to: "Orion" }, { from: "Orion", to: "Lyra" },
+const handoffMessages = [
+  { key: "opportunity", msg: "Opportunity Understanding classified venture intent and parsed project brief.", from: "Intake", to: "Planner" },
+  { key: "planner", msg: "Research Planner created targeted research strategy with 5 market queries.", from: "Planner", to: "Researcher" },
+  { key: "research", msg: "Evidence Researcher completed Tavily search and loaded web sources.", from: "Researcher", to: "Extractor" },
+  { key: "extractor", msg: "Fact Extractor structured facts, entities, and relationships from search.", from: "Extractor", to: "Validator" },
+  { key: "validator", msg: "Validation Agent resolved data conflicts and verified source credibility.", from: "Validator", to: "Retriever" },
+  { key: "retriever", msg: "Knowledge Retriever embedded facts into the project semantic vector store.", from: "Retriever", to: "Market" },
+  { key: "market", msg: "Market Intelligence calculated TAM/SAM/SOM and growth trajectories.", from: "Market", to: "Competitors" },
+  { key: "competitor", msg: "Competitor Intelligence discovered direct threats and built feature matrix.", from: "Competitors", to: "SWOT" },
+  { key: "swot", msg: "SWOT Intelligence generated evidence-backed, traceable SWOT profiles.", from: "SWOT", to: "Risks" },
+  { key: "risk", msg: "Risk Intelligence evaluated 8 severity dimensions and mitigations.", from: "Risks", to: "Financials" },
+  { key: "financial", msg: "Financial Intelligence constructed revenue forecast and runway model.", from: "Financials", to: "Analyst" },
+  { key: "analyst", msg: "Venture Analyst scored investment readiness and checked red flags.", from: "Analyst", to: "Roadmap" },
+  { key: "roadmap", msg: "Founder Roadmap drafted hiring milestones and GTM strategies.", from: "Roadmap", to: "Decision" },
+  { key: "decision", msg: "Decision Engine compiled finalOpportunity Score and verdict.", from: "Decision", to: "Report" },
+  { key: "report", msg: "Report Generation finalized 12 pitch slides and compiled PDF reports.", from: "Report", to: "Deliverables" }
 ];
 
 export default function CollaborationPage() {
-  const [activeMsg, setActiveMsg] = useState(0);
-  const [progress, setProgress] = useState(72);
+  const { projects, activeId } = useProjectStore();
+  const activeProject = projects.find((p) => p.id === activeId);
 
-  useEffect(() => {
-    const t = setInterval(() => {
-      setActiveMsg((p) => (p + 1) % messages.length);
-      setProgress((p) => Math.min(100, p + Math.random() * 2));
-    }, 2500);
-    return () => clearInterval(t);
-  }, []);
+  const isAnalyzing = activeProject?.isAnalyzing ?? false;
+  const agentsDone = activeProject?.agentsDone ?? 0;
+  const progress = activeProject?.progress ?? 0;
+
+  // Build dynamic swimlanes based on pipeline execution status
+  const dynamicSwimlanes = departments.map((d) => {
+    const steps = d.agents.map((a) => {
+      const globalIdx = allAgentsList.findIndex((x) => x.key === a.key);
+      let status: "done" | "running" | "pending" = "pending";
+      if (globalIdx < agentsDone) {
+        status = "done";
+      } else if (globalIdx === agentsDone && isAnalyzing) {
+        status = "running";
+      }
+      return {
+        label: a.name,
+        status,
+        time: status === "done" ? "Completed ✓" : status === "running" ? "Running ●" : "Waiting"
+      };
+    });
+
+    return {
+      agent: d.name,
+      role: d.role,
+      color: d.color,
+      steps
+    };
+  });
+
+  // Compile active handoff logs dynamically
+  const activeLogs = handoffMessages
+    .filter((_, idx) => idx < agentsDone)
+    .map((log, idx) => ({
+      from: log.from,
+      to: log.to,
+      msg: log.msg,
+      ts: `Step ${idx + 1}`,
+      color: departments.find(d => d.agents.some(a => a.key === log.key))?.color || "#818cf8"
+    }))
+    .reverse(); // Newest first
+
+  // Determine current active department index in topology
+  let activeDeptIdx = 0;
+  if (agentsDone < 4) activeDeptIdx = 0;
+  else if (agentsDone < 9) activeDeptIdx = 1;
+  else if (agentsDone < 13) activeDeptIdx = 2;
+  else activeDeptIdx = 3;
 
   return (
     <ProjectGuard>
     <DashboardLayout>
       <div className="p-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Collaboration</h1>
+          <h1 className="text-2xl font-bold text-white">Collaboration</h1>
           <p className="text-sm text-gray-400 mt-1">Watch agents hand off work in real time across swimlanes.</p>
         </div>
 
         {/* Header banner */}
         <div className="rounded-xl p-4 flex items-center justify-between"
-          style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.08))", border: "1px solid rgba(99,102,241,0.25)" }}>
+          style={{ background: "linear-gradient(135deg,rgba(218,242,100,0.08),rgba(218,242,100,0.02))", border: "1px solid rgba(218,242,100,0.15)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-sm font-semibold">Multi-agent orchestration · Live collaboration</span>
+            <div className={`w-2.5 h-2.5 rounded-full ${isAnalyzing ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
+            <span className="text-sm font-semibold text-white">
+              {isAnalyzing ? "Multi-agent pipeline running..." : "Multi-agent system idle"}
+            </span>
           </div>
-          <div className="flex items-center gap-4 text-sm text-gray-400">
-            <span>Workflow: <span className="text-white font-medium">Lead-to-Demo Pipeline</span></span>
-            <span>Run #143</span>
-            <span className="text-emerald-400">● Live</span>
+          <div className="flex items-center gap-4 text-xs text-gray-400">
+            <span>Venture: <span className="text-white font-medium">{activeProject?.name || "EV Charging"}</span></span>
+            <span>Progress: <span className="text-[var(--accent)] font-bold">{progress}%</span></span>
+            <span style={{ color: isAnalyzing ? "#fbbf24" : "#34d399" }}>
+              ● {isAnalyzing ? "Analyzing" : "Complete"}
+            </span>
           </div>
         </div>
 
         {/* Swimlanes */}
-        <div className="grid grid-cols-4 gap-3">
-          {swimlanes.map((lane, li) => (
-            <div key={lane.agent} className="rounded-xl overflow-hidden"
-              style={{ border: `1px solid ${lane.color}30` }}>
-              {/* Lane header */}
-              <div className="px-4 py-3 flex items-center gap-2"
-                style={{ background: `${lane.color}15`, borderBottom: `1px solid ${lane.color}20` }}>
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold"
-                  style={{ background: `${lane.color}25`, color: lane.color }}>
-                  {lane.agent[0]}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {dynamicSwimlanes.map((lane, li) => {
+            const isDeptActive = li === activeDeptIdx && isAnalyzing;
+            return (
+              <div key={lane.agent} className="rounded-xl overflow-hidden transition-all duration-300"
+                style={{ 
+                  border: `1px solid ${isDeptActive ? "var(--accent)" : lane.color + "30"}`,
+                  boxShadow: isDeptActive ? "0 0 15px rgba(218,242,100,0.08)" : "none"
+                }}>
+                {/* Lane header */}
+                <div className="px-4 py-3 flex items-center gap-2"
+                  style={{ background: `${lane.color}10`, borderBottom: `1px solid ${lane.color}18` }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                    style={{ background: `${lane.color}15`, color: lane.color }}>
+                    {lane.agent[0]}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold" style={{ color: lane.color }}>{lane.agent}</p>
+                    <p className="text-[10px] text-gray-500">{lane.role}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: lane.color }}>{lane.agent}</p>
-                  <p className="text-xs text-gray-500">{lane.role}</p>
-                </div>
-              </div>
 
-              {/* Steps */}
-              <div className="p-3 space-y-2" style={{ background: "var(--card-bg)" }}>
-                {lane.steps.map((step, si) => (
-                  <motion.div key={si}
-                    initial={{ opacity: 0, x: -4 }}
-                    animate={{ opacity: step.status !== "pending" ? 1 : 0.4, x: 0 }}
-                    transition={{ delay: li * 0.1 + si * 0.05 }}
-                    className="rounded-lg px-3 py-2.5"
-                    style={{
-                      background: step.status === "done" ? `${lane.color}10` : step.status === "running" ? `${lane.color}18` : "var(--background)",
-                      border: `1px solid ${step.status !== "pending" ? lane.color + "30" : "var(--card-border)"}`,
-                    }}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm" style={{
-                        color: step.status === "done" ? "#10b981" : step.status === "running" ? lane.color : "#4a4a6a"
+                {/* Steps */}
+                <div className="p-3 space-y-2" style={{ background: "var(--card-bg)" }}>
+                  {lane.steps.map((step, si) => (
+                    <motion.div key={si}
+                      className="rounded-lg px-3 py-2 border"
+                      style={{
+                        background: step.status === "done" ? `${lane.color}05` : step.status === "running" ? "rgba(218,242,100,0.05)" : "var(--background)",
+                        borderColor: step.status === "done" ? `${lane.color}18` : step.status === "running" ? "var(--accent)" : "var(--card-border)",
+                        opacity: step.status === "pending" ? 0.35 : 1
                       }}>
-                        {step.status === "done" ? "✓" : step.status === "running" ? "⟳" : "○"}
-                      </span>
-                      <span className="text-xs font-medium" style={{ color: step.status === "pending" ? "#4a4a6a" : "var(--foreground)" }}>
-                        {step.label}
-                      </span>
-                    </div>
-                    {step.time && <p className="text-xs text-gray-600 mt-1 ml-5">{step.time}</p>}
-                    {step.status === "running" && (
-                      <div className="mt-2 ml-5 w-full h-0.5 rounded-full overflow-hidden" style={{ background: "var(--card-border)" }}>
-                        <motion.div className="h-full rounded-full" style={{ background: lane.color }}
-                          animate={{ width: ["0%", "80%", "65%"] }} transition={{ duration: 2, repeat: Infinity }} />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs" style={{
+                          color: step.status === "done" ? "#34d399" : step.status === "running" ? "var(--accent)" : "#555"
+                        }}>
+                          {step.status === "done" ? "✓" : step.status === "running" ? "●" : "○"}
+                        </span>
+                        <span className="text-[10px] font-semibold text-white">
+                          {step.label}
+                        </span>
                       </div>
-                    )}
-                  </motion.div>
-                ))}
+                      <p className="text-[9px] text-gray-500 mt-0.5 ml-4">{step.time}</p>
+                      {step.status === "running" && (
+                        <div className="mt-1.5 ml-4 w-full h-0.5 rounded-full overflow-hidden bg-black/40">
+                          <motion.div className="h-full rounded-full" style={{ background: "var(--accent)" }}
+                            animate={{ width: ["0%", "90%", "45%"] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Progress */}
-        <div className="rounded-xl p-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="font-medium">Pipeline progress</span>
-            <span className="text-gray-400">{progress.toFixed(0)}%</span>
+        {/* Progress bar */}
+        <div className="rounded-xl p-4 bg-[var(--card-bg)] border border-[var(--card-border)]">
+          <div className="flex justify-between text-xs mb-2">
+            <span className="font-semibold text-white">Validation Pipeline progress</span>
+            <span style={{ color: "var(--accent)" }}>{progress}%</span>
           </div>
-          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--background)" }}>
+          <div className="w-full h-2 rounded-full bg-black/40 overflow-hidden">
             <motion.div className="h-full rounded-full"
-              style={{ background: "linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa)" }}
-              animate={{ width: `${progress}%` }} transition={{ duration: 0.5 }} />
+              style={{ background: "var(--accent)" }}
+              animate={{ width: `${progress}%` }} transition={{ duration: 0.4 }} />
           </div>
         </div>
 
-        {/* Bottom: message log + topology */}
+        {/* Bottom panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Message log */}
-          <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="text-sm font-semibold mb-4">Agent message log</h3>
-            <div className="space-y-3">
+          {/* Agent log */}
+          <div className="rounded-xl p-5 bg-[var(--card-bg)] border border-[var(--card-border)] flex flex-col h-72">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Agent handoff logs</h3>
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               <AnimatePresence>
-                {messages.map((m, i) => (
+                {activeLogs.map((m, i) => (
                   <motion.div key={i}
-                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-                    className="flex gap-3 p-3 rounded-xl"
-                    style={{
-                      background: activeMsg === i ? `${m.color}10` : "var(--background)",
-                      border: `1px solid ${activeMsg === i ? m.color + "30" : "var(--card-border)"}`,
-                      transition: "all 0.3s"
-                    }}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ background: `${m.color}20`, color: m.color }}>
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-2.5 p-2.5 rounded-lg border bg-black/20 border-white/5">
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                      style={{ background: `${m.color}15`, color: m.color }}>
                       {m.from[0]}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold" style={{ color: m.color }}>{m.from}</span>
-                        <span className="text-xs text-gray-600">→</span>
-                        <span className="text-xs text-gray-400">{m.to}</span>
-                        <span className="text-xs text-gray-600 ml-auto">{m.ts}</span>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[10px] font-semibold" style={{ color: m.color }}>{m.from}</span>
+                        <span className="text-[9px] text-gray-600">→</span>
+                        <span className="text-[10px] text-gray-400 font-semibold">{m.to}</span>
+                        <span className="text-[9px] text-gray-600 ml-auto">{m.ts}</span>
                       </div>
-                      <p className="text-xs text-gray-400 leading-relaxed">{m.msg}</p>
+                      <p className="text-[10px] text-gray-400 leading-normal">{m.msg}</p>
                     </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
+              {activeLogs.length === 0 && (
+                <div className="text-center py-16 text-xs text-gray-600">
+                  Pipeline inactive. Start an analysis run to observe handoffs.
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Network topology */}
-          <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="text-sm font-semibold mb-1">Agent network topology</h3>
-            <p className="text-xs text-gray-500 mb-6">Active connections and message flow</p>
+          {/* Topology map */}
+          <div className="rounded-xl p-5 bg-[var(--card-bg)] border border-[var(--card-border)] flex flex-col justify-between h-72">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Agent network topology</h3>
+              <p className="text-[10px] text-gray-500">Live communication paths between departments</p>
+            </div>
 
-            <div className="flex items-center justify-around relative">
+            <div className="flex items-center justify-around relative py-8">
+              {/* Dynamic SVG links */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ top: 0, left: 0 }}>
-                {connections.map((c, i) => (
-                  <motion.line key={i}
-                    x1={`${12.5 + i * 25}%`} y1="50%" x2={`${25 + i * 25}%`} y2="50%"
-                    stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" strokeDasharray="4 3"
-                    animate={{ strokeDashoffset: [0, -20] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  />
-                ))}
+                {departments.slice(0, 3).map((_, i) => {
+                  const isActiveLink = i === activeDeptIdx && isAnalyzing;
+                  return (
+                    <motion.line key={i}
+                      x1={`${12.5 + i * 25}%`} y1="50%" x2={`${25 + i * 25}%`} y2="50%"
+                      stroke={isActiveLink ? "var(--accent)" : "rgba(255,255,255,0.06)"}
+                      strokeWidth={isActiveLink ? "2" : "1.2"}
+                      strokeDasharray={isActiveLink ? "4 3" : "none"}
+                      animate={isActiveLink ? { strokeDashoffset: [0, -20] } : {}}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    />
+                  );
+                })}
               </svg>
 
-              {swimlanes.map((lane) => (
-                <div key={lane.agent} className="flex flex-col items-center gap-2 z-10">
-                  <motion.div
-                    animate={{ boxShadow: [`0 0 0px ${lane.color}`, `0 0 16px ${lane.color}50`, `0 0 0px ${lane.color}`] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: swimlanes.indexOf(lane) * 0.4 }}
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold"
-                    style={{ background: `${lane.color}20`, color: lane.color, border: `1px solid ${lane.color}40` }}>
-                    {lane.agent[0]}
-                  </motion.div>
-                  <span className="text-xs font-medium" style={{ color: lane.color }}>{lane.agent}</span>
-                  <span className="text-xs text-gray-600">{lane.role}</span>
-                </div>
-              ))}
+              {departments.map((dept, idx) => {
+                const isActive = idx === activeDeptIdx && isAnalyzing;
+                const hasRun = idx < activeDeptIdx;
+                const color = isActive ? "var(--accent)" : hasRun ? dept.color : "#444";
+                return (
+                  <div key={dept.name} className="flex flex-col items-center gap-1.5 z-10">
+                    <motion.div
+                      animate={isActive ? { boxShadow: ["0 0 0px var(--accent)", "0 0 16px rgba(218,242,100,0.35)", "0 0 0px var(--accent)"] } : {}}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center text-base font-bold transition-all duration-300"
+                      style={{ 
+                        background: isActive ? "rgba(218,242,100,0.12)" : "rgba(255,255,255,0.02)", 
+                        color, 
+                        border: `1px solid ${isActive ? "var(--accent)" : "rgba(255,255,255,0.08)"}` 
+                      }}>
+                      {dept.name[0]}
+                    </motion.div>
+                    <span className="text-[10px] font-semibold transition-colors duration-300" style={{ color }}>
+                      {dept.name.split(" ")[0]}
+                    </span>
+                    <span className="text-[9px] text-gray-600">{dept.name.split(" ")[1] || ""}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="text-[9px] text-gray-600 text-center">
+              Active node: <span className="font-mono text-white">{activeProject?.activeAgentNode || "None (Idle)"}</span>
             </div>
           </div>
         </div>

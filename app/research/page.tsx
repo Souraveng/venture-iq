@@ -87,12 +87,27 @@ export default function ResearchPage() {
           </div>
         )}
 
-        {/* TAM / SAM / SOM */}
+        {/* TAM / SAM / SOM — wired to marketIntel */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "TAM", sub: "Total Addressable Market", value: "$2.4T", desc: "Global EV & mobility market by 2030", pct: 100 },
-            { label: "SAM", sub: "Serviceable Addressable Market", value: "$180B", desc: "EV charging & fleet SaaS in Asia-Pacific", pct: 7.5 },
-            { label: "SOM", sub: "Serviceable Obtainable Market", value: "$4.2B", desc: "India EV infra & SaaS — 5-year target", pct: 0.17 },
+            {
+              label: "TAM", sub: "Total Addressable Market",
+              value: activeProject?.marketIntel?.marketSize?.tam || activeProject?.marketIntel?.tam || "$2.4T",
+              desc: activeProject?.marketIntel?.marketSize?.tamDescription || "Global market by 2030",
+              pct: 100
+            },
+            {
+              label: "SAM", sub: "Serviceable Addressable Market",
+              value: activeProject?.marketIntel?.marketSize?.sam || activeProject?.marketIntel?.sam || "$180B",
+              desc: activeProject?.marketIntel?.marketSize?.samDescription || "Addressable segment in target region",
+              pct: activeProject?.marketIntel?.marketSize?.samPct || 7.5
+            },
+            {
+              label: "SOM", sub: "Serviceable Obtainable Market",
+              value: activeProject?.marketIntel?.marketSize?.som || activeProject?.marketIntel?.som || "$4.2B",
+              desc: activeProject?.marketIntel?.marketSize?.somDescription || "5-year target capture",
+              pct: activeProject?.marketIntel?.marketSize?.somPct || 0.17
+            },
           ].map((item) => (
             <motion.div key={item.label} whileHover={{ y: -2 }}
               className="rounded-xl p-5"
@@ -188,6 +203,56 @@ export default function ResearchPage() {
             </div>
           ))}
         </div>
+
+        {/* Research Plan — from researchPlan state */}
+        {activeProject?.researchPlan && activeProject.researchPlan.length > 0 && (
+          <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+            <h3 className="font-semibold text-sm text-white mb-3 flex items-center gap-2">
+              <span style={{ color: ACC }}>◈</span> Research Plan ({activeProject.researchPlan.length} queries)
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {activeProject.researchPlan.map((q: string, i: number) => (
+                <span key={i} className="text-xs px-2.5 py-1.5 rounded-lg"
+                  style={{ background: "rgba(218, 242, 100, 0.06)", color: "var(--muted-fg)", border: "1px solid rgba(218, 242, 100, 0.1)" }}>
+                  {q}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Evidence Sources — from evidence state */}
+        {activeProject?.evidence && activeProject.evidence.length > 0 && (
+          <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+            <h3 className="font-semibold text-sm text-white mb-3 flex items-center gap-2">
+              <span style={{ color: ACC }}>↗</span> Evidence Sources ({activeProject.evidence.length})
+            </h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+              {activeProject.evidence.map((ev: any, i: number) => (
+                <div key={i} className="rounded-lg p-3 flex items-start gap-3"
+                  style={{ background: "var(--background)", border: "1px solid var(--card-border)" }}>
+                  <span className="text-[10px] w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: "rgba(218, 242, 100, 0.1)", color: ACC }}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white font-medium truncate">{ev.title || ev.query || `Source ${i + 1}`}</p>
+                    <p className="text-[10px] mt-0.5 truncate" style={{ color: "var(--muted-fg)" }}>
+                      {ev.url || ev.source || (typeof ev === 'string' ? ev : '')}
+                    </p>
+                  </div>
+                  {ev.credibilityScore != null && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
+                      style={{ background: ev.credibilityScore >= 0.8 ? "rgba(218,242,100,0.1)" : "rgba(245,158,11,0.1)",
+                               color: ev.credibilityScore >= 0.8 ? ACC : "#fbbf24" }}>
+                      {Math.round(ev.credibilityScore * 100)}%
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
     </ProjectGuard>

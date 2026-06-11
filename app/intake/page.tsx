@@ -22,7 +22,7 @@ const agentSteps = [
 
 export default function IntakePage() {
   const router = useRouter();
-  const { projects, activeId, updateProject } = useProjectStore();
+  const { projects, activeId, updateProject, addNotification, addAuditEntry } = useProjectStore();
   const active = projects.find((p) => p.id === activeId);
 
   const [idea, setIdea] = useState("");
@@ -36,17 +36,19 @@ export default function IntakePage() {
     setHydrated(true);
   }, []);
 
+  // Pre-populate input with description of active project if it exists
+  useEffect(() => {
+    if (hydrated && active && active.description) {
+      setIdea(active.description);
+    }
+  }, [hydrated, active]);
+
   // Only redirect after hydration — prevents flash redirect on first render
   useEffect(() => {
-    if (!hydrated) return;
-    if (!active) {
-      router.replace("/");
-      return;
+    if (hydrated && active?.intakeComplete) {
+      router.push("/dashboard");
     }
-    if (active.intakeComplete) {
-      router.replace("/dashboard");
-    }
-  }, [hydrated, active?.id, active?.intakeComplete]);
+  }, [hydrated, active, router]);
 
   function handleSubmit() {
     if (!idea.trim() || submitted) return;
@@ -57,37 +59,138 @@ export default function IntakePage() {
 
   async function handleLaunch() {
     setLaunching(true);
+    const VENTURE_AGENTS = [
+      { nodeKey: "opportunity" }, { nodeKey: "planner" }, { nodeKey: "research" },
+      { nodeKey: "extractor" }, { nodeKey: "validator" }, { nodeKey: "retriever" },
+      { nodeKey: "market" }, { nodeKey: "competitor" }, { nodeKey: "swot" },
+      { nodeKey: "risk" }, { nodeKey: "financial" }, { nodeKey: "analyst" },
+      { nodeKey: "roadmap" }, { nodeKey: "decision" }, { nodeKey: "report" }
+    ];
+    addAuditEntry(activeId, {
+      user: "Founder",
+      avatar: "FO",
+      action: "executed.pipeline",
+      target: active?.name || "New Venture",
+      severity: "low",
+    });
+
     try {
-      // 1. Call your new autonomous backend
+      const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
       const response = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'validate', data: { idea: idea } })
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': geminiApiKey
+        },
+        body: JSON.stringify({ 
+          mode: 'validate', 
+          stream: true,
+          data: { idea: idea },
+          geminiApiKey
+        })
       });
 
-      const result = await response.json();
-
-      if (!response.ok || result.error) {
-        throw new Error(result.error || `Pipeline failed with status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Pipeline failed with status: ${response.status}`);
       }
 
-      // 2. Update the Zustand Store with the real data
-      updateProject(activeId, {
-        status: "active",
-        intakeComplete: true,
-        progress: 100,
-        agentsDone: 5,
-        marketIntel: result.marketIntel || {},
-        competitorIntel: result.competitorIntel || {},
-        swotIntel: result.swotIntel || {},
-        riskIntel: result.riskIntel || {},
-        financialIntel: result.financialIntel || {},
-        finalReport: result.finalReport || {},
-        roadmapIntel: result.roadmapIntel || {},
-        decisionReport: result.decisionReport || {},
-        reportIntel: result.reportIntel || {},
-        researchPlan: result.researchPlan || [],
-      });
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const AGENT_NAMES: Record<string, string> = {
+        opportunity: "Opportunity Understanding",
+        planner: "Research Planner",
+        research: "Evidence Researcher",
+        extractor: "Fact Extractor",
+        validator: "Validation Agent",
+        retriever: "Knowledge Retriever",
+        market: "Market Intelligence",
+        competitor: "Competitor Intelligence",
+        swot: "SWOT Intelligence",
+        risk: "Risk Intelligence",
+        financial: "Financial Intelligence",
+        analyst: "Venture Analyst",
+        roadmap: "Founder Roadmap",
+        decision: "Decision Engine",
+        report: "Report Generation"
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim().startsWith("data: ")) {
+            const dataStr = line.trim().slice(6);
+            if (dataStr === "[DONE]") break;
+
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.event === "node_complete") {
+                const nodeKey = parsed.node;
+                const nodeData = parsed.data;
+                const nodeIdx = VENTURE_AGENTS.findIndex((a) => a.nodeKey === nodeKey);
+                const nextNode = VENTURE_AGENTS[nodeIdx + 1]?.nodeKey || "";
+
+                updateProject(activeId, {
+                  ...nodeData,
+                  agentsDone: nodeIdx + 1,
+                  activeAgentNode: nextNode,
+                  progress: Math.round(((nodeIdx + 1) / VENTURE_AGENTS.length) * 100),
+                });
+
+                const agentName = AGENT_NAMES[nodeKey] || nodeKey;
+                addNotification(activeId, {
+                  title: `${agentName} Completed`,
+                  body: `Agent completed execution in the pipeline.`,
+                  severity: "success",
+                  agent: agentName,
+                });
+                addAuditEntry(activeId, {
+                  user: "system",
+                  avatar: "SY",
+                  action: `completed.${nodeKey}`,
+                  target: active?.name || "New Venture",
+                  severity: "info",
+                });
+              } else if (parsed.event === "complete") {
+                updateProject(activeId, {
+                  ...parsed.result,
+                  status: "active",
+                  intakeComplete: true,
+                  agentsDone: VENTURE_AGENTS.length,
+                  progress: 100,
+                  isAnalyzing: false,
+                  activeAgentNode: "",
+                });
+
+                addNotification(activeId, {
+                  title: `Pipeline Execution Complete`,
+                  body: `Full multi-agent pipeline completed successfully.`,
+                  severity: "success",
+                  agent: "Decision Engine",
+                });
+                addAuditEntry(activeId, {
+                  user: "system",
+                  avatar: "SY",
+                  action: "completed.pipeline",
+                  target: active?.name || "New Venture",
+                  severity: "info",
+                });
+              }
+            } catch (err) {
+              console.error("Error parsing stream chunk:", err, dataStr);
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error("Pipeline invocation error:", error);
       updateProject(activeId, {

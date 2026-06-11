@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useProjectStore } from "@/store/useProjectStore";
 
 const examples = [
   "I want to launch an EV startup in India.",
@@ -14,9 +15,14 @@ const examples = [
 export default function LandingPage() {
   const [idea, setIdea] = useState("");
   const router = useRouter();
+  const { addProject } = useProjectStore();
 
   function handleStart() {
-    if (idea.trim()) router.push("/dashboard");
+    if (!idea.trim()) return;
+    const words = idea.trim().split(/\s+/);
+    const derivedName = words.slice(0, 4).join(" ") + (words.length > 4 ? "..." : "");
+    addProject(derivedName, idea.trim());
+    router.push("/intake");
   }
 
   return (

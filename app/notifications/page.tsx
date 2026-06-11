@@ -1,32 +1,11 @@
 "use client";
 import ProjectGuard from "@/components/ProjectGuard";
-import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useProjectStore, NotificationItem } from "@/store/useProjectStore";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Severity = "warning" | "success" | "info" | "error";
-
-interface Notification {
-  id: number;
-  title: string;
-  body: string;
-  time: string;
-  severity: Severity;
-  agent?: string;
-  read: boolean;
-  action?: string;
-}
-
-const initialNotifications: Notification[] = [
-  { id: 1, title: "Helios needs approval", body: "Outbound email to 142 contacts pending review before send.", time: "Just now", severity: "warning", agent: "Helios", read: false, action: "Review" },
-  { id: 2, title: "Workflow completed", body: "Lead-to-Demo Pipeline finished successfully in 4m 12s. 3 demos booked.", time: "8 min ago", severity: "success", agent: "Orion", read: false, action: "View run" },
-  { id: 3, title: "Orion load high", body: "CPU usage at 91% — task queue backing up. Consider scaling.", time: "22 min ago", severity: "error", agent: "Orion", read: false, action: "Scale" },
-  { id: 4, title: "API key expiring", body: "Stripe API key expires in 3 days. Rotate to avoid service interruption.", time: "1h ago", severity: "warning", read: false, action: "Rotate" },
-  { id: 5, title: "New agent template", body: "A new 'Customer Churn Responder' template is available in the gallery.", time: "Yesterday", severity: "info", read: true, action: "View" },
-  { id: 6, title: "Atlas memory upgraded", body: "Long-term memory expanded to 50k vectors. Research quality improved.", time: "Yesterday", severity: "success", agent: "Atlas", read: true },
-  { id: 7, title: "Weekly brief delivered", body: "Competitive intelligence report for W23 ready in Conversations.", time: "2 days ago", severity: "info", agent: "Echo", read: true, action: "Open" },
-  { id: 8, title: "Rate limit hit", body: "OpenAI rate limit reached at 03:40. Orion switched to fallback model.", time: "2 days ago", severity: "warning", agent: "Orion", read: true },
-];
+type Severity = "warning" | "success" | "error" | "info";
 
 const severityConfig: Record<Severity, { bg: string; text: string; border: string; icon: string; dot: string }> = {
   warning: { bg: "rgba(245,158,11,0.08)", text: "#fbbf24", border: "rgba(245,158,11,0.25)", icon: "⚠", dot: "#fbbf24" },
@@ -36,20 +15,40 @@ const severityConfig: Record<Severity, { bg: string; text: string; border: strin
 };
 
 const agentColor: Record<string, string> = {
-  Atlas: "#818cf8", Vega: "#34d399", Orion: "#fbbf24",
-  Lyra: "#f472b6", Helios: "#a78bfa", Echo: "#2dd4bf",
+  "Opportunity Understanding": "#daf264",
+  "Research Planner": "#daf264",
+  "Evidence Researcher": "#daf264",
+  "Fact Extractor": "#daf264",
+  "Validation Agent": "#daf264",
+  "Knowledge Retriever": "#daf264",
+  "Market Intelligence": "#daf264",
+  "Competitor Intelligence": "#daf264",
+  "SWOT Intelligence": "#daf264",
+  "Risk Intelligence": "#daf264",
+  "Financial Intelligence": "#daf264",
+  "Venture Analyst": "#daf264",
+  "Founder Roadmap": "#daf264",
+  "Decision Engine": "#daf264",
+  "Report Generation": "#daf264"
 };
 
 export default function NotificationsPage() {
-  const [notifs, setNotifs] = useState(initialNotifications);
+  const { projects, activeId, markNotificationsRead, dismissNotification } = useProjectStore();
+  const activeProject = projects.find((p) => p.id === activeId);
+
   const [filter, setFilter] = useState<"all" | Severity>("all");
 
+  const notifs: NotificationItem[] = activeProject?.notifications ?? [];
   const filtered = filter === "all" ? notifs : notifs.filter((n) => n.severity === filter);
   const unread = notifs.filter((n) => !n.read).length;
 
-  const markAllRead = () => setNotifs((p) => p.map((n) => ({ ...n, read: true })));
-  const dismiss = (id: number) => setNotifs((p) => p.filter((n) => n.id !== id));
-  const markRead = (id: number) => setNotifs((p) => p.map((n) => n.id === id ? { ...n, read: true } : n));
+  const handleMarkAllRead = () => {
+    if (activeProject) markNotificationsRead(activeId);
+  };
+
+  const handleDismiss = (id: number) => {
+    if (activeProject) dismissNotification(activeId, id);
+  };
 
   return (
     <ProjectGuard>
@@ -59,19 +58,19 @@ export default function NotificationsPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">Notifications</h1>
+              <h1 className="text-2xl font-bold text-white">Notifications</h1>
               {unread > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                  style={{ background: "var(--accent)", color: "white" }}>
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold text-black"
+                  style={{ background: "var(--accent)" }}>
                   {unread} new
                 </span>
               )}
             </div>
             <p className="text-sm text-gray-400 mt-1">Agent alerts, approvals, and system events.</p>
           </div>
-          <button onClick={markAllRead}
+          <button onClick={handleMarkAllRead}
             className="text-xs px-3 py-1.5 rounded-lg transition-colors"
-            style={{ color: "#818cf8", background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>
+            style={{ color: "var(--accent)", background: "rgba(218,242,100,0.08)", border: "1px solid rgba(218,242,100,0.15)" }}>
             Mark all read
           </button>
         </div>
@@ -80,7 +79,7 @@ export default function NotificationsPage() {
         <div className="flex gap-2">
           {(["all", "warning", "error", "success", "info"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all"
               style={{
                 background: filter === f ? "rgba(99,102,241,0.2)" : "var(--card-bg)",
                 color: filter === f ? "#818cf8" : "var(--muted-fg)",
@@ -107,8 +106,7 @@ export default function NotificationsPage() {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: 40, scale: 0.96 }}
-                  onClick={() => markRead(n.id)}
-                  className="rounded-xl p-4 flex items-start gap-4 cursor-pointer transition-all"
+                  className="rounded-xl p-4 flex items-start gap-4 transition-all"
                   style={{
                     background: !n.read ? cfg.bg : "var(--card-bg)",
                     border: `1px solid ${!n.read ? cfg.border : "var(--card-border)"}`,
@@ -123,7 +121,7 @@ export default function NotificationsPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-sm font-semibold">{n.title}</span>
+                      <span className="text-sm font-semibold text-white">{n.title}</span>
                       {!n.read && (
                         <span className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ background: cfg.dot }} />
@@ -132,27 +130,24 @@ export default function NotificationsPage() {
                     <p className="text-xs text-gray-400 leading-relaxed mb-2">{n.body}</p>
                     <div className="flex items-center gap-3">
                       {n.agent && (
-                        <span className="text-xs px-2 py-0.5 rounded-full"
-                          style={{ background: `${agentColor[n.agent] ?? "#818cf8"}18`, color: agentColor[n.agent] ?? "#818cf8" }}>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full"
+                          style={{ background: "rgba(218,242,100,0.08)", color: "var(--accent)" }}>
                           {n.agent}
                         </span>
                       )}
-                      <span className="text-xs text-gray-600">{n.time}</span>
+                      <span className="text-[10px] text-gray-600">{n.time}</span>
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {n.action && (
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
-                        style={{ background: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}>
+                      <span className="text-[10px] px-2 py-1 rounded border border-white/10 bg-black/20 text-gray-400">
                         {n.action}
-                      </button>
+                      </span>
                     )}
                     <button
-                      onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
+                      onClick={(e) => { e.stopPropagation(); handleDismiss(n.id); }}
                       className="text-gray-600 hover:text-gray-300 transition-colors text-lg leading-none px-1">
                       ×
                     </button>

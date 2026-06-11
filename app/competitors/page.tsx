@@ -50,11 +50,16 @@ export default function CompetitorsPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
-  const dynamicSwot = activeProject?.marketIntel?.swot ? {
-    Strengths: activeProject.marketIntel.swot.strengths || [],
-    Weaknesses: activeProject.marketIntel.swot.weaknesses || [],
-    Opportunities: activeProject.marketIntel.swot.opportunities || [],
-    Threats: activeProject.marketIntel.swot.threats || [],
+  // Prefer swotIntel from dedicated SWOT agent → marketIntel.swot fallback → static
+  const swotSource = activeProject?.swotIntel && Object.keys(activeProject.swotIntel).length > 0
+    ? activeProject.swotIntel
+    : activeProject?.marketIntel?.swot || null;
+
+  const dynamicSwot = swotSource ? {
+    Strengths: swotSource.strengths || [],
+    Weaknesses: swotSource.weaknesses || [],
+    Opportunities: swotSource.opportunities || [],
+    Threats: swotSource.threats || [],
   } : swotData;
 
   const dynamicCompetitors = activeProject?.competitorIntel?.competitorProfiles

@@ -93,8 +93,30 @@ export default function ValidationPage() {
   const overallScore = Math.round(scores.reduce((a, s) => a + s.score, 0) / scores.length);
   const radarData = scores.map((s) => ({ dimension: s.dimension.split(" ")[0], value: s.score }));
 
-  const totalChecks = checks.flatMap((c) => c.items).length;
-  const passedChecks = checks.flatMap((c) => c.items).filter((i) => i.pass).length;
+  // Dynamic checklist from validatedFacts, with static fallback
+  const dynamicChecks = (() => {
+    const vf = activeProject?.validatedFacts;
+    if (vf && Array.isArray(vf) && vf.length > 0) {
+      const grouped: Record<string, { label: string; pass: boolean; confidence?: number }[]> = {};
+      vf.forEach((fact: any) => {
+        const cat = fact.category || "General";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push({
+          label: fact.claim || fact.statement || fact.text || "Unknown fact",
+          pass: fact.status === "validated" || fact.status === "confirmed" || fact.validated === true,
+          confidence: fact.confidence,
+        });
+      });
+      return Object.entries(grouped).map(([category, items]) => ({ category, items }));
+    }
+    return checks.map(c => ({
+      category: c.category,
+      items: c.items.map(item => ({ ...item, confidence: undefined as number | undefined })),
+    }));
+  })();
+
+  const totalChecks = dynamicChecks.flatMap((c) => c.items).length;
+  const passedChecks = dynamicChecks.flatMap((c) => c.items).filter((i) => i.pass).length;
 
   const decisionColors = {
     "STRONG YES": { text: "#22c55e", bg: "rgba(34, 197, 94, 0.08)", border: "rgba(34, 197, 94, 0.2)" },
@@ -231,9 +253,9 @@ export default function ValidationPage() {
           </div>
         </div>
 
-        {/* Checklist */}
+        {/* Checklist — dynamic from validatedFacts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {checks.map((cat) => (
+          {dynamicChecks.map((cat) => (
             <div key={cat.category} className="rounded-xl p-5"
               style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
               <div className="flex items-center justify-between mb-3">
@@ -254,12 +276,52 @@ export default function ValidationPage() {
                       {item.pass ? "✓" : "✕"}
                     </span>
                     <span style={{ color: item.pass ? "white" : "#555" }}>{item.label}</span>
+                    {item.confidence != null && (
+                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded"
+                        style={{ background: "var(--muted)", color: "#888" }}>
+                        {Math.round(item.confidence * 100)}%
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
             </div>
           ))}
         </div>
+
+        {/* Data Conflicts */}
+        {activeProject?.conflicts && activeProject.conflicts.length > 0 && (
+          <div className="rounded-xl p-5" style={{ background: "rgba(245,158,11,0.03)", border: "1px solid rgba(245,158,11,0.15)" }}>
+            <h3 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <span>⚡</span> Data Conflicts ({activeProject.conflicts.length})
+            </h3>
+            <ul className="space-y-2">
+              {activeProject.conflicts.map((c: any, i: number) => (
+                <li key={i} className="text-xs text-white leading-relaxed flex items-start gap-2">
+                  <span className="text-yellow-400 mt-0.5 flex-shrink-0">•</span>
+                  <span>{c.description || c.claim || JSON.stringify(c)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Source Reliability */}
+        {activeProject?.reliability && Object.keys(activeProject.reliability).length > 0 && (
+          <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+            <h3 className="text-sm font-semibold text-white mb-3">Source Reliability</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {Object.entries(activeProject.reliability).map(([key, val]: [string, any]) => (
+                <div key={key} className="text-center p-3 rounded-lg" style={{ background: "var(--background)", border: "1px solid var(--card-border)" }}>
+                  <p className="text-lg font-bold" style={{ color: typeof val === 'number' && val >= 0.8 ? "#daf264" : typeof val === 'number' && val >= 0.6 ? "#fbbf24" : "#f87171" }}>
+                    {typeof val === 'number' ? `${Math.round(val * 100)}%` : String(val)}
+                  </p>
+                  <p className="text-[10px] mt-1" style={{ color: "var(--muted-fg)" }}>{key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
     </ProjectGuard>

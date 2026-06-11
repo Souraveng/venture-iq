@@ -7,12 +7,22 @@ import { motion } from "framer-motion";
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
 import { useProjectStore } from "@/store/useProjectStore";
 
-const agentStatus = [
-  { name: "Market Research", icon: "◎", status: "done",    output: "Market Analysis Report", time: "2m 14s" },
-  { name: "Competitor Analysis", icon: "⬡", status: "done", output: "Competitor Matrix + SWOT", time: "3m 02s" },
-  { name: "Finance Agent",   icon: "◆", status: "running", output: "Revenue Forecast in progress…", time: "—" },
-  { name: "Legal Agent",     icon: "≡", status: "waiting", output: "Waiting for Finance Agent", time: "—" },
-  { name: "Pitch Deck",      icon: "✦", status: "waiting", output: "Waiting for Legal Agent", time: "—" },
+const VENTURE_AGENTS = [
+  { name: "Opportunity Understanding", icon: "◎", nodeKey: "opportunity" },
+  { name: "Research Planner",          icon: "◈", nodeKey: "planner" },
+  { name: "Evidence Researcher",       icon: "↗", nodeKey: "research" },
+  { name: "Fact Extractor",            icon: "◉", nodeKey: "extractor" },
+  { name: "Validation Agent",          icon: "✓", nodeKey: "validator" },
+  { name: "Knowledge Retriever",       icon: "◫", nodeKey: "retriever" },
+  { name: "Market Intelligence",       icon: "◎", nodeKey: "market" },
+  { name: "Competitor Intelligence",   icon: "⬡", nodeKey: "competitor" },
+  { name: "SWOT Intelligence",         icon: "⊞", nodeKey: "swot" },
+  { name: "Risk Intelligence",         icon: "⚠", nodeKey: "risk" },
+  { name: "Financial Intelligence",    icon: "◆", nodeKey: "financial" },
+  { name: "Venture Analyst",           icon: "◈", nodeKey: "analyst" },
+  { name: "Founder Roadmap",           icon: "⟳", nodeKey: "roadmap" },
+  { name: "Decision Engine",           icon: "✦", nodeKey: "decision" },
+  { name: "Report Generation",         icon: "≡", nodeKey: "report" },
 ];
 
 const statusStyle = {
@@ -43,7 +53,7 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 }
 
 export default function DashboardPage() {
-  const { projects, activeId, updateProject } = useProjectStore();
+  const { projects, activeId, updateProject, addNotification, addAuditEntry } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId)!;
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -63,16 +73,31 @@ export default function DashboardPage() {
 
   async function handleRerun() {
     setLoading(true);
+    updateProject(activeId, { isAnalyzing: true, progress: 0, agentsDone: 0, activeAgentNode: "opportunity" });
+    addAuditEntry(activeId, {
+      user: "Founder",
+      avatar: "FO",
+      action: "executed.pipeline",
+      target: activeProject.name,
+      severity: "low",
+    });
+
     try {
+      const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-gemini-api-key": geminiApiKey
+        },
         body: JSON.stringify({
           mode: "full",
+          stream: true,
           data: {
             name: activeProject.name,
             description: activeProject.description,
           },
+          geminiApiKey,
         }),
       });
 
@@ -80,27 +105,110 @@ export default function DashboardPage() {
         throw new Error("Rerun failed");
       }
 
-      const result = await response.json();
-      console.log("Rerun result:", result);
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("Failed to get response reader");
+      }
 
-      updateProject(activeId, {
-        marketIntel: result.marketIntel || {},
-        competitorIntel: result.competitorIntel || {},
-        swotIntel: result.swotIntel || {},
-        riskIntel: result.riskIntel || {},
-        financialIntel: result.financialIntel || {},
-        finalReport: result.finalReport || {},
-        roadmapIntel: result.roadmapIntel || {},
-        decisionReport: result.decisionReport || {},
-        reportIntel: result.reportIntel || {},
-        researchPlan: result.researchPlan || [],
-        agentsDone: 5,
-        progress: 100,
-      });
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const AGENT_NAMES: Record<string, string> = {
+        opportunity: "Opportunity Understanding",
+        planner: "Research Planner",
+        research: "Evidence Researcher",
+        extractor: "Fact Extractor",
+        validator: "Validation Agent",
+        retriever: "Knowledge Retriever",
+        market: "Market Intelligence",
+        competitor: "Competitor Intelligence",
+        swot: "SWOT Intelligence",
+        risk: "Risk Intelligence",
+        financial: "Financial Intelligence",
+        analyst: "Venture Analyst",
+        roadmap: "Founder Roadmap",
+        decision: "Decision Engine",
+        report: "Report Generation"
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim().startsWith("data: ")) {
+            const dataStr = line.trim().slice(6);
+            if (dataStr === "[DONE]") break;
+
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.event === "node_complete") {
+                const nodeKey = parsed.node;
+                const nodeData = parsed.data;
+                const nodeIdx = VENTURE_AGENTS.findIndex((a) => a.nodeKey === nodeKey);
+                const nextNode = VENTURE_AGENTS[nodeIdx + 1]?.nodeKey || "";
+
+                updateProject(activeId, {
+                  ...nodeData,
+                  agentsDone: nodeIdx + 1,
+                  activeAgentNode: nextNode,
+                  progress: Math.round(((nodeIdx + 1) / VENTURE_AGENTS.length) * 100),
+                });
+
+                const agentName = AGENT_NAMES[nodeKey] || nodeKey;
+                addNotification(activeId, {
+                  title: `${agentName} Completed`,
+                  body: `Agent completed execution in the pipeline.`,
+                  severity: "success",
+                  agent: agentName,
+                });
+                addAuditEntry(activeId, {
+                  user: "system",
+                  avatar: "SY",
+                  action: `completed.${nodeKey}`,
+                  target: activeProject.name,
+                  severity: "info",
+                });
+              } else if (parsed.event === "complete") {
+                updateProject(activeId, {
+                  ...parsed.result,
+                  agentsDone: VENTURE_AGENTS.length,
+                  progress: 100,
+                  isAnalyzing: false,
+                  activeAgentNode: "",
+                });
+
+                addNotification(activeId, {
+                  title: `Pipeline Execution Complete`,
+                  body: `Full multi-agent pipeline completed successfully.`,
+                  severity: "success",
+                  agent: "Decision Engine",
+                });
+                addAuditEntry(activeId, {
+                  user: "system",
+                  avatar: "SY",
+                  action: "completed.pipeline",
+                  target: activeProject.name,
+                  severity: "info",
+                });
+              } else if (parsed.event === "error") {
+                console.error("Streaming error:", parsed.error);
+              }
+            } catch (err) {
+              console.error("Error parsing stream chunk:", err, dataStr);
+            }
+          }
+        }
+      }
     } catch (e) {
       console.error("Failed to rerun:", e);
     } finally {
       setLoading(false);
+      updateProject(activeId, { isAnalyzing: false });
     }
   }
 
@@ -118,6 +226,32 @@ export default function DashboardPage() {
             &nbsp;·&nbsp; {loading ? "Re-running pipeline..." : `${activeProject.agentsDone} of ${activeProject.totalAgents} agents completed`}
           </p>
         </motion.div>
+
+        {/* Venture Context strip */}
+        {activeProject?.ventureContext && Object.keys(activeProject.ventureContext).length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {activeProject.ventureContext.industry && (
+              <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(218,242,100,0.08)", color: "var(--accent)", border: "1px solid rgba(218,242,100,0.15)" }}>
+                {activeProject.ventureContext.industry}
+              </span>
+            )}
+            {activeProject.ventureContext.stage && (
+              <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(130,140,248,0.08)", color: "#818cf8", border: "1px solid rgba(130,140,248,0.15)" }}>
+                Stage: {activeProject.ventureContext.stage}
+              </span>
+            )}
+            {activeProject.ventureContext.location && (
+              <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(52,211,153,0.08)", color: "#34d399", border: "1px solid rgba(52,211,153,0.15)" }}>
+                📍 {activeProject.ventureContext.location}
+              </span>
+            )}
+            {activeProject.ventureContext.budget && (
+              <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(251,191,36,0.08)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.15)" }}>
+                💰 {activeProject.ventureContext.budget}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Idea strip */}
         <div className="flex items-center gap-3 rounded-xl p-4"
@@ -279,73 +413,78 @@ export default function DashboardPage() {
           )
         )}
 
-        {/* Agent pipeline */}
+        {/* Agent pipeline — Real 15 VentureIQ agents */}
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
           <div className="px-5 py-4 flex items-center justify-between"
             style={{ background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
-            <h2 className="text-sm font-semibold">Agent Pipeline</h2>
+            <h2 className="text-sm font-semibold">VentureIQ Agent Pipeline</h2>
             <span className="text-xs px-2.5 py-1 rounded-full font-medium"
               style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
-              ● Live
+              {activeProject?.agentsDone === activeProject?.totalAgents ? "✓ Complete" : "● Live"}
             </span>
           </div>
           <div style={{ background: "var(--background)" }}>
-            {agentStatus.map((agent, i) => {
-              const s = statusStyle[agent.status as keyof typeof statusStyle];
+            {VENTURE_AGENTS.map((agent, i) => {
+              const isDone = i < (activeProject?.agentsDone ?? 0);
+              const isRunning = i === (activeProject?.agentsDone ?? 0) && loading;
+              const status = isDone ? "done" : isRunning ? "running" : "waiting";
+              const s = statusStyle[status as keyof typeof statusStyle];
               return (
                 <motion.div key={agent.name}
-                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
-                  className="flex items-center gap-4 px-5 py-4 border-b last:border-0"
+                  initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
+                  className="flex items-center gap-4 px-5 py-3 border-b last:border-0"
                   style={{ borderColor: "var(--card-border)" }}>
-                  {/* Step number */}
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{ background: agent.status === "done" ? "rgba(218, 242, 100, 0.15)" : "var(--card-bg)", color: agent.status === "done" ? "var(--accent)" : "#444", border: "1px solid var(--card-border)" }}>
-                    {agent.status === "done" ? "✓" : i + 1}
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                    style={{ background: isDone ? "rgba(218, 242, 100, 0.15)" : "var(--card-bg)", color: isDone ? "var(--accent)" : "#444", border: "1px solid var(--card-border)" }}>
+                    {isDone ? "✓" : i + 1}
                   </div>
-
-                  {/* Icon */}
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
                     style={{ background: s.bg, color: s.color }}>
                     {agent.icon}
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white">{agent.name}</p>
-                    <p className="text-xs truncate" style={{ color: "var(--muted-fg)" }}>{agent.output}</p>
+                    <p className="text-xs font-semibold text-white">{agent.name}</p>
                   </div>
-
-                  {/* Time */}
-                  {agent.time !== "—" && (
-                    <span className="text-xs" style={{ color: "var(--muted-fg)" }}>{agent.time}</span>
-                  )}
-
-                  {/* Status badge */}
-                  <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
                     style={{ background: s.bg, color: s.color }}>
-                    {agent.status === "running" && <span className="mr-1 inline-block w-1.5 h-1.5 rounded-full bg-current animate-pulse" />}
+                    {isRunning && <span className="mr-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse" />}
                     {s.label}
                   </span>
-
-                  {/* Action */}
-                  {agent.status === "done" && (
-                    <button className="text-xs px-2.5 py-1 rounded-lg flex-shrink-0"
-                      style={{ background: "rgba(218, 242, 100, 0.08)", color: "var(--accent)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
-                      View →
-                    </button>
-                  )}
                 </motion.div>
               );
             })}
           </div>
         </div>
 
-        {/* Quick outputs */}
+        {/* Quick outputs — wired to graph data */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { title: "Market Size (TAM)", value: "$2.4T", sub: "Global EV market by 2030", icon: "◎" },
-            { title: "Top Competitor", value: "Ather Energy", sub: "Direct · India market leader", icon: "⬡" },
-            { title: "Funding Required", value: "$4.2M", sub: "Seed round estimate", icon: "◆" },
+            {
+              title: "Market Size (TAM)",
+              value: activeProject?.marketIntel?.marketSize?.tam
+                ? activeProject.marketIntel.marketSize.tam
+                : activeProject?.marketIntel?.tam || "$2.4T",
+              sub: activeProject?.marketIntel?.marketSize?.description || "Total addressable market",
+              icon: "◎"
+            },
+            {
+              title: "Top Competitor",
+              value: activeProject?.competitorIntel?.competitorProfiles?.[0]?.name || "Not analyzed",
+              sub: activeProject?.competitorIntel?.competitorProfiles?.[0]?.type
+                ? `${activeProject.competitorIntel.competitorProfiles[0].type} · ${activeProject.competitorIntel.competitorProfiles[0].geography || "Global"}`
+                : "Run analysis to discover",
+              icon: "⬡"
+            },
+            {
+              title: "Funding Required",
+              value: activeProject?.financialIntel?.fundingRequirements?.capitalNeeded
+                ? (activeProject.financialIntel.fundingRequirements.capitalNeeded >= 1000000
+                    ? `$${(activeProject.financialIntel.fundingRequirements.capitalNeeded / 1000000).toFixed(1)}M`
+                    : `$${Math.round(activeProject.financialIntel.fundingRequirements.capitalNeeded / 1000)}K`)
+                : "$4.2M",
+              sub: activeProject?.financialIntel?.fundingRequirements?.fundingTimeline || "Seed round estimate",
+              icon: "◆"
+            },
           ].map((item) => (
             <motion.div key={item.title} whileHover={{ y: -2 }}
               className="rounded-xl p-4"
