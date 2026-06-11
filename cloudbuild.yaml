@@ -3,7 +3,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$COMMIT_SHA',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$BUILD_ID',
       '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:latest',
       '.'
     ]
@@ -13,4 +13,4 @@ steps:
     args: ['push', '--all-tags', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app']
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$BUILD_ID'
