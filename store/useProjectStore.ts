@@ -13,8 +13,14 @@ export interface Project {
   status: "intake" | "active" | "draft" | "complete";
   intakeComplete: boolean;
   marketIntel?: Record<string, any>;
+  competitorIntel?: Record<string, any>;
+  swotIntel?: Record<string, any>;
+  riskIntel?: Record<string, any>;
   financialIntel?: Record<string, any>;
   finalReport?: Record<string, any>;
+  roadmapIntel?: Record<string, any>;
+  decisionReport?: Record<string, any>;
+  reportIntel?: Record<string, any>;
   researchPlan?: string[];
   isAnalyzing?: boolean;
   analysis?: any;

@@ -78,8 +78,14 @@ export default function IntakePage() {
         progress: 100,
         agentsDone: 5,
         marketIntel: result.marketIntel || {},
+        competitorIntel: result.competitorIntel || {},
+        swotIntel: result.swotIntel || {},
+        riskIntel: result.riskIntel || {},
         financialIntel: result.financialIntel || {},
         finalReport: result.finalReport || {},
+        roadmapIntel: result.roadmapIntel || {},
+        decisionReport: result.decisionReport || {},
+        reportIntel: result.reportIntel || {},
         researchPlan: result.researchPlan || [],
       });
     } catch (error) {

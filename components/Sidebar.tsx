@@ -12,6 +12,7 @@ const navItems = [
   { href: "/agents",      label: "Agent Network",   icon: "◈", badge: 5 },
   { href: "/research",    label: "Market Research", icon: "◎" },
   { href: "/competitors", label: "Competitors",     icon: "⬡" },
+  { href: "/risks",       label: "Risk Analysis",   icon: "⚠" },
   { href: "/financials",  label: "Financials",      icon: "◆" },
   { href: "/pitch",       label: "Pitch Deck",      icon: "✦" },
   { href: "/roadmap",     label: "Roadmap",         icon: "⟳" },

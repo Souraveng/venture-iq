@@ -44,13 +44,50 @@ export default function ValidationPage() {
 
   const baseReadiness = activeProject?.finalReport?.readinessScore ?? 74;
 
+  const fallbackAnalystReport = {
+    investmentRecommendation: {
+      decision: "YES",
+      confidence: 78,
+      reasoning: [
+        "Extremely healthy unit economics with a projected LTV:CAC of 20x.",
+        "Optimal entry timing aligning with massive fleet electrification cycles.",
+        "Clear software-first value proposition avoiding capital-heavy hardware acquisitions."
+      ],
+      requiredMilestones: [
+        "Validate initial charging telemetry software with at least 5 charge points under a live pilot.",
+        "Deploy fallback status caching to handle grid latency or dropouts."
+      ]
+    },
+    redFlags: [
+      "Strict ₹2 Lakhs initial budget constraint severely limits runway and early hardware testing capacity.",
+      "Ather Grid and Tata Power command massive pre-existing real estate advantages at prime charging spots.",
+      "High reliance on third-party electricity grid distribution reliability and local DISCOM policies."
+    ],
+    moatAnalysis: {
+      identifiedMoats: ["Proprietary grid load balancing algorithm", "Fleet transaction data network"],
+      moatStrengthScore: 72,
+      sustainabilityScore: 78
+    }
+  };
+
+  const analystData = (activeProject?.finalReport?.investmentRecommendation
+    ? activeProject.finalReport
+    : fallbackAnalystReport) as any;
+
+  const marketSize = activeProject?.finalReport?.marketAttractiveness?.overallScore ?? Math.min(100, Math.round(baseReadiness * 1.15));
+  const competition = activeProject?.finalReport?.moatAnalysis?.moatStrengthScore ?? Math.min(100, Math.round(baseReadiness * 0.95));
+  const teamReadiness = activeProject?.finalReport?.ventureReadiness?.executionReadinessScore ?? Math.min(100, Math.round(baseReadiness * 1.05));
+  const financialViability = activeProject?.finalReport?.ventureReadiness?.financialReadinessScore ?? Math.min(100, Math.round(baseReadiness * 1.02));
+  const legalCompliance = activeProject?.finalReport?.ventureReadiness?.fundraisingReadinessScore ?? Math.max(0, Math.round(baseReadiness * 0.85));
+  const executionRisk = activeProject?.finalReport?.ventureReadiness?.customerValidationScore ?? Math.max(0, Math.round(100 - baseReadiness * 0.8));
+
   const scores = [
-    { dimension: "Market Size",       score: Math.min(100, Math.round(baseReadiness * 1.15)), max: 100, color: "#daf264", insight: "Evaluated from live market research data" },
-    { dimension: "Competition",       score: Math.min(100, Math.round(baseReadiness * 0.95)), max: 100, color: "#daf264", insight: "Based on mapped direct and indirect threat levels" },
-    { dimension: "Team Readiness",    score: Math.min(100, Math.round(baseReadiness * 1.05)), max: 100, color: "#daf264", insight: "Venture execution capability analysis" },
-    { dimension: "Financial Viability",score: Math.min(100, Math.round(baseReadiness * 1.02)), max: 100, color: "#daf264", insight: "Calculated from estimated breakeven runway" },
-    { dimension: "Legal / Compliance",score: Math.max(0, Math.round(baseReadiness * 0.85)), max: 100, color: "#fbbf24", insight: "Evaluated from initial concept requirements" },
-    { dimension: "Execution Risk",    score: Math.max(0, Math.round(100 - baseReadiness * 0.8)), max: 100, color: "#fbbf24", insight: "Key hardware/software integration risks" },
+    { dimension: "Market Size",       score: marketSize, max: 100, color: "#daf264", insight: "Evaluated from live market size and growth analysis" },
+    { dimension: "Competition Moat",  score: competition, max: 100, color: "#daf264", insight: "Based on defensibility barriers and replication difficulty" },
+    { dimension: "Team Readiness",    score: teamReadiness, max: 100, color: "#daf264", insight: "Venture founder-market fit and execution analysis" },
+    { dimension: "Financial Viability",score: financialViability, max: 100, color: "#daf264", insight: "Calculated from capital efficiency and payback timelines" },
+    { dimension: "Legal / Compliance",score: legalCompliance, max: 100, color: "#fbbf24", insight: "Evaluated from regulatory compliance readiness" },
+    { dimension: "Execution Risk",    score: executionRisk, max: 100, color: "#fbbf24", insight: "Evaluated from customer validation pilots and GTM status" },
   ];
 
   const overallScore = Math.round(scores.reduce((a, s) => a + s.score, 0) / scores.length);
@@ -58,6 +95,16 @@ export default function ValidationPage() {
 
   const totalChecks = checks.flatMap((c) => c.items).length;
   const passedChecks = checks.flatMap((c) => c.items).filter((i) => i.pass).length;
+
+  const decisionColors = {
+    "STRONG YES": { text: "#22c55e", bg: "rgba(34, 197, 94, 0.08)", border: "rgba(34, 197, 94, 0.2)" },
+    "YES": { text: "#22c55e", bg: "rgba(34, 197, 94, 0.08)", border: "rgba(34, 197, 94, 0.2)" },
+    "MAYBE": { text: "#eab308", bg: "rgba(234, 179, 8, 0.08)", border: "rgba(234, 179, 8, 0.2)" },
+    "NO": { text: "#ef4444", bg: "rgba(239, 68, 68, 0.08)", border: "rgba(239, 68, 68, 0.2)" },
+    "STRONG NO": { text: "#ef4444", bg: "rgba(239, 68, 68, 0.08)", border: "rgba(239, 68, 68, 0.2)" }
+  };
+
+  const decStyle = decisionColors[analystData.investmentRecommendation.decision as keyof typeof decisionColors] || decisionColors.MAYBE;
 
   return (
     <ProjectGuard>
@@ -71,43 +118,83 @@ export default function ValidationPage() {
         </div>
 
         {/* Overall score hero */}
-        <div className="rounded-2xl p-8 flex items-center gap-8"
-          style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
-          <div className="text-center">
-            <div className="relative w-32 h-32">
+        <div className="rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8"
+          style={{ background: "rgba(218, 242, 100, 0.03)", border: "1px solid var(--card-border)" }}>
+          <div className="text-center flex-shrink-0">
+            <div className="relative w-32 h-32 mx-auto">
               <svg className="w-32 h-32 -rotate-90">
                 <circle cx="64" cy="64" r="56" fill="none" stroke="#1a1a1a" strokeWidth="10" />
-                <circle cx="64" cy="64" r="56" fill="none" stroke="#daf264" strokeWidth="10"
+                <circle cx="64" cy="64" r="56" fill="none" stroke="var(--accent)" strokeWidth="10"
                   strokeDasharray={`${(overallScore / 100) * 352} 352`}
                   strokeLinecap="round" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold" style={{ color: "#daf264" }}>{overallScore}</span>
+                <span className="text-4xl font-bold text-white">{overallScore}</span>
                 <span className="text-xs" style={{ color: "var(--muted-fg)" }}>/100</span>
               </div>
             </div>
-            <p className="text-sm font-semibold text-white mt-2">Startup Readiness</p>
+            <p className="text-xs font-semibold text-white mt-2">Venture Readiness Index</p>
           </div>
 
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-white mb-1">
-              {activeProject?.finalReport?.verdict 
-                ? `Verdict: ${activeProject.finalReport.verdict}` 
-                : (overallScore >= 75 ? "🟢 Strong Foundation" : overallScore >= 55 ? "🟡 Moderate Readiness" : "🔴 Needs Work")}
-            </h2>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <h2 className="text-xl font-bold text-white">
+                Verdict: {activeProject?.finalReport?.verdict || "Proceed"}
+              </h2>
+              <span className="text-xs font-bold px-2 py-0.5 rounded"
+                style={{ background: decStyle.bg, color: decStyle.text, border: `1px solid ${decStyle.border}` }}>
+                INVESTOR DECISION: {analystData.investmentRecommendation.decision}
+              </span>
+            </div>
             <p className="text-sm mb-4 leading-relaxed" style={{ color: "var(--muted-fg)" }}>
               {activeProject?.finalReport?.summary || "Your startup venture has been evaluated by our multi-agent network. Start an analysis run or edit your idea to see the updated readiness verdict."}
             </p>
             <div className="flex gap-3">
-              <div className="text-center px-4 py-2 rounded-xl" style={{ background: "rgba(218, 242, 100, 0.08)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
-                <p className="text-xl font-bold" style={{ color: "#daf264" }}>{passedChecks}/{totalChecks}</p>
+              <div className="text-center px-4 py-2 rounded-xl" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+                <p className="text-xl font-bold" style={{ color: "var(--accent)" }}>{passedChecks}/{totalChecks}</p>
                 <p className="text-xs" style={{ color: "var(--muted-fg)" }}>Checks passed</p>
               </div>
-              <div className="text-center px-4 py-2 rounded-xl" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.15)" }}>
+              <div className="text-center px-4 py-2 rounded-xl" style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)" }}>
                 <p className="text-xl font-bold text-yellow-400">{totalChecks - passedChecks}</p>
                 <p className="text-xs" style={{ color: "var(--muted-fg)" }}>Action items</p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Investment due diligence card */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Red flags */}
+          <div className="rounded-xl p-5 border lg:col-span-1" style={{ background: "rgba(239, 68, 68, 0.02)", borderColor: "rgba(239, 68, 68, 0.15)" }}>
+            <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <span>⚠</span> VC Due Diligence Red Flags
+            </h3>
+            <ul className="space-y-3">
+              {analystData.redFlags.map((flag: string, i: number) => (
+                <li key={i} className="text-xs text-white leading-relaxed flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">•</span>
+                  <span>{flag}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Required Milestones */}
+          <div className="rounded-xl p-5 border lg:col-span-2" style={{ background: "rgba(218, 242, 100, 0.02)", borderColor: "rgba(218, 242, 100, 0.15)" }}>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: "var(--accent)" }}>
+              <span>✓</span> Required Milestones to Secure Capital
+            </h3>
+            <ul className="space-y-3">
+              {analystData.investmentRecommendation.requiredMilestones.map((ms: string, i: number) => (
+                <li key={i} className="text-xs text-white leading-relaxed flex items-center gap-2">
+                  <span className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 text-[10px]"
+                    style={{ background: "rgba(218, 242, 100, 0.12)", color: "var(--accent)" }}>
+                    {i + 1}
+                  </span>
+                  <span>{ms}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -137,7 +224,7 @@ export default function ValidationPage() {
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#222" />
                 <PolarAngleAxis dataKey="dimension" tick={{ fontSize: 10, fill: "#666" }} />
-                <Radar dataKey="value" stroke="#daf264" fill="#daf264" fillOpacity={0.12} />
+                <Radar dataKey="value" stroke="var(--accent)" fill="var(--accent)" fillOpacity={0.12} />
                 <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 8, fontSize: 11 }} />
               </RadarChart>
             </ResponsiveContainer>

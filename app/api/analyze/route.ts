@@ -10,8 +10,14 @@ export async function POST(req: Request) {
     userInput: body.data,
     researchPlan: [],
     marketIntel: {},
+    competitorIntel: {},
+    swotIntel: {},
+    riskIntel: {},
     financialIntel: {},
-    finalReport: {}
+    finalReport: {},
+    roadmapIntel: {},
+    decisionReport: {},
+    reportIntel: {}
   };
 
   try {

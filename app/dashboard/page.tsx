@@ -48,16 +48,17 @@ export default function DashboardPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const readiness = activeProject?.finalReport?.readinessScore ?? 74;
-  const opportunity = activeProject?.finalReport?.readinessScore ? Math.min(100, Math.round(readiness * 1.15)) : 88;
-  const risk = activeProject?.finalReport?.readinessScore ? Math.max(0, Math.round(100 - readiness)) : 32;
-  const market = activeProject?.finalReport?.readinessScore ? Math.min(100, Math.round(readiness * 1.2)) : 91;
+  const decReport = activeProject?.decisionReport || null;
+  const readiness = decReport ? decReport.ventureReadiness.score : (activeProject?.finalReport?.readinessScore ?? 74);
+  const opportunity = decReport ? decReport.opportunityScore.score : 85;
+  const risk = activeProject?.riskIntel?.overallRiskIndex?.score ?? 32;
+  const confidence = decReport ? decReport.confidence.score : 82;
 
   const scores = [
-    { label: "Startup Readiness",  value: readiness, color: "#daf264" },
-    { label: "Opportunity Score",  value: opportunity, color: "#daf264" },
-    { label: "Risk Score",         value: risk, color: risk > 50 ? "#ef4444" : "#daf264" },
-    { label: "Market Potential",   value: market, color: "#daf264" },
+    { label: "Venture Readiness", value: readiness, color: "#daf264" },
+    { label: "Opportunity Score", value: opportunity, color: "#daf264" },
+    { label: "Overall Risk Index", value: risk, color: risk > 50 ? "#ef4444" : "#daf264" },
+    { label: "Data Confidence",    value: confidence, color: "#daf264" },
   ];
 
   async function handleRerun() {
@@ -84,8 +85,14 @@ export default function DashboardPage() {
 
       updateProject(activeId, {
         marketIntel: result.marketIntel || {},
+        competitorIntel: result.competitorIntel || {},
+        swotIntel: result.swotIntel || {},
+        riskIntel: result.riskIntel || {},
         financialIntel: result.financialIntel || {},
         finalReport: result.finalReport || {},
+        roadmapIntel: result.roadmapIntel || {},
+        decisionReport: result.decisionReport || {},
+        reportIntel: result.reportIntel || {},
         researchPlan: result.researchPlan || [],
         agentsDone: 5,
         progress: 100,
@@ -146,14 +153,130 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Dynamic AI Summary section */}
-        {activeProject?.finalReport?.summary && (
-          <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
-            <h2 className="text-sm font-semibold mb-2 text-white">AI Agent Executive Summary (Live Graph Output)</h2>
-            <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
-              {activeProject.finalReport.summary}
-            </p>
+        {/* Dynamic Investment Committee Report */}
+        {decReport ? (
+          <div className="space-y-6">
+            
+            {/* Verdict Banner */}
+            <div className="rounded-2xl p-6 border transition-all"
+              style={{
+                background: 
+                  decReport.verdict.decision.includes("STRONG") || decReport.verdict.decision === "PROCEED"
+                    ? "rgba(34, 197, 94, 0.04)"
+                    : decReport.verdict.decision.includes("CAUTION")
+                    ? "rgba(234, 179, 8, 0.04)"
+                    : "rgba(239, 68, 68, 0.04)",
+                borderColor:
+                  decReport.verdict.decision.includes("STRONG") || decReport.verdict.decision === "PROCEED"
+                    ? "rgba(34, 197, 94, 0.2)"
+                    : decReport.verdict.decision.includes("CAUTION")
+                    ? "rgba(234, 179, 8, 0.2)"
+                    : "rgba(239, 68, 68, 0.2)"
+              }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{
+                    color:
+                      decReport.verdict.decision.includes("STRONG") || decReport.verdict.decision === "PROCEED"
+                        ? "#22c55e"
+                        : decReport.verdict.decision.includes("CAUTION")
+                        ? "#eab308"
+                        : "#ef4444"
+                  }}>
+                  INVESTMENT VERDICT
+                </span>
+                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-black/40 border border-white/5">
+                  STAGE: {decReport.ventureReadiness.stage}
+                </span>
+              </div>
+              <h2 className="text-2xl font-black text-white">
+                {decReport.verdict.decision}
+              </h2>
+              <ul className="space-y-2 mt-3 pl-1">
+                {(decReport.verdict.reasoning || []).map((r: string, i: number) => (
+                  <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2">
+                    <span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-white/45" />
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Executive Summary */}
+            <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)]">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Executive Summary</h3>
+              <p className="text-xs leading-relaxed text-gray-300 whitespace-pre-line">
+                {decReport.executiveSummary}
+              </p>
+            </div>
+
+            {/* Opportunities vs Risks columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Opportunities */}
+              <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                  <span>◎</span> Key Opportunities
+                </h3>
+                <ul className="space-y-3">
+                  {(decReport.topOpportunities || []).map((o: string, i: number) => (
+                    <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-[10px]">
+                        {i + 1}
+                      </span>
+                      <span>{o}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Risks */}
+              <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 flex items-center gap-2">
+                  <span>⚠</span> Key Risks
+                </h3>
+                <ul className="space-y-3">
+                  {(decReport.topRisks || []).map((r: string, i: number) => (
+                    <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-red-950 text-red-400 font-bold flex items-center justify-center flex-shrink-0 text-[10px]">
+                        {i + 1}
+                      </span>
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+            </div>
+
+            {/* Recommended Next Actions */}
+            <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--accent)]">
+                Recommended Action Plan
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(decReport.recommendedActions || []).map((action: string, i: number) => (
+                  <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-[var(--card-border)] bg-black/20">
+                    <span className="w-4 h-4 rounded bg-[rgba(218,242,100,0.1)] border border-[rgba(218,242,100,0.2)] text-[var(--accent)] flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">
+                      {i + 1}
+                    </span>
+                    <span className="text-xs text-gray-300 leading-relaxed">{action}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
+        ) : (
+          /* Fallback Basic Summary if not analyzed yet */
+          activeProject?.finalReport?.summary && (
+            <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
+              <h2 className="text-sm font-semibold mb-2 text-white">AI Agent Executive Summary (Live Graph Output)</h2>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
+                {activeProject.finalReport.summary}
+              </p>
+            </div>
+          )
         )}
 
         {/* Agent pipeline */}

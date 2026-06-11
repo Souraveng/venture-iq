@@ -57,6 +57,31 @@ export default function CompetitorsPage() {
     Threats: activeProject.marketIntel.swot.threats || [],
   } : swotData;
 
+  const dynamicCompetitors = activeProject?.competitorIntel?.competitorProfiles
+    ? activeProject.competitorIntel.competitorProfiles.map((c: any) => ({
+        name: c.name,
+        type: c.type,
+        funding: c.funding,
+        stage: c.marketPosition,
+        market: c.geography,
+        pricing: c.pricing,
+        threat: c.threatLevel,
+        strengths: c.strengths || [],
+        weaknesses: c.weaknesses || []
+      }))
+    : competitors;
+
+  const dynamicFeatures = activeProject?.competitorIntel?.featureMatrix?.features || features;
+
+  const dynamicFeatureMatrix = activeProject?.competitorIntel?.featureMatrix?.comparisons
+    ? Object.fromEntries(
+        activeProject.competitorIntel.featureMatrix.comparisons.map((c: any) => [
+          c.companyName,
+          c.featureSupport
+        ])
+      )
+    : featureMatrix;
+
   return (
     <ProjectGuard>
     <DashboardLayout>
@@ -69,7 +94,9 @@ export default function CompetitorsPage() {
                 style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>Competitor Analysis Agent · Done</span>
             </div>
             <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
-            <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>6 competitors mapped · EV Startup India</p>
+            <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
+              {dynamicCompetitors.length} competitors mapped · {activeProject?.name || "EV Startup Platform"}
+            </p>
           </div>
           <button className="text-xs px-3 py-2 rounded-lg font-medium"
             style={{ background: "var(--accent)", color: "#0a0a0a" }}>↓ Export Report</button>
@@ -77,7 +104,7 @@ export default function CompetitorsPage() {
 
         {/* Competitor cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {competitors.map((c) => (
+          {dynamicCompetitors.map((c: any) => (
             <motion.div key={c.name} whileHover={{ y: -2 }} className="rounded-xl p-4 agent-card"
               style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
               <div className="flex items-center justify-between mb-3">
@@ -120,7 +147,7 @@ export default function CompetitorsPage() {
               </div>
 
               <div className="flex flex-wrap gap-1">
-                {c.strengths.map((s) => (
+                {c.strengths.map((s: string) => (
                   <span key={s} className="text-xs px-1.5 py-0.5 rounded"
                     style={{ background: "rgba(218, 242, 100, 0.08)", color: "var(--accent)" }}>
                     {s}
@@ -141,7 +168,7 @@ export default function CompetitorsPage() {
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
                   <th className="text-left px-4 py-3 text-white font-semibold">Company</th>
-                  {features.map((f) => (
+                  {dynamicFeatures.map((f: string) => (
                     <th key={f} className="px-3 py-3 text-center font-medium" style={{ color: "var(--muted-fg)", minWidth: 100, fontSize: 10 }}>
                       {f}
                     </th>
@@ -149,14 +176,14 @@ export default function CompetitorsPage() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(featureMatrix).map(([company, feats]) => (
+                {Object.entries(dynamicFeatureMatrix).map(([company, feats]) => (
                   <tr key={company} style={{ borderBottom: "1px solid var(--card-border)" }}
                     className={company === "Your Startup" ? "" : ""}>
                     <td className="px-4 py-3 font-semibold text-sm"
                       style={{ color: company === "Your Startup" ? "var(--accent)" : "white" }}>
                       {company === "Your Startup" ? "★ " : ""}{company}
                     </td>
-                    {feats.map((has, i) => (
+                    {feats.map((has: boolean, i: number) => (
                       <td key={i} className="px-3 py-3 text-center">
                         {has
                           ? <span style={{ color: company === "Your Startup" ? "var(--accent)" : "#555" }}>✓</span>

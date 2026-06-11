@@ -47,7 +47,67 @@ export default function FinancialsPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
-  const hasFinanceData = !!activeProject?.financialIntel?.projection;
+  const fi = activeProject?.financialIntel;
+  const hasFinanceData = !!fi?.projection;
+
+  // Formatting helpers
+  const formatAmount = (val: number) => {
+    return val >= 1000000 
+      ? `$${(val / 1000000).toFixed(1)}M` 
+      : `$${Math.round(val / 1000)}K`;
+  };
+
+  const seedAskValue = fi?.fundingRequirements?.capitalNeeded
+    ? formatAmount(fi.fundingRequirements.capitalNeeded)
+    : "$4.2M";
+    
+  const breakEvenValue = fi?.breakEvenAnalysis?.breakEvenTimelineMonths
+    ? `Month ${fi.breakEvenAnalysis.breakEvenTimelineMonths}`
+    : "Month 11";
+
+  const arrY3Value = fi?.revenueForecast?.revenueProjections?.year3
+    ? formatAmount(fi.revenueForecast.revenueProjections.year3)
+    : "$1.42M";
+
+  const valuationValue = fi?.revenueForecast?.revenueProjections?.year3
+    ? formatAmount(fi.revenueForecast.revenueProjections.year3 * 10)
+    : "$18M";
+
+  const metrics = [
+    { label: "Seed Ask",        value: seedAskValue,  sub: fi?.fundingRequirements?.fundingTimeline || "18-month runway", highlight: true  },
+    { label: "Break-even",      value: breakEvenValue, sub: "MRR crossover",    highlight: false },
+    { label: "ARR at Year 3",   value: arrY3Value, sub: "Expected case",  highlight: false },
+    { label: "Target Valuation",value: valuationValue,   sub: "Post-seed (10x ARR)", highlight: true  },
+  ];
+
+  const dynamicRevenueData = fi?.cashFlowForecast?.forecast
+    ? fi.cashFlowForecast.forecast.map((item: any) => ({
+        month: item.period,
+        revenue: item.revenue >= 1000 ? Math.round(item.revenue / 1000) : item.revenue,
+        expenses: item.expenses >= 1000 ? Math.round(item.expenses / 1000) : item.expenses,
+        cashflow: item.cashflow >= 1000 ? Math.round(item.cashflow / 1000) : (item.cashflow <= -1000 ? Math.round(item.cashflow / 1000) : item.cashflow)
+      }))
+    : revenueData;
+
+  const dynamicUnitEcon = fi?.unitEconomics
+    ? [
+        { metric: "ACV",           value: fi.unitEconomics.revenuePerCustomer >= 1000 ? `$${(fi.unitEconomics.revenuePerCustomer / 1000).toFixed(1)}K` : `$${fi.unitEconomics.revenuePerCustomer}`,   sub: "Annual contract value (fleet)" },
+        { metric: "CAC",           value: `$${fi.unitEconomics.cac}`,     sub: "Customer acquisition cost" },
+        { metric: "LTV",           value: fi.unitEconomics.ltv >= 1000 ? `$${(fi.unitEconomics.ltv / 1000).toFixed(1)}K` : `$${fi.unitEconomics.ltv}`,     sub: "Customer lifetime value" },
+        { metric: "LTV:CAC",       value: `${fi.unitEconomics.ltvToCacRatio}x`,      sub: "Healthy > 3x" },
+        { metric: "Payback Period",value: `${fi.unitEconomics.paybackPeriod} mo`,   sub: "Best-in-class < 12mo" },
+        { metric: "Gross Margin",  value: `${fi.unitEconomics.grossMargin}%`,      sub: "SaaS target > 70%" },
+      ]
+    : unitEcon;
+
+  const dynamicFundingBreakdown = fi?.fundingRequirements?.allocation
+    ? [
+        { name: "Product & Eng",    pct: fi.fundingRequirements.allocation.productEng, color: "#daf264" },
+        { name: "Sales & Marketing",pct: fi.fundingRequirements.allocation.salesMarketing, color: "#c8e84a" },
+        { name: "Operations",       pct: fi.fundingRequirements.allocation.operations, color: "#7ab010" },
+        { name: "G&A / Legal",      pct: fi.fundingRequirements.allocation.legalGna, color: "#4a7a00" },
+      ]
+    : fundingBreakdown;
 
   return (
     <ProjectGuard>
@@ -78,12 +138,7 @@ export default function FinancialsPage() {
 
         {/* Key metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: "Seed Ask",        value: "$4.2M",  sub: "18-month runway",    highlight: true  },
-            { label: "Break-even",      value: "Month 11", sub: "MRR crossover",    highlight: false },
-            { label: "ARR at Year 3",   value: "$1.42M", sub: "Conservative case",  highlight: false },
-            { label: "Target Valuation",value: "$18M",   sub: "Post-seed (8x ARR)", highlight: true  },
-          ].map((m) => (
+          {metrics.map((m) => (
             <motion.div key={m.label} whileHover={{ y: -2 }}
               className="rounded-xl p-4"
               style={{
@@ -111,7 +166,7 @@ export default function FinancialsPage() {
           <h3 className="font-semibold text-sm text-white mb-1">Revenue vs Expenses vs Cash Flow</h3>
           <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>Monthly ($K) · 36-month forecast</p>
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={revenueData}>
+            <AreaChart data={dynamicRevenueData}>
               <defs>
                 <linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={ACC} stopOpacity={0.25} />
@@ -142,7 +197,7 @@ export default function FinancialsPage() {
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
             <h3 className="font-semibold text-sm text-white mb-4">Unit Economics</h3>
             <div className="grid grid-cols-2 gap-2">
-              {unitEcon.map((u) => (
+              {dynamicUnitEcon.map((u: any) => (
                 <div key={u.metric} className="rounded-lg p-3"
                   style={{ background: "var(--background)", border: "1px solid var(--card-border)" }}>
                   <p className="text-xs" style={{ color: "var(--muted-fg)" }}>{u.metric}</p>
@@ -155,14 +210,16 @@ export default function FinancialsPage() {
 
           {/* Funding breakdown */}
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="font-semibold text-sm text-white mb-1">$4.2M Seed Allocation</h3>
-            <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>18-month runway breakdown</p>
+            <h3 className="font-semibold text-sm text-white mb-1">{seedAskValue} Capital Allocation</h3>
+            <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>Runway breakdown by operational segment</p>
             <div className="space-y-3">
-              {fundingBreakdown.map((f) => (
+              {dynamicFundingBreakdown.map((f: any) => (
                 <div key={f.name}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-white">{f.name}</span>
-                    <span style={{ color: ACC }}>{f.pct}% · ${(4.2 * f.pct / 100).toFixed(1)}M</span>
+                    <span style={{ color: ACC }}>
+                      {f.pct}% · {formatAmount(fi?.fundingRequirements?.capitalNeeded ? (fi.fundingRequirements.capitalNeeded * f.pct / 100) : (4200000 * f.pct / 100))}
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--muted)" }}>
                     <motion.div initial={{ width: 0 }} animate={{ width: `${f.pct}%` }}
