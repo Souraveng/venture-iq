@@ -44,8 +44,10 @@ export async function factExtractionAgent(state: VentureStateType) {
         .replace("{evidenceUrl}", ev.url)
         .replace("{evidenceContent}", docText.substring(0, 10000)); // Truncate to safe limit
 
-      // Invoke Gemini structured model
       const result = (await structuredLlm.invoke(prompt)) as StructuredKnowledge;
+      if (!result || !result.facts || !result.entities || !result.relationships) {
+        throw new Error("Invalid or empty structured knowledge received from LLM");
+      }
 
       console.log(`Extracted: ${result.facts?.length || 0} facts, ${result.entities?.length || 0} entities, ${result.relationships?.length || 0} relationships`);
 

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/store/useProjectStore";
 
@@ -17,6 +17,15 @@ export default function LandingPage() {
   const router = useRouter();
   const { addProject } = useProjectStore();
 
+  // Auth modal states
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   function handleStart() {
     if (!idea.trim()) return;
     const words = idea.trim().split(/\s+/);
@@ -24,6 +33,34 @@ export default function LandingPage() {
     addProject(derivedName, idea.trim());
     router.push("/intake");
   }
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    // Simple validations
+    if (!email.includes("@")) {
+      setErrorMsg("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters.");
+      return;
+    }
+    if (authMode === "signup" && !fullName.trim()) {
+      setErrorMsg("Please enter your full name.");
+      return;
+    }
+
+    setIsLoading(true);
+    // Mock network lag
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setIsLoading(false);
+
+    // Mock Login - Redirect to dashboard
+    router.push("/dashboard");
+    setShowAuthModal(false);
+  };
 
   return (
     <div className="min-h-screen" style={{ background: "#0a0a0a", color: "#f0f0f0" }}>
@@ -36,18 +73,26 @@ export default function LandingPage() {
             style={{ background: "#daf264", color: "#0a0a0a" }}>S</div>
           <span className="font-bold text-sm tracking-wide text-white">StartupOS</span>
         </div>
+        
         <div className="flex items-center gap-7 text-sm" style={{ color: "#888" }}>
           <a href="#" className="hover:text-white transition-colors">Pricing</a>
           <a href="#" className="hover:text-white transition-colors">Documentation</a>
-          <a href="#" className="hover:text-white transition-colors">Case studies</a>
+          <button 
+            onClick={() => { setAuthMode("signin"); setShowAuthModal(true); setErrorMsg(""); }}
+            className="hover:text-white transition-colors bg-transparent border-none cursor-pointer outline-none font-medium text-sm">
+            Sign In
+          </button>
         </div>
-        <Link href="/dashboard">
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+
+        <button 
+          onClick={() => { setAuthMode("signup"); setShowAuthModal(true); setErrorMsg(""); }}
+          className="bg-transparent border-none outline-none cursor-pointer">
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold"
             style={{ background: "white", color: "#0a0a0a" }}>
-            → Get started
-          </motion.button>
-        </Link>
+            Get started
+          </motion.div>
+        </button>
       </nav>
 
       {/* Hero */}
@@ -177,19 +222,175 @@ export default function LandingPage() {
           style={{ background: "#111", border: "1px solid #222" }}>
           <h2 className="text-3xl font-bold mb-3">Ready to build your startup?</h2>
           <p className="text-sm mb-6" style={{ color: "#555" }}>Enter your idea. Our agent network does the rest.</p>
-          <Link href="/dashboard">
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+          <button 
+            onClick={() => { setAuthMode("signup"); setShowAuthModal(true); setErrorMsg(""); }}
+            className="bg-transparent border-none outline-none cursor-pointer">
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               className="btn-accent px-8 py-3 text-sm font-bold rounded-full"
               style={{ background: "#daf264", color: "#0a0a0a" }}>
               Launch StartupOS →
-            </motion.button>
-          </Link>
+            </motion.div>
+          </button>
         </div>
       </section>
 
       <footer className="border-t px-8 py-5 text-center text-xs" style={{ borderColor: "#1a1a1a", color: "#444" }}>
         © 2026 StartupOS · AI-Powered Startup Builder Platform
       </footer>
+
+      {/* Premium Sliding Auth Modal */}
+      <AnimatePresence>
+        {showAuthModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAuthModal(false)}
+              className="absolute inset-0 bg-black/85 backdrop-blur-[12px]"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 30 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative w-full max-w-[420px] rounded-[24px] overflow-hidden p-8 z-10"
+              style={{
+                background: "rgba(18, 18, 18, 0.75)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+                backdropFilter: "blur(20px)",
+              }}
+            >
+              {/* Radial glow background effect inside modal */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full pointer-events-none filter blur-[64px]"
+                style={{ background: "rgba(218, 242, 100, 0.08)" }} />
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="absolute top-5 right-5 text-gray-500 hover:text-white transition-colors text-xl font-bold bg-transparent border-none cursor-pointer outline-none"
+              >
+                &times;
+              </button>
+
+              {/* Logo */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs"
+                  style={{ background: "#daf264", color: "#0a0a0a" }}>S</div>
+                <span className="font-bold text-xs tracking-wide text-white">StartupOS</span>
+              </div>
+
+              {/* Switch tabs */}
+              <div className="flex bg-[#111] p-1 rounded-xl mb-6 border border-white/5 relative">
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode("signin"); setErrorMsg(""); }}
+                  className="flex-1 text-center py-2 text-xs font-semibold rounded-lg z-10 transition-colors relative cursor-pointer"
+                  style={{ color: authMode === "signin" ? "#0a0a0a" : "#888" }}
+                >
+                  {authMode === "signin" && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 rounded-lg"
+                      style={{ background: "#daf264" }}
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-20">Sign In</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode("signup"); setErrorMsg(""); }}
+                  className="flex-1 text-center py-2 text-xs font-semibold rounded-lg z-10 transition-colors relative cursor-pointer"
+                  style={{ color: authMode === "signup" ? "#0a0a0a" : "#888" }}
+                >
+                  {authMode === "signup" && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 rounded-lg"
+                      style={{ background: "#daf264" }}
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-20">Create Account</span>
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleAuthSubmit} className="space-y-4">
+                {authMode === "signup" && (
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Jane Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="jane@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
+                  />
+                </div>
+
+                {errorMsg && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-400 text-xs font-semibold"
+                  >
+                    {errorMsg}
+                  </motion.p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full relative flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all mt-6 cursor-pointer"
+                  style={{
+                    background: "white",
+                    color: "#0a0a0a",
+                    opacity: isLoading ? 0.7 : 1,
+                  }}
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-[#0a0a0a] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <span>{authMode === "signin" ? "Sign In" : "Get Started"} &rarr;</span>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

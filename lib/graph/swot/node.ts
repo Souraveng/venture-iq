@@ -74,6 +74,9 @@ Based on the above facts, formulate the SWOT Intelligence Report. Provide Streng
       { role: "user", content: prompt }
     ]);
     report = response as unknown as SwotIntelligenceReport;
+    if (!report || !report.strengths || !report.weaknesses || !report.opportunities || !report.threats) {
+      throw new Error("Invalid or empty SWOT intelligence report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for SWOT, falling back to heuristic parsing:", err);
     // Safety fallback report to prevent pipeline crashes

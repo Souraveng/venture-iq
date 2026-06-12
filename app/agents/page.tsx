@@ -8,7 +8,7 @@ import { useProjectStore, Project } from "@/store/useProjectStore";
 const agents = [
   {
     name: "Opportunity Understanding", icon: "◎", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Parses raw startup ideas into structured venture context: industry, stage, location, budget, and key assumptions.",
     responsibilities: ["Parse raw input", "Classify industry", "Identify stage", "Extract budget", "Map location"],
     outputs: ["Venture Context", "Structured Opportunity"],
@@ -16,7 +16,7 @@ const agents = [
   },
   {
     name: "Research Planner", icon: "◈", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Generates targeted research queries based on opportunity context to guide the evidence research agent.",
     responsibilities: ["Query generation", "Research strategy", "Gap identification", "Priority ranking", "Source targeting"],
     outputs: ["Research Plan", "Prioritized Queries"],
@@ -24,7 +24,7 @@ const agents = [
   },
   {
     name: "Evidence Researcher", icon: "↗", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Executes planned research queries across web sources, collecting evidence with source attribution and credibility scoring.",
     responsibilities: ["Web search execution", "Source collection", "Evidence extraction", "Credibility scoring", "Source attribution"],
     outputs: ["Evidence Collection", "Source Database"],
@@ -32,7 +32,7 @@ const agents = [
   },
   {
     name: "Fact Extractor", icon: "◉", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Extracts factual claims, named entities, and entity relationships from raw evidence for downstream validation.",
     responsibilities: ["Claim extraction", "Entity recognition", "Relationship mapping", "Deduplication", "Categorization"],
     outputs: ["Facts", "Entities", "Relationships"],
@@ -40,7 +40,7 @@ const agents = [
   },
   {
     name: "Validation Agent", icon: "✓", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Cross-validates extracted facts, detects contradictions between sources, and assigns reliability scores.",
     responsibilities: ["Fact validation", "Conflict detection", "Source cross-referencing", "Reliability scoring", "Confidence assignment"],
     outputs: ["Validated Facts", "Conflicts", "Reliability Scores"],
@@ -48,7 +48,7 @@ const agents = [
   },
   {
     name: "Knowledge Retriever", icon: "◫", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Stores validated evidence in a vector store and retrieves semantically relevant knowledge for downstream agents.",
     responsibilities: ["Vector storage", "Semantic search", "Knowledge retrieval", "Context enrichment", "Memory management"],
     outputs: ["Retrieved Knowledge", "Embedded Context"],
@@ -56,7 +56,7 @@ const agents = [
   },
   {
     name: "Market Intelligence", icon: "◎", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Produces comprehensive market analysis: TAM/SAM/SOM, growth trajectories, customer segments, and geographic opportunities.",
     responsibilities: ["Market sizing", "TAM/SAM/SOM", "Growth analysis", "Segment mapping", "Geographic assessment"],
     outputs: ["Market Analysis Report", "Market Size Data", "Growth Charts"],
@@ -64,7 +64,7 @@ const agents = [
   },
   {
     name: "Competitor Intelligence", icon: "⬡", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Discovers competitors, builds comparison matrices, analyzes pricing, and maps competitive positioning.",
     responsibilities: ["Competitor discovery", "Feature comparison", "Pricing analysis", "Threat assessment", "Gap identification"],
     outputs: ["Competitor Profiles", "Feature Matrix", "Threat Map"],
@@ -72,7 +72,7 @@ const agents = [
   },
   {
     name: "SWOT Intelligence", icon: "⊞", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Generates evidence-backed SWOT analysis. Every item is traceable to validated facts — no generic statements.",
     responsibilities: ["Strength analysis", "Weakness identification", "Opportunity mapping", "Threat assessment", "Evidence linking"],
     outputs: ["SWOT Matrix", "Evidence-Backed Analysis"],
@@ -80,7 +80,7 @@ const agents = [
   },
   {
     name: "Risk Intelligence", icon: "⚠", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Identifies, quantifies, and prioritizes risks across 8 dimensions with mitigation strategies and impact scoring.",
     responsibilities: ["Risk identification", "Likelihood scoring", "Impact assessment", "Mitigation planning", "Priority ranking"],
     outputs: ["Risk Matrix", "Mitigation Plan", "Risk Scores"],
@@ -88,7 +88,7 @@ const agents = [
   },
   {
     name: "Financial Intelligence", icon: "◆", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Transforms validated intelligence into financial models: revenue projections, unit economics, cash flow, and funding requirements.",
     responsibilities: ["Revenue modeling", "Unit economics", "Cash flow forecasting", "Burn rate analysis", "Funding requirements"],
     outputs: ["Financial Model", "Revenue Projections", "Cash Flow Forecast"],
@@ -96,7 +96,7 @@ const agents = [
   },
   {
     name: "Venture Analyst", icon: "◈", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Evaluates investment attractiveness like a VC partner: challenges assumptions, identifies weaknesses, avoids founder bias.",
     responsibilities: ["Investment analysis", "Due diligence", "Red flag detection", "Moat assessment", "Readiness scoring"],
     outputs: ["Investment Recommendation", "Red Flags", "Moat Analysis"],
@@ -104,7 +104,7 @@ const agents = [
   },
   {
     name: "Founder Roadmap", icon: "⟳", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Converts intelligence into practical execution plans: milestones, hiring roadmap, GTM strategy, and priority matrix.",
     responsibilities: ["Milestone planning", "Hiring roadmap", "GTM strategy", "Priority matrix", "Execution timeline"],
     outputs: ["Execution Roadmap", "Hiring Plan", "GTM Strategy"],
@@ -112,7 +112,7 @@ const agents = [
   },
   {
     name: "Decision Engine", icon: "✦", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "The final decision layer: produces opportunity score, investor readiness rating, and go/no-go verdict.",
     responsibilities: ["Opportunity scoring", "Readiness assessment", "Verdict generation", "Confidence scoring", "Final recommendation"],
     outputs: ["Opportunity Score", "Investor Readiness", "Final Verdict"],
@@ -120,7 +120,7 @@ const agents = [
   },
   {
     name: "Report Generation", icon: "≡", color: "#daf264", status: "done",
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     desc: "Transforms all intelligence into professional deliverables: pitch deck, business plan, executive summary, and export-ready documents.",
     responsibilities: ["Pitch deck generation", "Business plan", "Executive summary", "PDF export", "Template rendering"],
     outputs: ["12-Slide Pitch Deck", "Business Plan", "Due Diligence Report", "Executive Summary"],
@@ -172,7 +172,7 @@ export default function AgentsPage() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-gemini-api-key": geminiApiKey
+          "x-gemini-api-key": geminiApiKey,
         },
         body: JSON.stringify({
           mode: "full",

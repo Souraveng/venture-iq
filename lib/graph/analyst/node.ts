@@ -92,6 +92,9 @@ Based on the above facts, formulate the Venture Analyst Due Diligence Report. Th
       { role: "user", content: prompt }
     ]);
     report = response as unknown as VentureAnalystReport;
+    if (!report || !report.ventureReadiness || !report.investmentRecommendation || !report.redFlags) {
+      throw new Error("Invalid or empty venture analyst report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Venture Analyst, falling back to mock examples:", err);
     report = JSON.parse(JSON.stringify(MOCK_ANALYST_REPORT));

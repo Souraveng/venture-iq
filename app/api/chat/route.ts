@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     });
 
     // Run the request in the dynamic API key context
-    const response = await apiKeyStorage.run(userApiKey, async () => {
+    const response = await apiKeyStorage.run({ geminiApiKey: userApiKey }, async () => {
       const completion = await llm.invoke(messages);
       return completion.content;
     });

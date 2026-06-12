@@ -34,7 +34,7 @@ export default function SettingsPage() {
     }
   }, []);
 
-  async function handleSaveGeminiKey() {
+  async function handleSaveKeys() {
     setSaveStatus("saving");
     try {
       const res = await fetch("/api/settings/save-keys", {
@@ -43,7 +43,7 @@ export default function SettingsPage() {
         body: JSON.stringify({ geminiApiKey: geminiKey }),
       });
 
-      if (!res.ok) throw new Error("Failed to save API key");
+      if (!res.ok) throw new Error("Failed to save API keys");
 
       localStorage.setItem("gemini_api_key", geminiKey);
       setSaveStatus("saved");
@@ -214,27 +214,34 @@ export default function SettingsPage() {
                 </button>
               </div>
 
-              {/* Gemini API Key Form Card */}
-              <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
+              {/* API Keys Configuration Card */}
+              <div className="rounded-xl p-5 space-y-6" style={{ background: "var(--card-bg)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Gemini API Key</h3>
-                  <p className="text-xs text-gray-400 mt-1">Configure your own Google Gemini Developer API key. Used to run the LangGraph pipeline.</p>
+                  <h3 className="text-sm font-semibold text-white">Model Provider API Keys</h3>
+                  <p className="text-xs text-gray-400 mt-1">Configure your Google Gemini API key.</p>
                 </div>
-                <div className="flex gap-2">
-                  <input 
-                    type="password"
-                    value={geminiKey}
-                    onChange={(e) => setGeminiKey(e.target.value)}
-                    placeholder="Enter your GEMINI_API_KEY..."
-                    className="flex-1 bg-transparent text-xs outline-none px-3 py-2 rounded-lg font-mono"
-                    style={{ background: "var(--background)", border: "1px solid var(--card-border)", color: "white" }} 
-                  />
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Gemini API Key (Vector Embeddings & LLM Tasks)</label>
+                    <input 
+                      type="password"
+                      value={geminiKey}
+                      onChange={(e) => setGeminiKey(e.target.value)}
+                      placeholder="Enter your GEMINI_API_KEY..."
+                      className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">Used to generate text-embedding-004 vectors and run Gemini-based agent workflows.</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
                   <button 
-                    onClick={handleSaveGeminiKey}
+                    onClick={handleSaveKeys}
                     disabled={saveStatus === "saving"}
                     className="px-4 py-2 rounded-lg text-xs font-semibold text-black transition-all"
                     style={{ background: "var(--accent)" }}>
-                    {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : saveStatus === "error" ? "✕ Error" : "Save key"}
+                    {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : saveStatus === "error" ? "✕ Error" : "Save keys"}
                   </button>
                 </div>
               </div>

@@ -110,6 +110,9 @@ Generate the final due diligence assessment. Keep in mind the strict validation 
       { role: "user", content: prompt }
     ]);
     report = response as unknown as VentureDecisionReport;
+    if (!report || !report.opportunityScore || !report.confidence || !report.verdict) {
+      throw new Error("Invalid or empty venture decision report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Final Decision, falling back to mock examples:", err);
     report = JSON.parse(JSON.stringify(MOCK_DECISION_REPORT));

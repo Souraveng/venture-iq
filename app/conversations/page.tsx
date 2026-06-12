@@ -67,13 +67,13 @@ export default function ConversationsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-gemini-api-key": geminiApiKey
+          "x-gemini-api-key": geminiApiKey,
         },
         body: JSON.stringify({
           agentName: activeAgent.name,
           message: userText,
           history: chatHistory.slice(1), // Exclude the initial greeting from raw context history
-          projectContext: activeProject
+          projectContext: activeProject,
         })
       });
 
@@ -250,7 +250,7 @@ export default function ConversationsPage() {
           <div className="border-t px-6 py-3 flex items-center gap-6 text-[10px]" style={{ borderColor: "var(--card-border)" }}>
             <div><span className="text-gray-500">Memory · </span><span className="text-gray-300">Zustand persisted</span></div>
             <div><span className="text-gray-500">Evidence · </span><span className="text-gray-300">{activeProject?.evidence?.length ?? 0} facts</span></div>
-            <div><span className="text-gray-500">Model · </span><span className="text-gray-300">gemini-3.5-flash</span></div>
+            <div><span className="text-gray-500">Model · </span><span className="text-gray-300">Gemini 2.5 Flash</span></div>
             <div><span className="text-gray-500">Capability · </span><span className="text-gray-300">{activeAgent.role}</span></div>
           </div>
 

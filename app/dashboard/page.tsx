@@ -25,6 +25,24 @@ const VENTURE_AGENTS = [
   { name: "Report Generation",         icon: "≡", nodeKey: "report" },
 ];
 
+const AGENT_ACTIVITIES: Record<string, string> = {
+  opportunity: "Analyzing startup concept and clarifying goals...",
+  planner: "Defining targeted queries for market, competition, and finance...",
+  research: "Performing live web search and gathering data...",
+  extractor: "Structuring raw facts and extracting key business entities...",
+  validator: "Cross-verifying claims, scoring credibility, and checking conflicts...",
+  retriever: "Indexing and retrieving context from vector database...",
+  market: "Calculating TAM/SAM/SOM and assessing industry attractiveness...",
+  competitor: "Mapping competitor strengths, weaknesses, and feature support...",
+  swot: "Structuring strengths, weaknesses, opportunities, and threats...",
+  risk: "Prioritizing risk dimensions and devising contingency plans...",
+  financial: "Building 3-year revenue projections and unit economics...",
+  analyst: "Evaluating investor readiness, red flags, and funding milestones...",
+  roadmap: "Synthesizing tactical execution timelines and dependencies...",
+  decision: "Compiling final investment score and generating verdict...",
+  report: "Consolidating all agent outputs and generating pitch deck...",
+};
+
 const statusStyle = {
   done:    { color: "#daf264", bg: "rgba(218, 242, 100, 0.08)",  label: "Done"    },
   running: { color: "#daf264", bg: "rgba(218, 242, 100, 0.15)",  label: "Running" },
@@ -94,7 +112,7 @@ export default function DashboardPage() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-gemini-api-key": geminiApiKey
+          "x-gemini-api-key": geminiApiKey,
         },
         body: JSON.stringify({
           mode: "full",
@@ -450,6 +468,16 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-white">{agent.name}</p>
+                    {isRunning && (
+                      <p className="text-[10px] mt-0.5 animate-pulse" style={{ color: "var(--accent)" }}>
+                        {AGENT_ACTIVITIES[agent.nodeKey] || "Executing..."}
+                      </p>
+                    )}
+                    {isDone && (
+                      <p className="text-[10px] mt-0.5" style={{ color: "var(--muted-fg)" }}>
+                        Completed successfully
+                      </p>
+                    )}
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
                     style={{ background: s.bg, color: s.color }}>

@@ -114,7 +114,7 @@ export default function WorkflowsPage() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-gemini-api-key": geminiApiKey
+          "x-gemini-api-key": geminiApiKey,
         },
         body: JSON.stringify({
           mode: "full",

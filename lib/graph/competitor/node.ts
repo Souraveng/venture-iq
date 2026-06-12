@@ -75,6 +75,9 @@ Based on the above facts, formulate the Competitor Intelligence Report. Categori
       { role: "user", content: prompt }
     ]);
     report = response as unknown as CompetitorIntelligenceReport;
+    if (!report || !report.competitorProfiles || !report.featureMatrix || !report.competitiveIntensity) {
+      throw new Error("Invalid or empty competitor intelligence report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Competitor Intelligence, falling back to heuristic parsing:", err);
     // Safety fallback report to prevent pipeline crashes

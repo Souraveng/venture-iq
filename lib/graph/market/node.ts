@@ -66,6 +66,9 @@ Based on the above facts, formulate the Market Intelligence Report. Remember to 
       { role: "user", content: prompt }
     ]);
     report = response as unknown as MarketIntelligenceReport;
+    if (!report || !report.tam || !report.sam || !report.som || !report.marketOverview || !report.marketAttractiveness) {
+      throw new Error("Invalid or empty market intelligence report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Market Intelligence, falling back to heuristic parsing:", err);
     // Safety fallback report to prevent pipeline crashes

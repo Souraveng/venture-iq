@@ -20,6 +20,42 @@ const agentSteps = [
   { icon: "✦", name: "Pitch Deck Agent",          delay: 0.60 },
 ];
 
+const AGENT_NAMES: Record<string, string> = {
+  opportunity: "Opportunity Understanding Agent",
+  planner: "Research Planner Agent",
+  research: "Evidence Researcher Agent",
+  extractor: "Fact Extractor Agent",
+  validator: "Validation Agent",
+  retriever: "Knowledge Retriever Agent",
+  market: "Market Intelligence Agent",
+  competitor: "Competitor Intelligence Agent",
+  swot: "SWOT Intelligence Agent",
+  risk: "Risk Intelligence Agent",
+  financial: "Financial Intelligence Agent",
+  analyst: "Venture Analyst Agent",
+  roadmap: "Founder Roadmap Agent",
+  decision: "Decision Engine Agent",
+  report: "Report Generation Agent"
+};
+
+const AGENT_ACTIVITIES: Record<string, string> = {
+  opportunity: "Analyzing startup concept and clarifying goals...",
+  planner: "Defining targeted queries for market, competition, and finance...",
+  research: "Performing live web search and gathering data...",
+  extractor: "Structuring raw facts and extracting key business entities...",
+  validator: "Cross-verifying claims, scoring credibility, and checking conflicts...",
+  retriever: "Indexing and retrieving context from vector database...",
+  market: "Calculating TAM/SAM/SOM and assessing industry attractiveness...",
+  competitor: "Mapping competitor strengths, weaknesses, and feature support...",
+  swot: "Structuring strengths, weaknesses, opportunities, and threats...",
+  risk: "Prioritizing risk dimensions and devising contingency plans...",
+  financial: "Building 3-year revenue projections and unit economics...",
+  analyst: "Evaluating investor readiness, red flags, and funding milestones...",
+  roadmap: "Synthesizing tactical execution timelines and dependencies...",
+  decision: "Compiling final investment score and generating verdict...",
+  report: "Consolidating all agent outputs and generating pitch deck...",
+};
+
 export default function IntakePage() {
   const router = useRouter();
   const { projects, activeId, updateProject, addNotification, addAuditEntry } = useProjectStore();
@@ -75,18 +111,19 @@ export default function IntakePage() {
     });
 
     try {
+      let result: any = null;
       const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-gemini-api-key': geminiApiKey
+          'x-gemini-api-key': geminiApiKey,
         },
         body: JSON.stringify({ 
           mode: 'validate', 
           stream: true,
           data: { idea: idea },
-          geminiApiKey
+          geminiApiKey,
         })
       });
 
@@ -99,24 +136,6 @@ export default function IntakePage() {
 
       const decoder = new TextDecoder();
       let buffer = "";
-
-      const AGENT_NAMES: Record<string, string> = {
-        opportunity: "Opportunity Understanding",
-        planner: "Research Planner",
-        research: "Evidence Researcher",
-        extractor: "Fact Extractor",
-        validator: "Validation Agent",
-        retriever: "Knowledge Retriever",
-        market: "Market Intelligence",
-        competitor: "Competitor Intelligence",
-        swot: "SWOT Intelligence",
-        risk: "Risk Intelligence",
-        financial: "Financial Intelligence",
-        analyst: "Venture Analyst",
-        roadmap: "Founder Roadmap",
-        decision: "Decision Engine",
-        report: "Report Generation"
-      };
 
       while (true) {
         const { done, value } = await reader.read();
@@ -161,8 +180,9 @@ export default function IntakePage() {
                   severity: "info",
                 });
               } else if (parsed.event === "complete") {
+                result = parsed.result;
                 updateProject(activeId, {
-                  ...parsed.result,
+                  ...result,
                   status: "active",
                   intakeComplete: true,
                   agentsDone: VENTURE_AGENTS.length,
@@ -184,13 +204,37 @@ export default function IntakePage() {
                   target: active?.name || "New Venture",
                   severity: "info",
                 });
+              } else if (parsed.event === "error") {
+                throw new Error(parsed.error || "Graph stream execution failed");
               }
-            } catch (err) {
-              console.error("Error parsing stream chunk:", err, dataStr);
+            } catch (e) {
+              console.error("Error parsing stream event:", e);
             }
           }
         }
       }
+
+      if (!result) {
+        throw new Error("Pipeline completed but returned no state update");
+      }
+
+      // 2. Update the Zustand Store with the real data
+      updateProject(activeId, {
+        status: "active",
+        intakeComplete: true,
+        progress: 100,
+        agentsDone: VENTURE_AGENTS.length,
+        marketIntel: result.marketIntel || {},
+        competitorIntel: result.competitorIntel || {},
+        swotIntel: result.swotIntel || {},
+        riskIntel: result.riskIntel || {},
+        financialIntel: result.financialIntel || {},
+        finalReport: result.finalReport || {},
+        roadmapIntel: result.roadmapIntel || {},
+        decisionReport: result.decisionReport || {},
+        reportIntel: result.reportIntel || {},
+        researchPlan: result.researchPlan || [],
+      });
     } catch (error) {
       console.error("Pipeline invocation error:", error);
       updateProject(activeId, {
@@ -386,30 +430,48 @@ export default function IntakePage() {
           {launching && (
             <motion.div key="launch"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="flex flex-col items-center gap-6 text-center">
+              className="flex flex-col items-center gap-6 text-center max-w-md w-full">
               <div className="flex gap-3">
-                {agentSteps.map((a, i) => (
-                  <motion.div key={i}
-                    animate={{ y: [0, -12, 0], opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
-                    style={{ background: "rgba(218,242,100,0.1)", color: "var(--accent)" }}>
-                    {a.icon}
-                  </motion.div>
-                ))}
+                {agentSteps.map((a, i) => {
+                  const stepIndex = Math.min(4, Math.floor((active?.agentsDone || 0) / 3));
+                  const isActive = stepIndex === i;
+                  return (
+                    <motion.div key={i}
+                      animate={isActive ? { y: [0, -12, 0], opacity: [0.5, 1, 0.5] } : {}}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                      style={{ 
+                        background: isActive ? "rgba(218,242,100,0.15)" : "rgba(255,255,255,0.03)", 
+                        color: isActive ? "var(--accent)" : "#444",
+                        border: isActive ? "1px solid var(--accent)" : "1px solid #222"
+                      }}>
+                      {a.icon}
+                    </motion.div>
+                  );
+                })}
               </div>
-              <div>
-                <p className="text-lg font-bold text-white">Launching analysis pipeline…</p>
-                <p className="text-sm mt-1" style={{ color: "#555" }}>
-                  Agents are spinning up. Redirecting to dashboard.
+              <div className="space-y-1">
+                <p className="text-lg font-bold text-white">
+                  {active?.activeAgentNode 
+                    ? (AGENT_NAMES[active.activeAgentNode] || "VentureIQ Agent")
+                    : "Initializing analysis pipeline..."}
+                </p>
+                <p className="text-xs transition-colors duration-300" style={{ color: "var(--accent)" }}>
+                  {active?.activeAgentNode 
+                    ? (AGENT_ACTIVITIES[active.activeAgentNode] || "Analyzing startup data...")
+                    : "Warming up agent environments..."}
+                </p>
+                <p className="text-[10px]" style={{ color: "#555" }}>
+                  Completed {active?.agentsDone || 0} of 15 analysis steps
                 </p>
               </div>
               {/* Progress bar */}
-              <div className="w-64 h-1 rounded-full overflow-hidden" style={{ background: "#1a1a1a" }}>
-                <motion.div className="h-full rounded-full" style={{ background: "var(--accent)" }}
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1.8, ease: "easeInOut" }} />
+              <div className="w-64 h-1.5 rounded-full overflow-hidden" style={{ background: "#1a1a1a" }}>
+                <div className="h-full rounded-full transition-all duration-500" 
+                  style={{ 
+                    background: "var(--accent)",
+                    width: `${active?.progress || 0}%` 
+                  }} />
               </div>
             </motion.div>
           )}

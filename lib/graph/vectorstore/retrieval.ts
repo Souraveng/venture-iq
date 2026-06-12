@@ -1,5 +1,5 @@
 // lib/graph/vectorstore/retrieval.ts
-import { llm } from "../llm";
+import { llm, apiKeyStorage } from "../llm";
 import { RetrievedKnowledge, RetrievalQueryInput, CollectionName } from "./types";
 import { VectorStoreClient } from "./client";
 import { EmbeddingService } from "./embeddings";
@@ -56,7 +56,9 @@ Expand the following venture concept query into 3 specific, targeted business an
 Query: "${query}"`;
 
       // Prevent calling LLM during builds or test fallbacks
-      const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+      const keys = apiKeyStorage.getStore();
+      const userKey = typeof keys === "object" ? keys?.geminiApiKey : keys;
+      const apiKey = userKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
       if (!apiKey || apiKey === "placeholder-key-for-build") {
         return expansions;
       }

@@ -87,6 +87,9 @@ Based on the above facts, formulate the Financial Intelligence Report. Estimate 
       { role: "user", content: prompt }
     ]);
     report = response as unknown as FinancialIntelligenceReport;
+    if (!report || !report.startupCosts || !report.unitEconomics || !report.revenueForecast || !report.fundingRequirements) {
+      throw new Error("Invalid or empty financial intelligence report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Financial Intelligence, falling back to mock examples:", err);
     report = JSON.parse(JSON.stringify(MOCK_FINANCIAL_REPORT));

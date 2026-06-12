@@ -75,6 +75,9 @@ Based on the above facts, formulate the Risk Intelligence Report. Evaluate Marke
       { role: "user", content: prompt }
     ]);
     report = response as unknown as RiskIntelligenceReport;
+    if (!report || !report.marketRisk || !report.competitionRisk || !report.financialRisk || !report.overallRiskIndex) {
+      throw new Error("Invalid or empty risk intelligence report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Risk Intelligence, falling back to heuristic parsing:", err);
     // Safety fallback report to prevent pipeline crashes

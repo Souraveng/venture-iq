@@ -27,8 +27,10 @@ export async function researchPlannerAgent(state: VentureStateType) {
       JSON.stringify(ventureContext, null, 2)
     );
 
-    // Invoke Gemini model with Zod schema verification
     const result = (await structuredLlm.invoke(prompt)) as ResearchPlannerOutput;
+    if (!result || !result.research_dimensions || !result.search_queries) {
+      throw new Error("Invalid or empty research planner output received from LLM");
+    }
 
     console.log(`Research Objective: ${result.research_objective}`);
     console.log(`Research Depth: ${result.research_depth}`);

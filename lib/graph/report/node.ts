@@ -62,6 +62,9 @@ Generate the complete portfolio of 7 deliverables and the corresponding chart da
       { role: "user", content: prompt }
     ]);
     reportIntel = response as unknown as VentureReportsContainer;
+    if (!reportIntel || !reportIntel.charts || !reportIntel.pitchDeck) {
+      throw new Error("Invalid or empty venture reports container received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Report Engine, falling back to mock examples:", err);
     reportIntel = JSON.parse(JSON.stringify(MOCK_REPORTS_CONTAINER));

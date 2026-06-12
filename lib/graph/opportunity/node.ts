@@ -23,8 +23,10 @@ export async function opportunityAgent(state: VentureStateType) {
       .replace("{userQuery}", userQuery)
       .replace("{proposedMode}", proposedMode);
 
-    // Invoke Gemini model with Zod schema verification
     const result = await structuredLlm.invoke(prompt) as VentureContext;
+    if (!result || !result.intent || !result.startup_idea) {
+      throw new Error("Invalid or empty venture context received from LLM");
+    }
 
     console.log(`Intent Classified: ${result.intent}`);
     console.log(`Confidence (Intent): ${result.confidence.intent}`);

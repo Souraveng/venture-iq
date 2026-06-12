@@ -94,6 +94,9 @@ Based on the above intelligence inputs, formulate the Founder Roadmap & Executio
       { role: "user", content: prompt }
     ]);
     report = response as unknown as FounderRoadmapReport;
+    if (!report || !report.milestones || !report.hiringRoadmap) {
+      throw new Error("Invalid or empty founder roadmap report received from LLM");
+    }
   } catch (err: any) {
     console.error("Structured LLM query failed for Founder Roadmap, falling back to mock examples:", err);
     report = JSON.parse(JSON.stringify(MOCK_ROADMAP_REPORT));

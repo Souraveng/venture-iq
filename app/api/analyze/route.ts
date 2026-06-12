@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       const customReadable = new ReadableStream({
         async start(controller) {
           try {
-            await apiKeyStorage.run(userApiKey, async () => {
+            await apiKeyStorage.run({ geminiApiKey: userApiKey }, async () => {
               const stream = await graph.stream(initialState, { streamMode: "updates" });
               const accumulatedState: Record<string, any> = { ...initialState };
 
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       });
     } else {
       // Synchronous fallback
-      const result = await apiKeyStorage.run(userApiKey, () => graph.invoke(initialState));
+      const result = await apiKeyStorage.run({ geminiApiKey: userApiKey }, () => graph.invoke(initialState));
       return NextResponse.json(result);
     }
   } catch (error: any) {

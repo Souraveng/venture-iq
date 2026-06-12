@@ -47,8 +47,10 @@ export async function validationAgent(state: VentureStateType) {
       )
       .replace("{facts}", JSON.stringify(factsList, null, 2));
 
-    // Invoke Gemini structured validation
     const result = (await structuredLlm.invoke(prompt)) as ValidationOutput;
+    if (!result || !result.validatedFacts || !result.conflicts || !result.reliability) {
+      throw new Error("Invalid or empty validation output received from LLM");
+    }
 
     console.log(`Validation Complete:`);
     console.log(`- Validated Facts: ${result.validatedFacts?.length || 0}`);
