@@ -1,15 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useProjectStore } from "@/store/useProjectStore";
 
 /**
  * Wrap any dashboard page with this.
- * If the active project has not completed intake → redirect to /intake.
+ * If the active project has not completed intake → redirect to /dashboard (which handles intake).
  * Shows nothing (null) until hydration is confirmed — prevents flash.
  */
 export default function ProjectGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { projects, activeId, syncFromDatabase } = useProjectStore();
   const [loading, setLoading] = useState(true);
 
@@ -23,18 +24,19 @@ export default function ProjectGuard({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (loading) return;
+    if (pathname === "/dashboard" || pathname === "/settings") return;
 
     // After hydration and DB sync, check intake status
     const active = projects.find((p) => p.id === activeId);
     if (!active) {
-      router.replace("/");
+      router.replace("/dashboard");
       return;
     }
     if (!active.intakeComplete) {
-      router.replace("/intake");
+      router.replace("/dashboard");
       return;
     }
-  }, [loading, activeId, projects, router]);
+  }, [loading, activeId, projects, router, pathname]);
 
   if (loading) {
     return (
@@ -45,6 +47,10 @@ export default function ProjectGuard({ children }: { children: React.ReactNode }
         </div>
       </div>
     );
+  }
+
+  if (pathname === "/dashboard" || pathname === "/settings") {
+    return <>{children}</>;
   }
 
   const active = projects.find((p) => p.id === activeId);

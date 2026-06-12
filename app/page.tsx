@@ -1,21 +1,14 @@
 "use client";
-import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useProjectStore } from "@/store/useProjectStore";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import DotsBackground from "@/components/DotsBackground";
 
-const examples = [
-  "I want to launch an EV startup in India.",
-  "Build a SaaS tool for freelance designers.",
-  "Create a D2C health supplement brand.",
-  "Start a B2B logistics platform for SMEs.",
-];
-
-export default function LandingPage() {
-  const [idea, setIdea] = useState("");
+function LandingPageInner() {
   const router = useRouter();
-  const { addProject } = useProjectStore();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   // Auth modal states
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -25,14 +18,6 @@ export default function LandingPage() {
   const [fullName, setFullName] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  function handleStart() {
-    if (!idea.trim()) return;
-    const words = idea.trim().split(/\s+/);
-    const derivedName = words.slice(0, 4).join(" ") + (words.length > 4 ? "..." : "");
-    addProject(derivedName, idea.trim());
-    router.push("/intake");
-  }
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,25 +38,48 @@ export default function LandingPage() {
     }
 
     setIsLoading(true);
-    // Mock network lag
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        name: authMode === "signup" ? fullName : email.split("@")[0],
+        action: authMode,
+      });
 
-    // Mock Login - Redirect to dashboard
-    router.push("/dashboard");
-    setShowAuthModal(false);
+      if (result?.error) {
+        if (result.error.includes("USER_EXISTS")) {
+          setErrorMsg("An account with this email already exists. Please sign in instead.");
+        } else if (result.error.includes("USER_NOT_FOUND")) {
+          setErrorMsg("No account found with this email. Please sign up first.");
+        } else {
+          setErrorMsg("Failed to authenticate. Please check your credentials.");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      router.push(callbackUrl);
+      setShowAuthModal(false);
+    } catch (err: any) {
+      setErrorMsg(err.message || "An authentication error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen" style={{ background: "#0a0a0a", color: "#f0f0f0" }}>
+    <div className="min-h-screen relative overflow-hidden" style={{ background: "#0a0a0a", color: "#f0f0f0" }}>
+      {/* Interactive Floating Dots Background */}
+      <DotsBackground />
 
-      {/* Nav — matches screenshot */}
+      {/* Nav */}
       <nav className="fixed top-0 w-full z-50 px-8 py-4 flex items-center justify-between"
         style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid #1a1a1a" }}>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm"
-            style={{ background: "#daf264", color: "#0a0a0a" }}>S</div>
-          <span className="font-bold text-sm tracking-wide text-white">StartupOS</span>
+            style={{ background: "#daf264", color: "#0a0a0a" }}>V</div>
+          <span className="font-bold text-sm tracking-wide text-white">VentureIQ</span>
         </div>
         
         <div className="flex items-center gap-7 text-sm" style={{ color: "#888" }}>
@@ -96,20 +104,20 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-36 pb-24 px-8 text-center relative overflow-hidden">
+      <section className="pt-36 pb-24 px-8 text-center relative z-10">
         {/* Subtle background glow */}
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse 60% 40% at 50% 60%, rgba(218, 242, 100, 0.04) 0%, transparent 70%)" }} />
+          style={{ background: "radial-gradient(ellipse 60% 40% at 50% 60%, rgba(218, 242, 100, 0.03) 0%, transparent 70%)" }} />
 
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium mb-8"
             style={{ background: "#1a1a1a", border: "1px solid #2a2a2a", color: "#888" }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#daf264" }} />
-            Multi-agent orchestration · Now in private beta
+            Multi-agent venture validation · Private Beta
           </div>
 
-          {/* Headline — Instrument Serif, 4.5rem */}
+          {/* Headline — Instrument Serif */}
           <h1 className="font-display leading-tight mb-6"
             style={{
               fontFamily: "'Instrument Serif', serif",
@@ -117,63 +125,43 @@ export default function LandingPage() {
               letterSpacing: "-0.01em",
               lineHeight: 1.05,
             }}>
-            <span style={{ color: "#f0f0f0" }}>Compose </span>
-            <span style={{ color: "#daf264" }}>agent networks</span>
+            <span style={{ color: "#f0f0f0" }}>Validate </span>
+            <span style={{ color: "#daf264" }}>venture concepts</span>
             <br />
-            <span style={{ color: "#f0f0f0" }}>that ship work for you.</span>
+            <span style={{ color: "#f0f0f0" }}>with multi-agent intelligence.</span>
           </h1>
 
           <p className="text-lg max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: "#666" }}>
-            StartupOS is the operating system for autonomous teams of AI agents —
-            research, plan, build, review. Configure once. Orchestrate forever.
+            VentureIQ is the operating system for autonomous venture validation.
+            Deploy a coordinated network of 15 AI agents to research, analyze, and grade your business ideas instantly.
           </p>
 
-          {/* Input box — matches screenshot dark pill */}
-          <div className="max-w-2xl mx-auto flex items-center gap-3 p-2 pl-5 rounded-2xl"
-            style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
-            <input
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleStart()}
-              placeholder="Describe the agent network you want to build..."
-              className="flex-1 bg-transparent text-sm outline-none placeholder-gray-600 text-white"
-            />
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={handleStart}
-              className="btn-accent px-5 py-2.5 text-sm font-semibold rounded-xl flex items-center gap-2"
-              style={{ background: "#daf264", color: "#0a0a0a", borderRadius: 12 }}>
-              Get started →
-            </motion.button>
-          </div>
-
-          {/* Example prompts */}
-          <div className="flex flex-wrap justify-center gap-2 mt-5">
-            {examples.map((ex) => (
-              <button key={ex} onClick={() => { setIdea(ex); }}
-                className="px-3.5 py-1.5 rounded-full text-xs transition-all hover:border-gray-500"
-                style={{ background: "#111", border: "1px solid #222", color: "#555" }}>
-                {ex}
-              </button>
-            ))}
-          </div>
+          <button 
+            onClick={() => { setAuthMode("signup"); setShowAuthModal(true); setErrorMsg(""); }}
+            className="bg-transparent border-none outline-none cursor-pointer">
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-2 px-8 py-3.5 rounded-full text-base font-semibold"
+              style={{ background: "#daf264", color: "#0a0a0a" }}>
+              Get started for free &rarr;
+            </motion.div>
+          </button>
         </motion.div>
       </section>
 
       {/* Agent Network Preview */}
-      <section className="px-8 pb-20 max-w-5xl mx-auto">
+      <section className="px-8 pb-20 max-w-5xl mx-auto relative z-10">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-2">5 AI agents. One complete startup.</h2>
-          <p style={{ color: "#555" }} className="text-sm">Each agent is a specialist. Together they build your investor-ready business.</p>
+          <h2 className="text-3xl font-bold mb-2 text-white">15 AI agents. One complete analysis.</h2>
+          <p style={{ color: "#555" }} className="text-sm">Each agent specializes in a distinct facet of venture validation to deliver objective, investor-grade analysis.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           {[
-            { name: "Market Research", icon: "◎", color: "#daf264", desc: "TAM/SAM/SOM, trends, customer segments" },
-            { name: "Competitor Analysis", icon: "⬡", color: "#daf264", desc: "SWOT, competitor matrix, positioning" },
-            { name: "Finance Agent", icon: "◆", color: "#daf264", desc: "Revenue projections, burn rate, funding" },
-            { name: "Legal Agent", icon: "≡", color: "#daf264", desc: "Compliance, structure, risk assessment" },
-            { name: "Pitch Deck", icon: "✦", color: "#daf264", desc: "Investor-ready deck, executive summary" },
+            { name: "Market Intelligence", icon: "◎", color: "#daf264", desc: "TAM/SAM/SOM, trends, and market attractiveness" },
+            { name: "Competitor Analysis", icon: "⬡", color: "#daf264", desc: "SWOT, competitor matrix, and positioning" },
+            { name: "Financial Modeler", icon: "◆", color: "#daf264", desc: "3-year projections, unit economics, and burn rate" },
+            { name: "Risk Assessment", icon: "⚠", color: "#daf264", desc: "Red flags, operational risks, and mitigations" },
+            { name: "Decision Engine", icon: "✦", color: "#daf264", desc: "Venture readiness scoring and investment verdicts" },
           ].map((agent, i) => (
             <motion.div key={agent.name}
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 * i }}
@@ -181,7 +169,7 @@ export default function LandingPage() {
               className="rounded-2xl p-4 text-center relative"
               style={{ background: "#111", border: "1px solid #1e1e1e" }}>
               {i < 4 && (
-                <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 text-xs"
+                <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 text-xs hidden md:block"
                   style={{ color: "#333" }}>→</div>
               )}
               <div className="w-10 h-10 rounded-xl mx-auto flex items-center justify-center text-xl mb-3"
@@ -196,12 +184,12 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="px-8 pb-24 max-w-5xl mx-auto">
+      <section className="px-8 pb-24 max-w-5xl mx-auto relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { title: "Real-time agent collaboration", desc: "Watch agents hand off work in live swimlane views. Approve, intervene, re-run any step.", icon: "⟳" },
-            { title: "Investor-ready outputs", desc: "Auto-generate pitch decks, financial models, SWOT analyses, and business model canvases.", icon: "✦" },
-            { title: "Startup Readiness Score", desc: "Visual scoring across market, competition, finance, legal, and execution dimensions.", icon: "◉" },
+            { title: "Investor-ready outputs", desc: "Auto-generate reports, financial models, SWOT analyses, and venture canvases.", icon: "✦" },
+            { title: "Venture Readiness Score", desc: "Visual scoring across market, competition, finance, risk, and execution dimensions.", icon: "◉" },
           ].map((f) => (
             <div key={f.title} className="rounded-2xl p-5"
               style={{ background: "#111", border: "1px solid #1e1e1e" }}>
@@ -217,25 +205,24 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-8 pb-24 text-center">
-        <div className="max-w-xl mx-auto rounded-3xl p-10"
-          style={{ background: "#111", border: "1px solid #222" }}>
-          <h2 className="text-3xl font-bold mb-3">Ready to build your startup?</h2>
-          <p className="text-sm mb-6" style={{ color: "#555" }}>Enter your idea. Our agent network does the rest.</p>
+      <section className="px-8 pb-24 text-center relative z-10">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-3 text-white">Evaluate your next venture.</h2>
+          <p className="text-sm mb-6" style={{ color: "#555" }}>Deploy our multi-agent intelligence network to validate your concepts today.</p>
           <button 
             onClick={() => { setAuthMode("signup"); setShowAuthModal(true); setErrorMsg(""); }}
             className="bg-transparent border-none outline-none cursor-pointer">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              className="btn-accent px-8 py-3 text-sm font-bold rounded-full"
+              className="px-8 py-3.5 text-sm font-bold rounded-full"
               style={{ background: "#daf264", color: "#0a0a0a" }}>
-              Launch StartupOS →
+              Get Started Now &rarr;
             </motion.div>
           </button>
         </div>
       </section>
 
-      <footer className="border-t px-8 py-5 text-center text-xs" style={{ borderColor: "#1a1a1a", color: "#444" }}>
-        © 2026 StartupOS · AI-Powered Startup Builder Platform
+      <footer className="border-t px-8 py-5 text-center text-xs relative z-10" style={{ borderColor: "#1a1a1a", color: "#444" }}>
+        © 2026 VentureIQ · AI-Powered Venture Intelligence Platform
       </footer>
 
       {/* Premium Sliding Auth Modal */}
@@ -280,8 +267,44 @@ export default function LandingPage() {
               {/* Logo */}
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs"
-                  style={{ background: "#daf264", color: "#0a0a0a" }}>S</div>
-                <span className="font-bold text-xs tracking-wide text-white">StartupOS</span>
+                  style={{ background: "#daf264", color: "#0a0a0a" }}>V</div>
+                <span className="font-bold text-xs tracking-wide text-white">VentureIQ</span>
+              </div>
+
+              {/* Google OAuth Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  signIn("google", { callbackUrl: "/dashboard" });
+                }}
+                className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-xs font-semibold text-white bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer mb-5 shadow-sm"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                  <path
+                    fill="#4285F4"
+                    d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7l2.76 2.13c1.61-1.49 2.54-3.69 2.54-6.46z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.76-2.13c-.76.51-1.74.82-3.2.82-2.46 0-4.54-1.66-5.29-3.89L.94 13.5C2.42 16.44 5.48 18 9 18z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M3.71 10.62c-.19-.58-.3-1.2-.3-1.84s.11-1.26.3-1.84L.94 4.05C.34 5.24 0 6.58 0 8s.34 2.76.94 3.95l2.77-1.33z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.86 11.43 0 9 0 5.48 0 2.42 1.56.94 4.5l2.77 2.13C4.46 5.24 6.54 3.58 9 3.58z"
+                  />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-[1px] bg-white/10" />
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">or</span>
+                <div className="flex-1 h-[1px] bg-white/10" />
               </div>
 
               {/* Switch tabs */}
@@ -289,7 +312,7 @@ export default function LandingPage() {
                 <button
                   type="button"
                   onClick={() => { setAuthMode("signin"); setErrorMsg(""); }}
-                  className="flex-1 text-center py-2 text-xs font-semibold rounded-lg z-10 transition-colors relative cursor-pointer"
+                  className="flex-1 text-center py-2.5 text-xs font-semibold rounded-lg z-10 transition-colors relative cursor-pointer"
                   style={{ color: authMode === "signin" ? "#0a0a0a" : "#888" }}
                 >
                   {authMode === "signin" && (
@@ -305,7 +328,7 @@ export default function LandingPage() {
                 <button
                   type="button"
                   onClick={() => { setAuthMode("signup"); setErrorMsg(""); }}
-                  className="flex-1 text-center py-2 text-xs font-semibold rounded-lg z-10 transition-colors relative cursor-pointer"
+                  className="flex-1 text-center py-2.5 text-xs font-semibold rounded-lg z-10 transition-colors relative cursor-pointer"
                   style={{ color: authMode === "signup" ? "#0a0a0a" : "#888" }}
                 >
                   {authMode === "signup" && (
@@ -324,39 +347,39 @@ export default function LandingPage() {
               <form onSubmit={handleAuthSubmit} className="space-y-4">
                 {authMode === "signup" && (
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Full Name</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Full Name</label>
                     <input
                       type="text"
                       required
                       placeholder="Jane Doe"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
+                      className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3.5 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
                   <input
                     type="email"
                     required
                     placeholder="jane@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
+                    className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3.5 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Password</label>
                   <input
                     type="password"
                     required
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
+                    className="w-full bg-[#161616] border border-white/5 rounded-xl px-4 py-3.5 text-xs outline-none transition-all text-white placeholder-gray-600 focus:border-[#daf264]/50 focus:ring-1 focus:ring-[#daf264]/30"
                   />
                 </div>
 
@@ -373,7 +396,7 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full relative flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all mt-6 cursor-pointer"
+                  className="w-full relative flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold transition-all mt-6 cursor-pointer"
                   style={{
                     background: "white",
                     color: "#0a0a0a",
@@ -392,5 +415,13 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense fallback={null}>
+      <LandingPageInner />
+    </Suspense>
   );
 }

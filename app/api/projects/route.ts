@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { listProjects, saveProject } from "@/lib/db";
 import { Project } from "@/store/useProjectStore";
 
@@ -41,15 +43,26 @@ const defaultProjects: Project[] = [
 
 export async function GET() {
   try {
-    let list = await listProjects();
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const email = session.user.email;
+
+    let list = await listProjects(email);
     
-    // Auto-seed default projects if database is empty
+    // Auto-seed default projects if database is empty for this user
     if (list.length === 0) {
-      console.log("Database is empty. Seeding default projects...");
+      console.log(`Database is empty for user ${email}. Seeding default projects...`);
       for (const proj of defaultProjects) {
-        await saveProject(proj);
+        // Create copies of default projects with unique IDs to avoid conflicts
+        const seededProj = {
+          ...proj,
+          id: `proj-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        };
+        await saveProject(seededProj, email);
       }
-      list = await listProjects();
+      list = await listProjects(email);
     }
     
     return NextResponse.json(list);
@@ -61,12 +74,18 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const email = session.user.email;
+
     const project = await req.json();
     if (!project || !project.id) {
       return NextResponse.json({ error: "Invalid project payload" }, { status: 400 });
     }
     
-    await saveProject(project);
+    await saveProject(project, email);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("POST project error:", error);

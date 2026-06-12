@@ -16,7 +16,7 @@ const THROTTLE_DELAY_MS = 1500;
 async function queryGemini(prompt: string, apiKey: string): Promise<string> {
   const model = process.env.GEMINI_LLM_MODEL || "gemini-2.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -69,25 +69,25 @@ async function resolveLlmCall(prompt: string, isStructured: boolean = false): Pr
 
   const providers = ["gemini", "mock"];
   let generatedText = "";
-  
+
   for (const provider of providers) {
     if (provider === "gemini" && geminiApiKey && geminiApiKey !== "placeholder-key-for-build") {
       try {
-        console.log(`[LLM${isStructured ? ' Structured' : ''}] Querying Google Gemini API with key: ${geminiApiKey.substring(0, 6)}...${geminiApiKey.substring(geminiApiKey.length - 4)} (length: ${geminiApiKey.length})`);
+        console.log(`[LLM${isStructured ? ' Structured' : ''}] Querying Google Gemini API...`);
         generatedText = await queryGemini(prompt, geminiApiKey);
         if (generatedText) break;
       } catch (geminiError: any) {
         console.warn(`[LLM${isStructured ? ' Structured' : ''}] Google Gemini failed: ${geminiError.message || geminiError}. Trying next provider...`);
       }
     }
-    
+
     if (provider === "mock") {
       console.log(`[LLM${isStructured ? ' Structured' : ''}] Querying Mock Fallback...`);
       generatedText = queryMock(prompt);
       break;
     }
   }
-  
+
   return generatedText;
 }
 

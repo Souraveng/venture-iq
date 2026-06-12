@@ -50,7 +50,7 @@ export default function ProjectSwitcher({ collapsed }: { collapsed: boolean }) {
     setNewName("");
     setShowNew(false);
     setOpen(false);
-    router.push("/intake");
+    router.push("/dashboard");
   }
 
   return (
@@ -122,7 +122,7 @@ export default function ProjectSwitcher({ collapsed }: { collapsed: boolean }) {
                     setOpen(false);
                     // Use router.push — no reload, store preserved
                     if (!p.intakeComplete) {
-                      router.push("/intake");
+                      router.push("/dashboard");
                     }
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white/5 transition-colors"

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import StoreSync from "@/components/StoreSync";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "Constellate — Multi-Agent Orchestration",
-  description: "Agent networks that ship work for you. Multi-agent orchestration platform.",
+  title: "VentureIQ — AI Venture Intelligence & Validation",
+  description: "Evaluate, validate, and score your business concepts with 15 specialized AI agents.",
 };
 
 export default function RootLayout({
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <StoreSync />
-        {children}
+        <AuthProvider>
+          <StoreSync />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@ import ProjectGuard from "@/components/ProjectGuard";
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signOut } from "next-auth/react";
 
 const members = [
   { name: "Sarah Chen",    email: "sarah@studio.ai",  avatar: "SC", role: "Owner",     lastActive: "Just now",  color: "#818cf8" },
@@ -19,14 +20,88 @@ const roleStyle: Record<string, { bg: string; text: string }> = {
   Viewer:    { bg: "rgba(74,74,106,0.2)",   text: "#8888aa"  },
 };
 
-const tabs = ["Team", "General", "Billing", "API Keys", "Integrations"];
+const tabs = ["Profile", "Team", "General", "Billing", "API Keys", "Integrations"];
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("Team");
+  const { data: session, update: updateSession } = useSession();
+  const [activeTab, setActiveTab] = useState("Profile");
+  
+  // Profile settings state
+  const [profileName, setProfileName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileUpdating, setProfileUpdating] = useState(false);
+  const [profileUpdateStatus, setProfileUpdateStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [geminiKey, setGeminiKey] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // Load profile data
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/user");
+        if (res.ok) {
+          const data = await res.json();
+          setProfileName(data.name || "");
+          setProfileImage(data.image || "");
+          setProfileEmail(data.email || "");
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      } finally {
+        setProfileLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  async function handleSaveProfile() {
+    setProfileUpdating(true);
+    setProfileUpdateStatus("saving");
+    try {
+      const res = await fetch("/api/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profileName, image: profileImage }),
+      });
+      if (!res.ok) throw new Error("Failed to update profile");
+      
+      // Update local NextAuth session if active
+      if (updateSession) {
+        await updateSession({ name: profileName, image: profileImage });
+      }
+      
+      setProfileUpdateStatus("saved");
+      setTimeout(() => setProfileUpdateStatus("idle"), 2000);
+    } catch (err) {
+      console.error(err);
+      setProfileUpdateStatus("error");
+      setTimeout(() => setProfileUpdateStatus("idle"), 2000);
+    } finally {
+      setProfileUpdating(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    try {
+      const res = await fetch("/api/user", {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete account");
+      
+      // Clear localStorage project selection and sign out
+      localStorage.removeItem("startupos-projects-meta");
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      alert("Failed to delete account. Please try again.");
+    }
+  }
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -79,6 +154,117 @@ export default function SettingsPage() {
         </div>
 
         <AnimatePresence mode="wait">
+          {activeTab === "Profile" && (
+            <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="space-y-4 max-w-xl animate-fade-in">
+              <div>
+                <h2 className="text-base font-semibold">User Profile Settings</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Manage your personal profile details and database synchronization.</p>
+              </div>
+
+              <div className="rounded-xl p-5 space-y-6" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+                {profileLoading ? (
+                  <div className="text-xs text-gray-500 py-4 animate-pulse">Loading profile data...</div>
+                ) : (
+                  <>
+                    {/* Avatar Preview & URL */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center bg-zinc-800 border border-zinc-700 flex-shrink-0">
+                        {profileImage ? (
+                          <img src={profileImage} alt={profileName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xl font-bold text-lime-400">
+                            {profileName.split(" ").map(n => n[0]).join("").slice(0,2).toUpperCase() || "FI"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-gray-300 block mb-1.5">Avatar Image URL</label>
+                        <input 
+                          type="text" 
+                          value={profileImage} 
+                          onChange={(e) => setProfileImage(e.target.value)}
+                          placeholder="https://example.com/avatar.png"
+                          className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg border border-white/5 text-white focus:border-lime-400/50 transition-colors" 
+                        />
+                      </div>
+                    </div>
+
+                    {/* Email Input (Read-only) */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-300 block mb-1.5">Email Address</label>
+                      <input 
+                        type="text" 
+                        value={profileEmail} 
+                        readOnly 
+                        className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg border border-white/5 text-gray-500 cursor-not-allowed" 
+                      />
+                      <p className="text-[10px] text-gray-600 mt-1">Your email is managed by your Google Auth login and cannot be changed.</p>
+                    </div>
+
+                    {/* Name Input */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-300 block mb-1.5">Full Name</label>
+                      <input 
+                        type="text" 
+                        value={profileName} 
+                        onChange={(e) => setProfileName(e.target.value)}
+                        placeholder="Founder Name"
+                        className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg border border-white/5 text-white focus:border-lime-400/50 transition-colors" 
+                      />
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="flex justify-end pt-2">
+                      <button 
+                        onClick={handleSaveProfile}
+                        disabled={profileUpdating}
+                        className="px-4 py-2 rounded-lg text-xs font-semibold text-black transition-all hover:brightness-110 active:scale-95"
+                        style={{ background: "var(--accent)" }}>
+                        {profileUpdating ? "Saving..." : profileUpdateStatus === "saved" ? "✓ Saved" : profileUpdateStatus === "error" ? "✕ Error" : "Save Changes"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Danger Zone */}
+              <div className="rounded-xl p-5 border border-red-500/20 bg-red-500/5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-red-400">Danger Zone</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Permanently delete your VentureIQ account and all associated data.</p>
+                </div>
+
+                {!deleteConfirmOpen ? (
+                  <button 
+                    onClick={() => setDeleteConfirmOpen(true)}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-600/20 border border-red-600/40 hover:bg-red-600/30 transition-all">
+                    Delete Account
+                  </button>
+                ) : (
+                  <div className="space-y-3 p-3 rounded-lg border border-red-500/30 bg-red-950/20">
+                    <p className="text-xs text-red-200 leading-relaxed font-semibold">
+                      ⚠️ Are you absolutely sure? This will delete your profile and purge all your projects, chat logs, and configurations from the database. This action is irreversible.
+                    </p>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handleDeleteAccount}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors">
+                        Yes, delete my account permanently
+                      </button>
+                      <button 
+                        onClick={() => setDeleteConfirmOpen(false)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition-colors"
+                        style={{ background: "#222" }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
           {activeTab === "Team" && (
             <motion.div key="team" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4 max-w-2xl">

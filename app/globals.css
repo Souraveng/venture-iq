@@ -23,6 +23,24 @@
   --muted-light: #888888;
 }
 
+:root[data-theme='light'] {
+  --background: #fcfcfc;
+  --foreground: #0f0f11;
+  --sidebar-bg: #f3f4f6;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --accent: #89b300;          /* dark lime green for readable contrast on light backgrounds */
+  --accent-dark: #749600;
+  --accent-glow: rgba(137, 179, 0, 0.15);
+  --accent-text: #ffffff;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --muted: #e5e7eb;
+  --muted-fg: #6b7280;
+  --muted-light: #9ca3af;
+}
+
 * { box-sizing: border-box; padding: 0; margin: 0; }
 
 html, body {

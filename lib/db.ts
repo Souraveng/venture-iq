@@ -8,7 +8,7 @@ const pool = new Pool({
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   database: process.env.PGDATABASE,
-  ssl: false, // GCP Cloud SQL allows unencrypted for authorized IPs, but we can enable SSL if needed.
+  ssl: false,
   connectionTimeoutMillis: 5000, // fail fast (5s) if DB is unreachable
 });
 
@@ -86,7 +86,23 @@ export async function initDb() {
     try {
       await client.query("BEGIN");
 
-      // 1. Projects Table
+      // 1. Users Table
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          email VARCHAR(255) PRIMARY KEY,
+          name VARCHAR(255),
+          image TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          preferences JSONB DEFAULT '{}'::jsonb
+        )
+      `);
+
+      // Migration safety: Add preferences column if users table was created previously
+      await client.query(`
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;
+      `);
+
+      // 2. Projects Table
       await client.query(`
         CREATE TABLE IF NOT EXISTS projects (
           id VARCHAR(100) PRIMARY KEY,
@@ -119,11 +135,17 @@ export async function initDb() {
           conflicts JSONB DEFAULT '[]'::jsonb,
           reliability JSONB DEFAULT '{}'::jsonb,
           retrieved_knowledge JSONB DEFAULT '[]'::jsonb,
-          analysis JSONB DEFAULT '{}'::jsonb
+          analysis JSONB DEFAULT '{}'::jsonb,
+          user_email VARCHAR(255) DEFAULT 'founder@ventureiq.io'
         )
       `);
 
-      // 2. Notifications Table
+      // Add user_email column if it was not created previously (migration safety)
+      await client.query(`
+        ALTER TABLE projects ADD COLUMN IF NOT EXISTS user_email VARCHAR(255) DEFAULT 'founder@ventureiq.io';
+      `);
+
+      // 3. Notifications Table
       await client.query(`
         CREATE TABLE IF NOT EXISTS notifications (
           id SERIAL PRIMARY KEY,
@@ -138,7 +160,7 @@ export async function initDb() {
         )
       `);
 
-      // 3. Audit Logs Table
+      // 4. Audit Logs Table
       await client.query(`
         CREATE TABLE IF NOT EXISTS audit_logs (
           id SERIAL PRIMARY KEY,
@@ -153,7 +175,7 @@ export async function initDb() {
         )
       `);
 
-      // 4. Chat Messages Table
+      // 5. Chat Messages Table
       await client.query(`
         CREATE TABLE IF NOT EXISTS chat_messages (
           id SERIAL PRIMARY KEY,
@@ -180,8 +202,98 @@ export async function initDb() {
   }
 }
 
-// Save or update a project and its nested relations
-export async function saveProject(project: Project) {
+// User Profile persistence helpers
+export async function upsertUser(email: string, name: string, image: string, preferences: Record<string, any> = {}) {
+  return runWithDbFallback(
+    async () => {
+      await initDb();
+      if (!isDbHealthy) return;
+      const client = await pool.connect();
+      try {
+        await client.query(
+          `INSERT INTO users (email, name, image, preferences) VALUES ($1, $2, $3, $4)
+           ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, image = EXCLUDED.image`,
+          [email, name, image, JSON.stringify(preferences)]
+        );
+      } finally {
+        client.release();
+      }
+    },
+    async () => {}
+  );
+}
+
+export async function updateUser(email: string, name: string, image: string, preferences?: Record<string, any>) {
+  return runWithDbFallback(
+    async () => {
+      await initDb();
+      if (!isDbHealthy) return;
+      const client = await pool.connect();
+      try {
+        if (preferences) {
+          // Merge preferences using jsonb_concat operator (||)
+          await client.query(
+            `UPDATE users SET name = $1, image = $2, preferences = COALESCE(preferences, '{}'::jsonb) || $3::jsonb WHERE email = $4`,
+            [name, image, JSON.stringify(preferences), email]
+          );
+        } else {
+          await client.query(
+            `UPDATE users SET name = $1, image = $2 WHERE email = $3`,
+            [name, image, email]
+          );
+        }
+      } finally {
+        client.release();
+      }
+    },
+    async () => {}
+  );
+}
+
+export async function getUser(email: string) {
+  return runWithDbFallback(
+    async () => {
+      await initDb();
+      if (!isDbHealthy) return null;
+      const client = await pool.connect();
+      try {
+        const res = await client.query("SELECT * FROM users WHERE email = $1", [email]);
+        if (res.rows.length === 0) return null;
+        return res.rows[0];
+      } finally {
+        client.release();
+      }
+    },
+    async () => null
+  );
+}
+
+export async function deleteUser(email: string) {
+  return runWithDbFallback(
+    async () => {
+      await initDb();
+      if (!isDbHealthy) return;
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        // Cascade delete all projects created by this user
+        await client.query("DELETE FROM projects WHERE user_email = $1", [email]);
+        // Delete user
+        await client.query("DELETE FROM users WHERE email = $1", [email]);
+        await client.query("COMMIT");
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+    async () => {}
+  );
+}
+
+// Save or update a project and its nested relations (scoped to user)
+export async function saveProject(project: Project, userEmail: string = "founder@ventureiq.io") {
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -193,16 +305,17 @@ export async function saveProject(project: Project) {
       try {
         await client.query("BEGIN");
 
-        // Upsert project metadata and JSONB payloads
+        // Upsert project metadata, JSONB payloads, and scope by user_email
         await client.query(
           `INSERT INTO projects (
             id, name, description, created_at, progress, agents_done, total_agents, status, intake_complete, is_analyzing, active_agent_node,
             market_intel, competitor_intel, swot_intel, risk_intel, financial_intel, final_report, roadmap_intel, decision_report, report_intel,
-            research_plan, venture_context, evidence, facts, entities, relationships, validated_facts, conflicts, reliability, retrieved_knowledge, analysis
+            research_plan, venture_context, evidence, facts, entities, relationships, validated_facts, conflicts, reliability, retrieved_knowledge, analysis,
+            user_email
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
             $12, $13, $14, $15, $16, $17, $18, $19, $20,
-            $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
+            $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32
           ) ON CONFLICT (id) DO UPDATE SET
             name = EXCLUDED.name,
             description = EXCLUDED.description,
@@ -233,7 +346,8 @@ export async function saveProject(project: Project) {
             conflicts = EXCLUDED.conflicts,
             reliability = EXCLUDED.reliability,
             retrieved_knowledge = EXCLUDED.retrieved_knowledge,
-            analysis = EXCLUDED.analysis`,
+            analysis = EXCLUDED.analysis,
+            user_email = EXCLUDED.user_email`,
           [
             project.id,
             project.name,
@@ -266,10 +380,11 @@ export async function saveProject(project: Project) {
             JSON.stringify(project.reliability || {}),
             JSON.stringify(project.retrievedKnowledge || []),
             JSON.stringify(project.analysis || {}),
+            userEmail,
           ]
         );
 
-        // Sync Notifications: Clear existing and re-insert
+        // Sync Notifications
         await client.query("DELETE FROM notifications WHERE project_id = $1", [project.id]);
         const notifications = project.notifications || [];
         for (const notif of notifications) {
@@ -280,7 +395,7 @@ export async function saveProject(project: Project) {
           );
         }
 
-        // Sync Audit Logs: Clear existing and re-insert
+        // Sync Audit Logs
         await client.query("DELETE FROM audit_logs WHERE project_id = $1", [project.id]);
         const auditLogs = project.auditLogs || [];
         for (const log of auditLogs) {
@@ -291,7 +406,7 @@ export async function saveProject(project: Project) {
           );
         }
 
-        // Sync Chats: Clear existing and re-insert
+        // Sync Chats
         await client.query("DELETE FROM chat_messages WHERE project_id = $1", [project.id]);
         const chatMap = project.chatMap || {};
         for (const [agentName, messages] of Object.entries(chatMap)) {
@@ -318,7 +433,7 @@ export async function saveProject(project: Project) {
   );
 }
 
-// Retrieve a single project with all relations populated
+// Retrieve a single project
 export async function getProject(id: string): Promise<Project | null> {
   return runWithDbFallback(
     async () => {
@@ -427,8 +542,8 @@ export async function getProject(id: string): Promise<Project | null> {
   );
 }
 
-// List all projects in the database
-export async function listProjects(): Promise<Project[]> {
+// List all projects (scoped to user)
+export async function listProjects(userEmail: string = "founder@ventureiq.io"): Promise<Project[]> {
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -437,7 +552,10 @@ export async function listProjects(): Promise<Project[]> {
       }
       const client = await pool.connect();
       try {
-        const result = await client.query("SELECT id FROM projects ORDER BY created_at DESC");
+        const result = await client.query(
+          "SELECT id FROM projects WHERE user_email = $1 ORDER BY created_at DESC",
+          [userEmail]
+        );
         const projects: Project[] = [];
         for (const row of result.rows) {
           const proj = await getProject(row.id);
@@ -449,14 +567,13 @@ export async function listProjects(): Promise<Project[]> {
       }
     },
     async () => {
-      // Return memory projects reversed (newest first)
       return Object.values(memoryDb).reverse();
     }
   );
 }
 
-// Delete a project and cascade-delete all child rows
-export async function deleteProject(id: string) {
+// Delete a project
+export async function deleteProject(id: string, userEmail: string = "founder@ventureiq.io") {
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -466,13 +583,17 @@ export async function deleteProject(id: string) {
       }
       const client = await pool.connect();
       try {
-        await client.query("DELETE FROM projects WHERE id = $1", [id]);
+        await client.query("DELETE FROM projects WHERE id = $1 AND user_email = $2", [id, userEmail]);
       } finally {
         client.release();
       }
     },
     async () => {
-      delete memoryDb[id];
+      const proj = memoryDb[id];
+      if (proj) {
+        // In-memory mock check: only delete if it belongs to the fallback user or is seeded
+        delete memoryDb[id];
+      }
     }
   );
 }

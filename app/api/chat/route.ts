@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { llm, apiKeyStorage } from "@/lib/graph/llm";
 
 const agentSystemPrompts: Record<string, string> = {
@@ -21,6 +23,11 @@ const agentSystemPrompts: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { agentName, message, history, projectContext } = await req.json();
     const userApiKey = req.headers.get("x-gemini-api-key") || "";
 
