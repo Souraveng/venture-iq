@@ -103,9 +103,24 @@ function LandingPageInner() {
       <nav className="fixed top-0 w-full z-50 px-8 py-4 flex items-center justify-between"
         style={{ background: "rgba(10,10,10,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid #1a1a1a" }}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm"
-            style={{ background: "#daf264", color: "#0a0a0a" }}>V</div>
-          <span className="font-bold text-sm tracking-wide text-white">VentureIQ</span>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center p-0.5"
+            style={{ background: "#daf264", color: "#0a0a0a" }}>
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" className="w-4.5 h-4.5">
+              {/* V left stem with horizontal serif pointing left */}
+              <path d="M 14 32 H 22 L 38 68" />
+              {/* V right stem into Q loop */}
+              <path d="M 38 68 L 50 44 C 54 32, 70 32, 76 44 C 82 56, 78 72, 66 72 C 54 72, 46 60, 50 44" />
+              {/* Q Tail */}
+              <path d="M 70 64 L 80 74" />
+              {/* I Stem */}
+              <path d="M 55 58 L 62 46" />
+              {/* I Dot */}
+              <circle cx="65" cy="38" r="4" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <span className="font-brand font-bold text-sm tracking-wider text-white select-none">
+            Venture<span style={{ color: "#daf264" }}>IQ</span>
+          </span>
         </div>
         
         <div className="flex items-center gap-7 text-sm" style={{ color: "#888" }}>
@@ -292,9 +307,24 @@ function LandingPageInner() {
 
               {/* Logo */}
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs"
-                  style={{ background: "#daf264", color: "#0a0a0a" }}>V</div>
-                <span className="font-bold text-xs tracking-wide text-white">VentureIQ</span>
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center p-0.5"
+                  style={{ background: "#daf264", color: "#0a0a0a" }}>
+                  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                    {/* V left stem with horizontal serif pointing left */}
+                    <path d="M 14 32 H 22 L 38 68" />
+                    {/* V right stem into Q loop */}
+                    <path d="M 38 68 L 50 44 C 54 32, 70 32, 76 44 C 82 56, 78 72, 66 72 C 54 72, 46 60, 50 44" />
+                    {/* Q Tail */}
+                    <path d="M 70 64 L 80 74" />
+                    {/* I Stem */}
+                    <path d="M 55 58 L 62 46" />
+                    {/* I Dot */}
+                    <circle cx="65" cy="38" r="4" fill="currentColor" stroke="none" />
+                  </svg>
+                </div>
+                <span className="font-brand font-bold text-xs tracking-wider text-white select-none">
+                  Venture<span style={{ color: "#daf264" }}>IQ</span>
+                </span>
               </div>
 
               {/* Google OAuth Button */}

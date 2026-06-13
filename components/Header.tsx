@@ -142,12 +142,23 @@ export default function Header() {
       {/* Left: Logo */}
       <Link href="/dashboard" className="flex items-center gap-2.5 group">
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm transition-all group-hover:scale-105"
+          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all group-hover:scale-105 p-1"
           style={{ background: "var(--accent)", color: "var(--accent-text)" }}
         >
-          V
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+            {/* V left stem with horizontal serif pointing left */}
+            <path d="M 14 32 H 22 L 38 68" />
+            {/* V right stem into Q loop */}
+            <path d="M 38 68 L 50 44 C 54 32, 70 32, 76 44 C 82 56, 78 72, 66 72 C 54 72, 46 60, 50 44" />
+            {/* Q Tail */}
+            <path d="M 70 64 L 80 74" />
+            {/* I Stem */}
+            <path d="M 55 58 L 62 46" />
+            {/* I Dot */}
+            <circle cx="65" cy="38" r="4" fill="currentColor" stroke="none" />
+          </svg>
         </div>
-        <span className="font-extrabold text-sm tracking-wider text-white select-none">
+        <span className="font-brand font-bold text-sm tracking-wider text-white select-none">
           Venture<span style={{ color: "var(--accent)" }}>IQ</span>
         </span>
       </Link>

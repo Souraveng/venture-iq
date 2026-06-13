@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@600;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -66,6 +66,12 @@ html, body {
 /* Serif display font for hero headings */
 .font-display {
   font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Brand font for logo text */
+.font-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.05em;
 }
 
 /* Agent card hover */
