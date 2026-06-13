@@ -204,6 +204,7 @@ export async function initDb() {
 
 // User Profile persistence helpers
 export async function upsertUser(email: string, name: string, image: string, preferences: Record<string, any> = {}) {
+  const normalizedEmail = email.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -213,7 +214,7 @@ export async function upsertUser(email: string, name: string, image: string, pre
         await client.query(
           `INSERT INTO users (email, name, image, preferences) VALUES ($1, $2, $3, $4)
            ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, image = EXCLUDED.image`,
-          [email, name, image, JSON.stringify(preferences)]
+          [normalizedEmail, name, image, JSON.stringify(preferences)]
         );
       } finally {
         client.release();
@@ -224,6 +225,7 @@ export async function upsertUser(email: string, name: string, image: string, pre
 }
 
 export async function updateUser(email: string, name: string, image: string, preferences?: Record<string, any>) {
+  const normalizedEmail = email.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -234,12 +236,12 @@ export async function updateUser(email: string, name: string, image: string, pre
           // Merge preferences using jsonb_concat operator (||)
           await client.query(
             `UPDATE users SET name = $1, image = $2, preferences = COALESCE(preferences, '{}'::jsonb) || $3::jsonb WHERE email = $4`,
-            [name, image, JSON.stringify(preferences), email]
+            [name, image, JSON.stringify(preferences), normalizedEmail]
           );
         } else {
           await client.query(
             `UPDATE users SET name = $1, image = $2 WHERE email = $3`,
-            [name, image, email]
+            [name, image, normalizedEmail]
           );
         }
       } finally {
@@ -251,13 +253,14 @@ export async function updateUser(email: string, name: string, image: string, pre
 }
 
 export async function getUser(email: string) {
+  const normalizedEmail = email.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
       if (!isDbHealthy) return null;
       const client = await pool.connect();
       try {
-        const res = await client.query("SELECT * FROM users WHERE email = $1", [email]);
+        const res = await client.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
         if (res.rows.length === 0) return null;
         return res.rows[0];
       } finally {
@@ -269,6 +272,7 @@ export async function getUser(email: string) {
 }
 
 export async function deleteUser(email: string) {
+  const normalizedEmail = email.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -277,9 +281,9 @@ export async function deleteUser(email: string) {
       try {
         await client.query("BEGIN");
         // Cascade delete all projects created by this user
-        await client.query("DELETE FROM projects WHERE user_email = $1", [email]);
+        await client.query("DELETE FROM projects WHERE user_email = $1", [normalizedEmail]);
         // Delete user
-        await client.query("DELETE FROM users WHERE email = $1", [email]);
+        await client.query("DELETE FROM users WHERE email = $1", [normalizedEmail]);
         await client.query("COMMIT");
       } catch (error) {
         await client.query("ROLLBACK");
@@ -294,6 +298,7 @@ export async function deleteUser(email: string) {
 
 // Save or update a project and its nested relations (scoped to user)
 export async function saveProject(project: Project, userEmail: string = "founder@ventureiq.io") {
+  const normalizedEmail = userEmail.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -380,7 +385,7 @@ export async function saveProject(project: Project, userEmail: string = "founder
             JSON.stringify(project.reliability || {}),
             JSON.stringify(project.retrievedKnowledge || []),
             JSON.stringify(project.analysis || {}),
-            userEmail,
+            normalizedEmail,
           ]
         );
 
@@ -544,6 +549,7 @@ export async function getProject(id: string): Promise<Project | null> {
 
 // List all projects (scoped to user)
 export async function listProjects(userEmail: string = "founder@ventureiq.io"): Promise<Project[]> {
+  const normalizedEmail = userEmail.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -554,7 +560,7 @@ export async function listProjects(userEmail: string = "founder@ventureiq.io"): 
       try {
         const result = await client.query(
           "SELECT id FROM projects WHERE user_email = $1 ORDER BY created_at DESC",
-          [userEmail]
+          [normalizedEmail]
         );
         const projects: Project[] = [];
         for (const row of result.rows) {
@@ -574,6 +580,7 @@ export async function listProjects(userEmail: string = "founder@ventureiq.io"): 
 
 // Delete a project
 export async function deleteProject(id: string, userEmail: string = "founder@ventureiq.io") {
+  const normalizedEmail = userEmail.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
       await initDb();
@@ -583,7 +590,7 @@ export async function deleteProject(id: string, userEmail: string = "founder@ven
       }
       const client = await pool.connect();
       try {
-        await client.query("DELETE FROM projects WHERE id = $1 AND user_email = $2", [id, userEmail]);
+        await client.query("DELETE FROM projects WHERE id = $1 AND user_email = $2", [id, normalizedEmail]);
       } finally {
         client.release();
       }

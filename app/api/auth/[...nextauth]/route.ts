@@ -56,19 +56,26 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async signIn({ user }) {
       if (user.email) {
+        user.email = user.email.toLowerCase().trim();
         await upsertUser(user.email, user.name || "", user.image || "");
       }
       return true;
     },
-    async jwt({ token, account }) {
+    async jwt({ token, user, account }) {
       if (account) {
         token.accessToken = account.access_token;
+      }
+      if (user?.email) {
+        token.email = user.email.toLowerCase().trim();
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session as any).accessToken = token.accessToken;
+        if (token.email) {
+          session.user.email = token.email.toLowerCase().trim();
+        }
       }
       return session;
     },
