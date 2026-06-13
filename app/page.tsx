@@ -8,7 +8,33 @@ import DotsBackground from "@/components/DotsBackground";
 function LandingPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const rawCallbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  // Sanitize and validate callbackUrl to prevent Open Redirect vulnerabilities
+  const getSafeCallbackUrl = (url: string): string => {
+    const trimmed = url.trim();
+    if (!trimmed) return "/dashboard";
+
+    try {
+      // We parse the URL using a base origin (either the browser's origin or a safe production fallback).
+      // This forces protocol-relative paths (e.g. "//evil.com") and backslash paths (e.g. "/\\evil.com")
+      // to resolve their host/origin correctly under standard URL rules.
+      const base = typeof window !== "undefined" ? window.location.origin : "https://venture-iq-647100759253.us-central1.run.app";
+      const parsed = new URL(trimmed, base);
+
+      // Strict origin check
+      if (parsed.origin === base) {
+        // Return only the relative path (pathname + search + hash) to prevent redirect hijacking
+        return parsed.pathname + parsed.search + parsed.hash;
+      }
+    } catch (e) {
+      // Invalid URL syntax
+    }
+
+    return "/dashboard";
+  };
+
+  const callbackUrl = getSafeCallbackUrl(rawCallbackUrl);
 
   // Auth modal states
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -275,7 +301,7 @@ function LandingPageInner() {
               <button
                 type="button"
                 onClick={() => {
-                  signIn("google", { callbackUrl: "/dashboard" });
+                  signIn("google", { callbackUrl });
                 }}
                 className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-xs font-semibold text-white bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer mb-5 shadow-sm"
               >
