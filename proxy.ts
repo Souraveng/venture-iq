@@ -38,10 +38,13 @@ export function proxy(request: NextRequest) {
     request.cookies.get("next-auth.session-token")?.value ||
     request.cookies.get("__Secure-next-auth.session-token")?.value;
 
+  console.log(`[Proxy Middleware] Path: ${pathname} | Protected: true | Session Token Found: ${!!sessionToken}`);
+
   if (!sessionToken) {
     // Redirect unauthenticated users to landing page
     const landingUrl = new URL("/", request.url);
     landingUrl.searchParams.set("callbackUrl", pathname);
+    console.log(`[Proxy Middleware] No session token found. Redirecting to landing page: ${landingUrl.toString()}`);
     return NextResponse.redirect(landingUrl);
   }
 
