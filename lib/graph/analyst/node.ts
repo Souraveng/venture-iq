@@ -5,7 +5,7 @@ import { VentureAnalystReportSchema } from "./schema";
 import { VENTURE_ANALYST_SYSTEM_PROMPT } from "./prompt";
 import { ReadinessEngine, InvestmentScoringEngine } from "./engines";
 import { VentureAnalystReport } from "./types";
-import { MOCK_ANALYST_REPORT } from "./examples";
+
 
 export async function ventureAnalystAgent(state: VentureStateType) {
   console.log("--- Agent: Venture Analyst (VC Partner & Due Diligence Lead) ---");
@@ -96,8 +96,8 @@ Based on the above facts, formulate the Venture Analyst Due Diligence Report. Th
       throw new Error("Invalid or empty venture analyst report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Venture Analyst, falling back to mock examples:", err);
-    report = JSON.parse(JSON.stringify(MOCK_ANALYST_REPORT));
+    console.error("Structured LLM query failed for Venture Analyst:", err);
+    throw err;
   }
 
   // 3. Programmatic calculations to enforce strict due diligence alignment

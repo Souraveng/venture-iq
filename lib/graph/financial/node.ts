@@ -11,7 +11,7 @@ import {
   FinancialViabilityScorer 
 } from "./engines";
 import { FinancialIntelligenceReport } from "./types";
-import { MOCK_FINANCIAL_REPORT } from "./examples";
+
 
 export async function financialIntelligenceAgent(state: VentureStateType) {
   console.log("--- Agent: Financial Intelligence (Startup CFO & VC Associate) ---");
@@ -91,8 +91,8 @@ Based on the above facts, formulate the Financial Intelligence Report. Estimate 
       throw new Error("Invalid or empty financial intelligence report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Financial Intelligence, falling back to mock examples:", err);
-    report = JSON.parse(JSON.stringify(MOCK_FINANCIAL_REPORT));
+    console.error("Structured LLM query failed for Financial Intelligence:", err);
+    throw err;
   }
 
   // 3. Programmatic calculations to enforce strict mathematical coherence

@@ -38,27 +38,9 @@ export async function evidenceResearchAgent(state: VentureStateType) {
 
   console.log(`Discovered ${uniqueSearchResults.length} unique, clean URLs after deduplication.`);
 
-  // Offline fallback to ensure the pipeline always executes successfully even without Tavily credentials
+  // If no search results found, throw an error to prevent context pollution
   if (uniqueSearchResults.length === 0) {
-    console.log("No search results found (offline or missing API key). Injecting fallback research results for Pune EV Charging.");
-    uniqueSearchResults.push(
-      {
-        query: activeQueries[0] || "EV charging Pune logistics",
-        title: "Maharashtra EV Charging Substations and Grid Capacity Guidelines",
-        url: "https://msedcl.gov.in/ev-charging/grid-guidelines",
-        snippet: "Pune commercial EV fleet counts are scaling at 32% CAGR. Substation grid limits and transformer overloading are the primary operational bottlenecks for fleet depot scaling. Ather Grid and Tata Power command dominant prime real estate positions for physical charging station deployment.",
-        domain: "msedcl.gov.in",
-        publishedDate: "2026-01-15"
-      },
-      {
-        query: activeQueries[1] || "EV fleet load balancing",
-        title: "Smart OCPP Load Balancing for Fleet Electrification",
-        url: "https://ieee.org/publications/ocpp-load-balancing",
-        snippet: "Implementing dynamic OCPP load balancing algorithms allows fleet operators to avoid peak demand utility charges. Dynamic scheduling can reduce peak demand drawing capacity by 20% to 30%, resolving grid capacity limits without land acquisition or expensive transformer upgrades.",
-        domain: "ieee.org",
-        publishedDate: "2025-11-10"
-      }
-    );
+    throw new Error("No web search results returned by Tavily API for the planned queries.");
   }
 
   // 2. Scraping & Metadata Extraction Phase

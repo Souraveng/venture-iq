@@ -54,8 +54,14 @@ export async function factExtractionAgent(state: VentureStateType) {
       // Ensure each item has the correct source ID
       if (result.facts) {
         result.facts.forEach(f => {
-          f.sourceId = ev.id;
-          allFacts.push(f);
+          const statementStr = f.statement || f.text || f.fact || f.content || "";
+          if (statementStr && typeof statementStr === "string") {
+            f.statement = statementStr.trim();
+            f.sourceId = ev.id;
+            allFacts.push(f);
+          } else {
+            console.warn(`[Extractor] Skipping fact with empty or missing statement:`, f);
+          }
         });
       }
       if (result.entities) {
@@ -76,52 +82,8 @@ export async function factExtractionAgent(state: VentureStateType) {
         });
       }
     } catch (error) {
-      console.error(`Knowledge extraction failed for evidence ${ev.id}, falling back to mock facts:`, error);
-      
-      // Resilient fallback database to support offline runs and tests
-      allFacts.push(
-        {
-          id: "fact-fb-1",
-          statement: "Commercial EV logistics fleets in Pune scale at 32% CAGR",
-          category: "market",
-          sourceId: ev.id,
-          confidence: "HIGH"
-        },
-        {
-          id: "fact-fb-2",
-          statement: "Substation grid capacity limits restrict new EV fast charger permits in Pune industrial zones",
-          category: "regulation",
-          sourceId: ev.id,
-          confidence: "HIGH"
-        },
-        {
-          id: "fact-fb-3",
-          statement: "Ather Grid and Tata Power command dominant prime real estate positions in Pune charging nodes",
-          category: "competition",
-          sourceId: ev.id,
-          confidence: "HIGH"
-        },
-        {
-          id: "fact-fb-4",
-          statement: "OCPP-based dynamic load balancing reduces peak depot utility demand capacity by 20% to 30%",
-          category: "technology",
-          sourceId: ev.id,
-          confidence: "HIGH"
-        }
-      );
-
-      allEntities.push(
-        { id: "ent-msedcl", name: "MSEDCL", type: "COMPANY", sourceId: ev.id },
-        { id: "ent-tata-power", name: "Tata Power", type: "COMPANY", sourceId: ev.id },
-        { id: "ent-ather-grid", name: "Ather Grid", type: "COMPANY", sourceId: ev.id },
-        { id: "ent-pune", name: "Pune", type: "CITY", sourceId: ev.id }
-      );
-
-      allRelationships.push(
-        { sourceEntityId: "ent-msedcl", relationType: "REGULATES", targetEntityId: "ent-pune", confidence: 0.9 },
-        { sourceEntityId: "ent-tata-power", relationType: "COMPETES_IN", targetEntityId: "ent-pune", confidence: 0.9 },
-        { sourceEntityId: "ent-ather-grid", relationType: "COMPETES_IN", targetEntityId: "ent-pune", confidence: 0.9 }
-      );
+      console.error(`Knowledge extraction failed for evidence ${ev.id}:`, error);
+      throw error;
     }
   }
 

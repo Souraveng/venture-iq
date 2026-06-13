@@ -122,6 +122,7 @@ export default function IntakePage() {
         body: JSON.stringify({ 
           mode: 'validate', 
           stream: true,
+          projectId: activeId,
           data: { idea: idea },
           geminiApiKey,
         })

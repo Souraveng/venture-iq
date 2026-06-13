@@ -119,6 +119,7 @@ export default function WorkflowsPage() {
         body: JSON.stringify({
           mode: "full",
           stream: true,
+          projectId: activeId,
           data: {
             name: activeProject.name,
             description: activeProject.description,

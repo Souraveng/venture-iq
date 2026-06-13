@@ -171,6 +171,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ 
           mode: 'validate', 
           stream: true,
+          projectId: activeProject.id,
           data: { idea: idea },
           geminiApiKey,
         })
@@ -572,6 +573,7 @@ export default function DashboardPage() {
         body: JSON.stringify({
           mode: "full",
           stream: true,
+          projectId: activeId,
           data: {
             name: projectName,
             description: projectDesc,

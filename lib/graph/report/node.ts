@@ -5,7 +5,7 @@ import { VentureReportsContainerSchema } from "./schema";
 import { REPORT_ENGINE_SYSTEM_PROMPT } from "./prompt";
 import { ChartEngine } from "./engines";
 import { VentureReportsContainer } from "./types";
-import { MOCK_REPORTS_CONTAINER } from "./examples";
+
 
 export async function reportIntelligenceAgent(state: VentureStateType) {
   console.log("--- Agent: Report Generation & Export Intelligence Layer ---");
@@ -66,8 +66,8 @@ Generate the complete portfolio of 7 deliverables and the corresponding chart da
       throw new Error("Invalid or empty venture reports container received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Report Engine, falling back to mock examples:", err);
-    reportIntel = JSON.parse(JSON.stringify(MOCK_REPORTS_CONTAINER));
+    console.error("Structured LLM query failed for Report Engine:", err);
+    throw err;
   }
 
   // Enforce programmatic chart validations & syncing with actual financial and market details

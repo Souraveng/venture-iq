@@ -58,6 +58,7 @@ export async function knowledgeStoreAgent(state: VentureStateType) {
       publishDate: sourceEv?.publishDate || "unknown",
       category: category,
       intent: ventureContext?.intent,
+      userEmail: state.userEmail || "test@ventureiq.io",
     };
 
     try {
@@ -97,6 +98,7 @@ export async function knowledgeStoreAgent(state: VentureStateType) {
       publishDate: ev.publishDate,
       category: "market",
       intent: ventureContext?.intent,
+      userEmail: state.userEmail || "test@ventureiq.io",
     };
 
     try {
@@ -117,7 +119,7 @@ export async function knowledgeStoreAgent(state: VentureStateType) {
 
   // 3. Retrieval Phase: Query and Retrieve Relevant Knowledge
   const primaryGoal = ventureContext?.goal || state.userInput?.idea || "venture business opportunity";
-  console.log(`Executing RAG Retrieval for goal/query: "${primaryGoal}"`);
+  console.log(`Executing RAG Retrieval for goal/query: "${primaryGoal}" sandboxed by user: ${state.userEmail || "test@ventureiq.io"}`);
 
   let retrievedList: any[] = [];
   try {
@@ -126,6 +128,9 @@ export async function knowledgeStoreAgent(state: VentureStateType) {
         question: primaryGoal,
         intent: ventureContext?.intent,
         context: ventureContext?.startup_idea?.description !== "none" ? ventureContext?.startup_idea?.description : undefined,
+        filters: {
+          userEmail: state.userEmail || "test@ventureiq.io",
+        },
       },
       client,
       embeddingService

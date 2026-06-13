@@ -10,6 +10,7 @@ import { RetrievedKnowledge } from "./vectorstore/types";
 export const VentureState = Annotation.Root({
   mode: Annotation<string>(),
   userInput: Annotation<Record<string, any>>(),
+  userEmail: Annotation<string>(),
   researchPlan: Annotation<string[]>({
     reducer: (a, b) => [...a, ...b],
   }),

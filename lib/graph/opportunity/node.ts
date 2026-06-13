@@ -23,10 +23,79 @@ export async function opportunityAgent(state: VentureStateType) {
       .replace("{userQuery}", userQuery)
       .replace("{proposedMode}", proposedMode);
 
-    const result = await structuredLlm.invoke(prompt) as VentureContext;
-    if (!result || !result.intent || !result.startup_idea) {
+    const rawResult = await structuredLlm.invoke(prompt) as any;
+    if (!rawResult || !rawResult.intent) {
       throw new Error("Invalid or empty venture context received from LLM");
     }
+
+    const cleanString = (val: any, defaultVal: string = ""): string => {
+      if (typeof val === "string") return val;
+      if (val === null || val === undefined) return defaultVal;
+      if (typeof val === "object") {
+        return val.goal || val.text || val.description || val.primary || val.value || JSON.stringify(val);
+      }
+      return String(val);
+    };
+
+    const cleanStringArray = (val: any): string[] => {
+      if (Array.isArray(val)) {
+        return val.map(v => cleanString(v)).filter(Boolean);
+      }
+      if (typeof val === "string") {
+        return val.split(",").map(v => v.trim()).filter(Boolean);
+      }
+      return [];
+    };
+
+    const result: VentureContext = {
+      intent: rawResult.intent || "VALIDATE_IDEA",
+      goal: cleanString(rawResult.goal, "Validate the startup concept"),
+      secondary_goals: cleanStringArray(rawResult.secondary_goals),
+      resources: cleanStringArray(rawResult.resources),
+      skills: cleanStringArray(rawResult.skills),
+      constraints: cleanStringArray(rawResult.constraints),
+      location: {
+        country: cleanString(rawResult.location?.country, "unknown"),
+        state: cleanString(rawResult.location?.state, "unknown"),
+        district: cleanString(rawResult.location?.district, "unknown"),
+        city: cleanString(rawResult.location?.city, "unknown"),
+        village: cleanString(rawResult.location?.village, "unknown"),
+        region: cleanString(rawResult.location?.region, "unknown"),
+        location_status: rawResult.location?.location_status || "MISSING",
+      },
+      financial_context: {
+        budget: cleanString(rawResult.financial_context?.budget, "unknown"),
+        available_capital: cleanString(rawResult.financial_context?.available_capital, "unknown"),
+        revenue: cleanString(rawResult.financial_context?.revenue, "unknown"),
+        profit: cleanString(rawResult.financial_context?.profit, "unknown"),
+        funding_stage: cleanString(rawResult.financial_context?.funding_stage, "unknown"),
+      },
+      timeline: cleanString(rawResult.timeline, "unspecified"),
+      existing_business: {
+        description: cleanString(rawResult.existing_business?.description, "none"),
+        industry: cleanString(rawResult.existing_business?.industry, "none"),
+        years_active: cleanString(rawResult.existing_business?.years_active, "none"),
+      },
+      startup_idea: {
+        description: cleanString(rawResult.startup_idea?.description || rawResult.startup_idea, userQuery),
+        target_audience: cleanString(rawResult.startup_idea?.target_audience, "unknown"),
+        value_proposition: cleanString(rawResult.startup_idea?.value_proposition, "unknown"),
+      },
+      critical_missing_information: cleanStringArray(rawResult.critical_missing_information),
+      confidence: {
+        intent: rawResult.confidence?.intent || "LOW",
+        goal: rawResult.confidence?.goal || "LOW",
+        resources: rawResult.confidence?.resources || "LOW",
+        skills: rawResult.confidence?.skills || "LOW",
+        constraints: rawResult.confidence?.constraints || "LOW",
+        location: rawResult.confidence?.location || "LOW",
+        financial_context: rawResult.confidence?.financial_context || "LOW",
+        timeline: rawResult.confidence?.timeline || "LOW",
+        existing_business: rawResult.confidence?.existing_business || "LOW",
+        startup_idea: rawResult.confidence?.startup_idea || "LOW",
+      },
+      reasoning: cleanString(rawResult.reasoning, "Processed successfully."),
+    };
 
     console.log(`Intent Classified: ${result.intent}`);
     console.log(`Confidence (Intent): ${result.confidence.intent}`);

@@ -3,7 +3,7 @@ import { llm } from "../llm";
 import { VentureStateType } from "../state";
 import { ValidationOutputSchema } from "./schema";
 import { VALIDATION_PROMPT } from "./prompt";
-import { ValidationOutput, ValidatedFact, Conflict, ReliabilityScores } from "./types";
+import { ValidationOutput } from "./types";
 
 export async function validationAgent(state: VentureStateType) {
   console.log("--- Agent: Validation & Credibility Scoring ---");
@@ -76,45 +76,7 @@ export async function validationAgent(state: VentureStateType) {
     };
   } catch (error: any) {
     console.error("Validation Agent Error:", error);
-
-    // Fallback: Programmatic validation scoring if LLM fails
-    const fallbackFacts: ValidatedFact[] = factsList.map((f) => {
-      // Calculate a simple programmatic credibility score based on confidence level
-      let cred = 50;
-      if (f.confidence === "HIGH") cred = 80;
-      else if (f.confidence === "LOW") cred = 30;
-
-      return {
-        id: f.id,
-        statement: f.statement,
-        consensusValue: f.value,
-        confidence: f.confidence === "HIGH" ? "HIGH" : f.confidence === "LOW" ? "LOW" : "MEDIUM",
-        credibilityScore: cred,
-        agreementScore: 70,
-        supportingSources: [f.sourceId],
-        conflictingSources: [],
-      };
-    });
-
-    const fallbackReliability: ReliabilityScores = {
-      overallReliability: 65,
-      marketReliability: 65,
-      competitionReliability: 65,
-      financialReliability: 65,
-      regulationReliability: 65,
-    };
-
-    return {
-      validatedFacts: fallbackFacts,
-      conflicts: [],
-      reliability: fallbackReliability,
-      finalReport: {
-        ...state.finalReport,
-        validatedFactsCount: fallbackFacts.length,
-        conflictsCount: 0,
-        overallReliabilityScore: fallbackReliability.overallReliability,
-      }
-    };
+    throw error;
   }
 }
 

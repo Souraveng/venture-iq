@@ -78,52 +78,8 @@ Based on the above facts, formulate the SWOT Intelligence Report. Provide Streng
       throw new Error("Invalid or empty SWOT intelligence report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for SWOT, falling back to heuristic parsing:", err);
-    // Safety fallback report to prevent pipeline crashes
-    report = {
-      strengths: [
-        {
-          statement: "Venture aligns with Pune location and team background",
-          evidence: ["val_fact_1"],
-          confidence: "HIGH",
-          impactScore: 75,
-          impactTier: "HIGH"
-        }
-      ],
-      weaknesses: [
-        {
-          statement: "Starting capital is strictly constrained",
-          evidence: ["val_fact_1"],
-          confidence: "HIGH",
-          impactScore: 80,
-          impactTier: "CRITICAL"
-        }
-      ],
-      opportunities: [
-        {
-          statement: "Massive market size expected for target country by 2030",
-          evidence: ["val_fact_1"],
-          confidence: "HIGH",
-          impactScore: 85,
-          impactTier: "CRITICAL"
-        }
-      ],
-      threats: [
-        {
-          statement: "Established market leaders dominate the space",
-          evidence: ["val_fact_1"],
-          confidence: "HIGH",
-          impactScore: 70,
-          impactTier: "HIGH"
-        }
-      ],
-      strategicSummary: {
-        topStrengths: ["Venture aligns with Pune location"],
-        topWeaknesses: ["Starting capital is strictly constrained"],
-        topOpportunities: ["Massive market size expected"],
-        topThreats: ["Established market leaders dominate"]
-      }
-    };
+    console.error("Structured LLM query failed for SWOT:", err);
+    throw err;
   }
 
   // 3. Programmatic Verifications & Adjustments

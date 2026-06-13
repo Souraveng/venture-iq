@@ -79,41 +79,8 @@ Based on the above facts, formulate the Risk Intelligence Report. Evaluate Marke
       throw new Error("Invalid or empty risk intelligence report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Risk Intelligence, falling back to heuristic parsing:", err);
-    // Safety fallback report to prevent pipeline crashes
-    const fallbackRisk = {
-      probability: 50,
-      impact: 50,
-      severity: "MEDIUM" as const,
-      riskScore: 25,
-      reasoning: "Baseline fallback evaluation",
-      indicators: ["General risk indicators"],
-      mitigation: "General baseline mitigation"
-    };
-
-    report = {
-      marketRisk: fallbackRisk,
-      competitionRisk: fallbackRisk,
-      financialRisk: fallbackRisk,
-      regulatoryRisk: fallbackRisk,
-      technologyRisk: fallbackRisk,
-      operationalRisk: fallbackRisk,
-      executionRisk: fallbackRisk,
-      fundingRisk: fallbackRisk,
-      overallRiskIndex: {
-        score: 25,
-        severity: "MEDIUM",
-        reasoning: ["Baseline fallback evaluation"]
-      },
-      mitigationStrategies: [
-        {
-          riskDimension: "Financial Risk",
-          description: "Capital constraints risk",
-          preventiveActions: ["Careful budgeting and lean operations"],
-          contingencyPlans: ["Raise bridge funding or alternative capital"]
-        }
-      ]
-    };
+    console.error("Structured LLM query failed for Risk Intelligence:", err);
+    throw err;
   }
 
   // 3. Programmatic Verifications & Adjustments

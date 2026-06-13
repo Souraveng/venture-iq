@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { listProjects, saveProject } from "@/lib/db";
 import { Project } from "@/store/useProjectStore";
+import { activeAnalyzeRuns } from "@/lib/activeRuns";
 
 const defaultProjects: Project[] = [
   {
@@ -62,6 +63,20 @@ export async function GET() {
         };
         await saveProject(seededProj, email);
       }
+      list = await listProjects(email);
+    }
+
+    // Self-healing mechanism: reset isAnalyzing to false if the project ID is not in active runs
+    let needReFetch = false;
+    for (const proj of list) {
+      if (proj.isAnalyzing && !activeAnalyzeRuns.has(proj.id)) {
+        console.log(`[Self-Healing] Stale active state detected for project ${proj.id}. Resetting isAnalyzing to false.`);
+        proj.isAnalyzing = false;
+        await saveProject(proj, email);
+        needReFetch = true;
+      }
+    }
+    if (needReFetch) {
       list = await listProjects(email);
     }
     

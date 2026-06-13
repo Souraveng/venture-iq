@@ -5,7 +5,7 @@ import { FounderRoadmapReportSchema } from "./schema";
 import { FOUNDER_ROADMAP_SYSTEM_PROMPT } from "./prompt";
 import { MilestoneDependencyEngine, TimelineAlignmentEngine } from "./engines";
 import { FounderRoadmapReport } from "./types";
-import { MOCK_ROADMAP_REPORT } from "./examples";
+
 
 export async function roadmapIntelligenceAgent(state: VentureStateType) {
   console.log("--- Agent: Founder Roadmap & Execution Intelligence ---");
@@ -98,8 +98,8 @@ Based on the above intelligence inputs, formulate the Founder Roadmap & Executio
       throw new Error("Invalid or empty founder roadmap report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Founder Roadmap, falling back to mock examples:", err);
-    report = JSON.parse(JSON.stringify(MOCK_ROADMAP_REPORT));
+    console.error("Structured LLM query failed for Founder Roadmap:", err);
+    throw err;
   }
 
   // 3. Programmatic Engines

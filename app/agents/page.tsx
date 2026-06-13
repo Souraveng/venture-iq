@@ -177,6 +177,7 @@ export default function AgentsPage() {
         body: JSON.stringify({
           mode: "full",
           stream: true,
+          projectId: activeId,
           data: {
             name: activeProject.name,
             description: activeProject.description,

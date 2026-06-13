@@ -9,7 +9,7 @@ import {
   FinalDecisionEngine 
 } from "./engines";
 import { VentureDecisionReport } from "./types";
-import { MOCK_DECISION_REPORT } from "./examples";
+
 
 export async function decisionIntelligenceAgent(state: VentureStateType) {
   console.log("--- Agent: Final Decision & Opportunity Scoring Engine ---");
@@ -114,8 +114,8 @@ Generate the final due diligence assessment. Keep in mind the strict validation 
       throw new Error("Invalid or empty venture decision report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Final Decision, falling back to mock examples:", err);
-    report = JSON.parse(JSON.stringify(MOCK_DECISION_REPORT));
+    console.error("Structured LLM query failed for Final Decision:", err);
+    throw err;
   }
 
   // 3. Programmatic Calculations & Overrides
