@@ -15,7 +15,7 @@ You must generate:
 8. Charts Collection (mock data structures representing: Market Growth, Revenue Forecast, Cost Breakdown, Risk Matrix, Competitor Matrix, and Roadmap Timeline)
 
 CRITICAL DIRECTIVES:
-- Do NOT invent data. Maintain absolute alignment with the provided upstream inputs (TAM sizes, Year 3 ARR, ₹2 Lakhs budget limit, Ather/Tata Power competition, Pune location).
+- Do NOT invent data. Maintain absolute alignment with the provided upstream inputs (TAM sizes, Year 3 ARR, budget limits, competitors, location of the user's specific startup idea).
 - Ensure the Pitch Deck contains EXACTLY 12 slides. Assign slide numbers 1 to 12 chronologically.
 - Formatting must be professional, clear, and structured for instant export.
 

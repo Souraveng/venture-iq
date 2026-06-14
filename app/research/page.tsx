@@ -34,6 +34,22 @@ export default function ResearchPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
+  const formatMarketValue = (val: any): string => {
+    if (!val) return "";
+    if (typeof val === "object") {
+      return String(val.value || val.val || JSON.stringify(val));
+    }
+    return String(val);
+  };
+
+  const formatMarketDesc = (val: any): string => {
+    if (!val) return "";
+    if (typeof val === "object") {
+      return String(val.description || val.value || val.val || JSON.stringify(val));
+    }
+    return String(val);
+  };
+
   return (
     <ProjectGuard>
     <DashboardLayout>
@@ -92,20 +108,20 @@ export default function ResearchPage() {
           {[
             {
               label: "TAM", sub: "Total Addressable Market",
-              value: activeProject?.marketIntel?.marketSize?.tam || activeProject?.marketIntel?.tam || "$2.4T",
-              desc: activeProject?.marketIntel?.marketSize?.tamDescription || "Global market by 2030",
+              value: formatMarketValue(activeProject?.marketIntel?.marketSize?.tam || activeProject?.marketIntel?.tam || "$2.4T"),
+              desc: formatMarketDesc(activeProject?.marketIntel?.marketSize?.tamDescription || "Global market by 2030"),
               pct: 100
             },
             {
               label: "SAM", sub: "Serviceable Addressable Market",
-              value: activeProject?.marketIntel?.marketSize?.sam || activeProject?.marketIntel?.sam || "$180B",
-              desc: activeProject?.marketIntel?.marketSize?.samDescription || "Addressable segment in target region",
+              value: formatMarketValue(activeProject?.marketIntel?.marketSize?.sam || activeProject?.marketIntel?.sam || "$180B"),
+              desc: formatMarketDesc(activeProject?.marketIntel?.marketSize?.samDescription || "Addressable segment in target region"),
               pct: activeProject?.marketIntel?.marketSize?.samPct || 7.5
             },
             {
               label: "SOM", sub: "Serviceable Obtainable Market",
-              value: activeProject?.marketIntel?.marketSize?.som || activeProject?.marketIntel?.som || "$4.2B",
-              desc: activeProject?.marketIntel?.marketSize?.somDescription || "5-year target capture",
+              value: formatMarketValue(activeProject?.marketIntel?.marketSize?.som || activeProject?.marketIntel?.som || "$4.2B"),
+              desc: formatMarketDesc(activeProject?.marketIntel?.marketSize?.somDescription || "5-year target capture"),
               pct: activeProject?.marketIntel?.marketSize?.somPct || 0.17
             },
           ].map((item) => (
@@ -205,7 +221,7 @@ export default function ResearchPage() {
         </div>
 
         {/* Research Plan — from researchPlan state */}
-        {activeProject?.researchPlan && activeProject.researchPlan.length > 0 && (
+        {activeProject?.researchPlan && Array.isArray(activeProject.researchPlan) && activeProject.researchPlan.length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
             <h3 className="font-semibold text-sm text-white mb-3 flex items-center gap-2">
               <span style={{ color: ACC }}>◈</span> Research Plan ({activeProject.researchPlan.length} queries)
@@ -222,7 +238,7 @@ export default function ResearchPage() {
         )}
 
         {/* Evidence Sources — from evidence state */}
-        {activeProject?.evidence && activeProject.evidence.length > 0 && (
+        {activeProject?.evidence && Array.isArray(activeProject.evidence) && activeProject.evidence.length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
             <h3 className="font-semibold text-sm text-white mb-3 flex items-center gap-2">
               <span style={{ color: ACC }}>↗</span> Evidence Sources ({activeProject.evidence.length})
@@ -236,12 +252,14 @@ export default function ResearchPage() {
                     {i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-white font-medium truncate">{ev.title || ev.query || `Source ${i + 1}`}</p>
+                    <p className="text-xs text-white font-medium truncate">
+                      {ev && typeof ev === 'object' ? (ev.title || ev.query || `Source ${i + 1}`) : `Source ${i + 1}`}
+                    </p>
                     <p className="text-[10px] mt-0.5 truncate" style={{ color: "var(--muted-fg)" }}>
-                      {ev.url || ev.source || (typeof ev === 'string' ? ev : '')}
+                      {ev && typeof ev === 'object' ? (ev.url || ev.source || '') : (typeof ev === 'string' ? ev : '')}
                     </p>
                   </div>
-                  {ev.credibilityScore != null && (
+                  {ev && typeof ev === 'object' && ev.credibilityScore != null && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
                       style={{ background: ev.credibilityScore >= 0.8 ? "rgba(218,242,100,0.1)" : "rgba(245,158,11,0.1)",
                                color: ev.credibilityScore >= 0.8 ? ACC : "#fbbf24" }}>

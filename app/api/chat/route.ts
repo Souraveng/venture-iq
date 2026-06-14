@@ -30,6 +30,8 @@ export async function POST(req: Request) {
 
     const { agentName, message, history, projectContext } = await req.json();
     const userApiKey = req.headers.get("x-gemini-api-key") || "";
+    const userCfToken = req.headers.get("x-cloudflare-api-token") || "";
+    const userCfAccount = req.headers.get("x-cloudflare-account-id") || "";
 
     const systemPrompt = agentSystemPrompts[agentName] || "You are a helpful AI specialist agent for VentureIQ.";
 
@@ -64,7 +66,11 @@ export async function POST(req: Request) {
     });
 
     // Run the request in the dynamic API key context
-    const response = await apiKeyStorage.run({ geminiApiKey: userApiKey }, async () => {
+    const response = await apiKeyStorage.run({ 
+      geminiApiKey: userApiKey,
+      cloudflareApiToken: userCfToken,
+      cloudflareAccountId: userCfAccount
+    }, async () => {
       const completion = await llm.invoke(messages);
       return completion.content;
     });

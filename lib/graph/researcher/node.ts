@@ -38,9 +38,9 @@ export async function evidenceResearchAgent(state: VentureStateType) {
 
   console.log(`Discovered ${uniqueSearchResults.length} unique, clean URLs after deduplication.`);
 
-  // If no search results found, throw an error to prevent context pollution
+  // Offline fallback
   if (uniqueSearchResults.length === 0) {
-    throw new Error("No web search results returned by Tavily API for the planned queries.");
+    console.log("No search results found (offline or missing API key). Continuing with empty search results.");
   }
 
   // 2. Scraping & Metadata Extraction Phase

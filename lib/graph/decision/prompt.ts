@@ -18,7 +18,7 @@ Your report must contain:
 
 CRITICAL DIRECTIVES:
 - Do NOT average scores blindly. Make specific, data-grounded arguments based on the actual facts.
-- Avoid generic startup platitudes. Ground the analysis in the provided opportunity details (e.g., Pune-based charging network logistics, ₹2 Lakhs budget limit, Indian electrical grid latency, local regulatory compliance, competing with Ather Grid and Tata Power, targeting e-rickshaw fleets).
+- Avoid generic startup platitudes. Ground the analysis in the provided opportunity details (e.g., specific location, budget limits, industry constraints, target customer segments, and direct competitor profiles of the user's specific startup idea).
 - Focus on making a definitive investment verdict. Challenge optimistic bias, expose hidden assumptions, and highlight critical operational requirements.
 
 Formulate the output JSON structure according to the target Zod schema.

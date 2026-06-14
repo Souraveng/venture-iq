@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { upsertUser, getUser } from "@/lib/db";
 
 export const authOptions: AuthOptions = {
+  debug: true,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",

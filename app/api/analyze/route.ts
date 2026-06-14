@@ -20,6 +20,8 @@ export async function POST(req: Request) {
     activeAnalyzeRuns.add(projectId);
     console.log(`[Analyze] Starting run for project ${projectId}. Active runs:`, Array.from(activeAnalyzeRuns));
   }
+  const userCfToken = req.headers.get("x-cloudflare-api-token") || body.cloudflareApiToken || "";
+  const userCfAccount = req.headers.get("x-cloudflare-account-id") || body.cloudflareAccountId || "";
   
   const initialState = {
     mode: body.mode,
@@ -65,7 +67,11 @@ export async function POST(req: Request) {
       const customReadable = new ReadableStream({
         async start(controller) {
           try {
-            await apiKeyStorage.run({ geminiApiKey: userApiKey }, async () => {
+            await apiKeyStorage.run({ 
+              geminiApiKey: userApiKey,
+              cloudflareApiToken: userCfToken,
+              cloudflareAccountId: userCfAccount
+            }, async () => {
               const stream = await graph.stream(initialState, { streamMode: "updates" });
               const accumulatedState: Record<string, any> = { ...initialState };
 
@@ -128,7 +134,11 @@ export async function POST(req: Request) {
     } else {
       // Synchronous fallback
       try {
-        const result = await apiKeyStorage.run({ geminiApiKey: userApiKey }, () => graph.invoke(initialState));
+        const result = await apiKeyStorage.run({ 
+          geminiApiKey: userApiKey,
+          cloudflareApiToken: userCfToken,
+          cloudflareAccountId: userCfAccount
+        }, () => graph.invoke(initialState));
         return NextResponse.json(result);
       } finally {
         await cleanup();

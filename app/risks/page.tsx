@@ -162,8 +162,8 @@ export default function RisksPage() {
 
   const radarData = dimensions.map((d) => ({
     dimension: d.label.replace(" Risk", ""),
-    value: d.data.riskScore,
-    severity: d.data.severity
+    value: typeof d.data?.riskScore === 'number' ? d.data.riskScore : 0,
+    severity: d.data?.severity || "MEDIUM"
   }));
 
   const overallStyle = severityStyles[overall.severity as keyof typeof severityStyles] || severityStyles.MEDIUM;
@@ -221,17 +221,22 @@ export default function RisksPage() {
               <div>
                 <h3 className="text-sm font-semibold text-white mb-3">Principal Risk Analyst Diagnostics</h3>
                 <div className="space-y-3">
-                  {overall.reasoning.map((reason: string, idx: number) => (
+                  {Array.isArray(overall?.reasoning) ? overall.reasoning.map((reason: string, idx: number) => (
                     <div key={idx} className="flex items-start gap-3 text-xs leading-relaxed text-white">
                       <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
                         style={{
-                          background: reason.includes("CRITICAL") ? "#ef4444" :
-                                      reason.includes("HIGH") ? "#f97316" :
-                                      reason.includes("MEDIUM") ? "#eab308" : "#22c55e"
+                          background: typeof reason === 'string' && reason.includes("CRITICAL") ? "#ef4444" :
+                                      typeof reason === 'string' && reason.includes("HIGH") ? "#f97316" :
+                                      typeof reason === 'string' && reason.includes("MEDIUM") ? "#eab308" : "#22c55e"
                         }} />
-                      <span>{reason}</span>
+                      <span>{typeof reason === 'string' ? reason : JSON.stringify(reason)}</span>
                     </div>
-                  ))}
+                  )) : typeof overall?.reasoning === 'string' ? (
+                    <div className="flex items-start gap-3 text-xs leading-relaxed text-white">
+                      <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 bg-yellow-400" />
+                      <span>{overall.reasoning}</span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="pt-4 border-t" style={{ borderColor: "var(--card-border)" }}>
@@ -312,7 +317,7 @@ export default function RisksPage() {
                     </p>
 
                     {/* Early warning indicators */}
-                    {d.data.indicators && d.data.indicators.length > 0 && (
+                    {d.data && Array.isArray(d.data.indicators) && d.data.indicators.length > 0 && (
                       <div className="mb-4">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Early Warning Indicators</span>
                         <ul className="mt-1 space-y-1">
@@ -340,49 +345,52 @@ export default function RisksPage() {
           </div>
 
           {/* Mitigation Strategies Panel */}
-          {mitigations && mitigations.length > 0 && (
+          {Array.isArray(mitigations) && mitigations.length > 0 && (
             <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
               <div className="px-5 py-4" style={{ background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
                 <h3 className="font-semibold text-sm text-white">VC Mitigation & Contingency Engine</h3>
               </div>
               <div className="p-6 space-y-6" style={{ background: "var(--background)" }}>
-                {mitigations.map((m: any, idx: number) => (
-                  <div key={idx} className="pb-6 last:pb-0 border-b last:border-0" style={{ borderColor: "var(--card-border)" }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full"
-                        style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
-                        {m.riskDimension}
-                      </span>
-                      <span className="text-xs text-white font-medium">— {m.description}</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                      <div className="rounded-lg p-4" style={{ background: "rgba(255,255,255,0.01)", border: "1px solid var(--card-border)" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-green-400">Preventive Actions</span>
-                        <ul className="mt-2 space-y-1.5">
-                          {m.preventiveActions.map((act: string, i: number) => (
-                            <li key={i} className="text-xs flex items-start gap-2 text-white">
-                              <span className="text-green-400 mt-0.5">✓</span>
-                              <span>{act}</span>
-                            </li>
-                          ))}
-                        </ul>
+                {mitigations.map((m: any, idx: number) => {
+                  if (!m || typeof m !== 'object') return null;
+                  return (
+                    <div key={idx} className="pb-6 last:pb-0 border-b last:border-0" style={{ borderColor: "var(--card-border)" }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                          style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
+                          {m.riskDimension}
+                        </span>
+                        <span className="text-xs text-white font-medium">— {m.description}</span>
                       </div>
 
-                      <div className="rounded-lg p-4" style={{ background: "rgba(255,255,255,0.01)", border: "1px solid var(--card-border)" }}>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Contingency Plans</span>
-                        <ul className="mt-2 space-y-1.5">
-                          {m.contingencyPlans.map((plan: string, i: number) => (
-                            <li key={i} className="text-xs flex items-start gap-2 text-white">
-                              <span className="text-amber-500 mt-0.5">↳</span>
-                              <span>{plan}</span>
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                        <div className="rounded-lg p-4" style={{ background: "rgba(255,255,255,0.01)", border: "1px solid var(--card-border)" }}>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-green-400">Preventive Actions</span>
+                          <ul className="mt-2 space-y-1.5">
+                            {Array.isArray(m.preventiveActions) && m.preventiveActions.map((act: string, i: number) => (
+                              <li key={i} className="text-xs flex items-start gap-2 text-white">
+                                <span className="text-green-400 mt-0.5">✓</span>
+                                <span>{act}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="rounded-lg p-4" style={{ background: "rgba(255,255,255,0.01)", border: "1px solid var(--card-border)" }}>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Contingency Plans</span>
+                          <ul className="mt-2 space-y-1.5">
+                            {Array.isArray(m.contingencyPlans) && m.contingencyPlans.map((plan: string, i: number) => (
+                              <li key={i} className="text-xs flex items-start gap-2 text-white">
+                                <span className="text-amber-500 mt-0.5">↳</span>
+                                <span>{plan}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

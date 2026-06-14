@@ -38,6 +38,8 @@ export default function SettingsPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInvite, setShowInvite] = useState(false);
   const [geminiKey, setGeminiKey] = useState("");
+  const [cloudflareToken, setCloudflareToken] = useState("");
+  const [cloudflareAccount, setCloudflareAccount] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   // Load profile data
@@ -106,6 +108,8 @@ export default function SettingsPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       setGeminiKey(localStorage.getItem("gemini_api_key") || "");
+      setCloudflareToken(localStorage.getItem("cloudflare_api_token") || "");
+      setCloudflareAccount(localStorage.getItem("cloudflare_account_id") || "");
     }
   }, []);
 
@@ -115,12 +119,18 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings/save-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ geminiApiKey: geminiKey }),
+        body: JSON.stringify({ 
+          geminiApiKey: geminiKey,
+          cloudflareApiToken: cloudflareToken,
+          cloudflareAccountId: cloudflareAccount
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to save API keys");
 
       localStorage.setItem("gemini_api_key", geminiKey);
+      localStorage.setItem("cloudflare_api_token", cloudflareToken);
+      localStorage.setItem("cloudflare_account_id", cloudflareAccount);
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
@@ -404,12 +414,12 @@ export default function SettingsPage() {
               <div className="rounded-xl p-5 space-y-6" style={{ background: "var(--card-bg)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
                 <div>
                   <h3 className="text-sm font-semibold text-white">Model Provider API Keys</h3>
-                  <p className="text-xs text-gray-400 mt-1">Configure your Google Gemini API key.</p>
+                  <p className="text-xs text-gray-400 mt-1">Configure your Google Gemini & Cloudflare API keys.</p>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Gemini API Key (Vector Embeddings & LLM Tasks)</label>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Gemini API Key (Fallback Vector Embeddings & LLM)</label>
                     <input 
                       type="password"
                       value={geminiKey}
@@ -417,7 +427,31 @@ export default function SettingsPage() {
                       placeholder="Enter your GEMINI_API_KEY..."
                       className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Used to generate text-embedding-004 vectors and run Gemini-based agent workflows.</p>
+                    <p className="text-[10px] text-gray-500 mt-1">Used as fallback embeddings and LLM provider.</p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Cloudflare API Token (Primary Workers AI)</label>
+                    <input 
+                      type="password"
+                      value={cloudflareToken}
+                      onChange={(e) => setCloudflareToken(e.target.value)}
+                      placeholder="Enter your CLOUDFLARE_API token..."
+                      className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">Primary key for Llama 3.3 and BGE embeddings.</p>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Cloudflare Account ID</label>
+                    <input 
+                      type="text"
+                      value={cloudflareAccount}
+                      onChange={(e) => setCloudflareAccount(e.target.value)}
+                      placeholder="Enter your CLOUDFLARE_ACCOUNT_ID..."
+                      className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
+                    />
+                    <p className="text-[10px] text-gray-500 mt-1">Required to build Cloudflare Workers AI resource endpoints.</p>
                   </div>
                 </div>
 

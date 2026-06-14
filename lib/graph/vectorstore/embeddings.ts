@@ -2,6 +2,38 @@
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { apiKeyStorage } from "../llm";
 
+async function queryCloudflareEmbedding(text: string, apiToken: string, accountId: string): Promise<number[]> {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/baai/bge-base-en-v1.5`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: [text],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Cloudflare Embedding API status ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  if (!data.success) {
+    const errors = data.errors ? JSON.stringify(data.errors) : "Unknown error";
+    throw new Error(`Cloudflare Embedding API Error: ${errors}`);
+  }
+
+  const vector = data.result?.data?.[0];
+  if (!vector || !Array.isArray(vector)) {
+    throw new Error("Invalid embedding response structure from Cloudflare");
+  }
+  return vector;
+}
+
 export class EmbeddingService {
   private cache: Map<string, number[]>;
   
@@ -28,10 +60,15 @@ export class EmbeddingService {
     // 2. Resolve API key dynamically from request storage or env
     const keys = apiKeyStorage.getStore();
     const userKey = typeof keys === "object" ? keys?.geminiApiKey : keys;
-    const apiKey = userKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "placeholder-key-for-build";
+    const apiKey = userKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "";
+
+    const userCfToken = typeof keys === "object" ? keys?.cloudflareApiToken : undefined;
+    const userCfAccount = typeof keys === "object" ? keys?.cloudflareAccountId : undefined;
+    const cfToken = userCfToken || process.env.CLOUDFLARE_API || "";
+    const cfAccount = userCfAccount || process.env.CLOUDFLARE_ACCOUNT_ID || "";
 
     // 3. Fallback mock vector if API Key is placeholder (e.g., during Next.js build time)
-    if (!apiKey || apiKey === "placeholder-key-for-build") {
+    if (!cfToken && !apiKey) {
       // Mock a 768-dimension vector
       const mockVector = new Array(this.dimensions).fill(0).map((_, i) => Math.sin(i) * 0.1);
       this.cache.set(normalizedText, mockVector);
@@ -42,14 +79,22 @@ export class EmbeddingService {
     let attempt = 0;
     let delay = 1000;
 
-    const dynamicClient = new GoogleGenerativeAIEmbeddings({
-      modelName: this.modelName,
-      apiKey: apiKey,
-    });
-
     while (attempt < retries) {
       try {
-        const embeddings = await dynamicClient.embedQuery(normalizedText);
+        let embeddings: number[] | null = null;
+        
+        if (cfToken && cfAccount) {
+          console.log(`[Embedding] Querying Cloudflare Workers AI embedding for "${text.substring(0, 40)}..."`);
+          embeddings = await queryCloudflareEmbedding(normalizedText, cfToken, cfAccount);
+        } else if (apiKey && apiKey !== "placeholder-key-for-build") {
+          console.log(`[Embedding] Querying Google Generative AI embedding for "${text.substring(0, 40)}..."`);
+          const dynamicClient = new GoogleGenerativeAIEmbeddings({
+            modelName: this.modelName,
+            apiKey: apiKey,
+          });
+          embeddings = await dynamicClient.embedQuery(normalizedText);
+        }
+
         if (embeddings && embeddings.length > 0) {
           // Verify dimension correctness
           if (embeddings.length === this.dimensions) {
@@ -58,7 +103,7 @@ export class EmbeddingService {
           }
           console.warn(`Embedding returned incorrect dimension: ${embeddings.length}. Expected ${this.dimensions}.`);
         }
-        throw new Error("Empty embedding returned from Google API");
+        throw new Error("Empty embedding returned from provider");
       } catch (err: any) {
         const errMsg = err.message || "";
         const lowerMsg = errMsg.toLowerCase();

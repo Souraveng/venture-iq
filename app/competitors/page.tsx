@@ -51,39 +51,44 @@ export default function CompetitorsPage() {
   const activeProject = projects.find((p) => p.id === activeId);
 
   // Prefer swotIntel from dedicated SWOT agent → marketIntel.swot fallback → static
-  const swotSource = activeProject?.swotIntel && Object.keys(activeProject.swotIntel).length > 0
+  const swotSource = activeProject?.swotIntel && typeof activeProject.swotIntel === "object" && !Array.isArray(activeProject.swotIntel) && Object.keys(activeProject.swotIntel).length > 0
     ? activeProject.swotIntel
-    : activeProject?.marketIntel?.swot || null;
+    : (activeProject?.marketIntel?.swot && typeof activeProject.marketIntel.swot === "object" && !Array.isArray(activeProject.marketIntel.swot) ? activeProject.marketIntel.swot : null);
 
   const dynamicSwot = swotSource ? {
-    Strengths: swotSource.strengths || [],
-    Weaknesses: swotSource.weaknesses || [],
-    Opportunities: swotSource.opportunities || [],
-    Threats: swotSource.threats || [],
+    Strengths: Array.isArray(swotSource.strengths) ? swotSource.strengths : [],
+    Weaknesses: Array.isArray(swotSource.weaknesses) ? swotSource.weaknesses : [],
+    Opportunities: Array.isArray(swotSource.opportunities) ? swotSource.opportunities : [],
+    Threats: Array.isArray(swotSource.threats) ? swotSource.threats : [],
   } : swotData;
 
-  const dynamicCompetitors = activeProject?.competitorIntel?.competitorProfiles
-    ? activeProject.competitorIntel.competitorProfiles.map((c: any) => ({
-        name: c.name,
-        type: c.type,
-        funding: c.funding,
-        stage: c.marketPosition,
-        market: c.geography,
-        pricing: c.pricing,
-        threat: c.threatLevel,
-        strengths: c.strengths || [],
-        weaknesses: c.weaknesses || []
-      }))
+  const dynamicCompetitors = Array.isArray(activeProject?.competitorIntel?.competitorProfiles)
+    ? activeProject.competitorIntel.competitorProfiles.map((c: any) => {
+        if (!c || typeof c !== "object") return null;
+        return {
+          name: c.name || "Unknown Competitor",
+          type: c.type || "Indirect",
+          funding: c.funding || "N/A",
+          stage: c.marketPosition || "N/A",
+          market: c.geography || "N/A",
+          pricing: c.pricing || "N/A",
+          threat: typeof c.threatLevel === "number" ? c.threatLevel : 50,
+          strengths: Array.isArray(c.strengths) ? c.strengths : [],
+          weaknesses: Array.isArray(c.weaknesses) ? c.weaknesses : []
+        };
+      }).filter(Boolean)
     : competitors;
 
-  const dynamicFeatures = activeProject?.competitorIntel?.featureMatrix?.features || features;
+  const dynamicFeatures = Array.isArray(activeProject?.competitorIntel?.featureMatrix?.features) ? activeProject.competitorIntel.featureMatrix.features : features;
 
-  const dynamicFeatureMatrix = activeProject?.competitorIntel?.featureMatrix?.comparisons
+  const dynamicFeatureMatrix = Array.isArray(activeProject?.competitorIntel?.featureMatrix?.comparisons)
     ? Object.fromEntries(
-        activeProject.competitorIntel.featureMatrix.comparisons.map((c: any) => [
-          c.companyName,
-          c.featureSupport
-        ])
+        activeProject.competitorIntel.featureMatrix.comparisons
+          .filter((c: any) => c && typeof c === "object" && c.companyName)
+          .map((c: any) => [
+            c.companyName,
+            Array.isArray(c.featureSupport) ? c.featureSupport : []
+          ])
       )
     : featureMatrix;
 

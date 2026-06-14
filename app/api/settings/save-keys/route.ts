@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { geminiApiKey } = await req.json();
+    const { geminiApiKey, cloudflareApiToken, cloudflareAccountId } = await req.json();
 
     const envPath = path.join(process.cwd(), ".env.local");
     let envContent = "";
@@ -31,6 +31,32 @@ export async function POST(req: Request) {
           : `\nGEMINI_API_KEY=${geminiApiKey}\n`;
       }
       process.env.GEMINI_API_KEY = geminiApiKey;
+    }
+
+    // Update CLOUDFLARE_API if provided
+    if (typeof cloudflareApiToken === "string") {
+      const keyRegex = /^CLOUDFLARE_API=.*$/m;
+      if (keyRegex.test(envContent)) {
+        envContent = envContent.replace(keyRegex, `CLOUDFLARE_API=${cloudflareApiToken}`);
+      } else {
+        envContent += envContent.endsWith("\n") || envContent === "" 
+          ? `CLOUDFLARE_API=${cloudflareApiToken}\n` 
+          : `\nCLOUDFLARE_API=${cloudflareApiToken}\n`;
+      }
+      process.env.CLOUDFLARE_API = cloudflareApiToken;
+    }
+
+    // Update CLOUDFLARE_ACCOUNT_ID if provided
+    if (typeof cloudflareAccountId === "string") {
+      const keyRegex = /^CLOUDFLARE_ACCOUNT_ID=.*$/m;
+      if (keyRegex.test(envContent)) {
+        envContent = envContent.replace(keyRegex, `CLOUDFLARE_ACCOUNT_ID=${cloudflareAccountId}`);
+      } else {
+        envContent += envContent.endsWith("\n") || envContent === "" 
+          ? `CLOUDFLARE_ACCOUNT_ID=${cloudflareAccountId}\n` 
+          : `\nCLOUDFLARE_ACCOUNT_ID=${cloudflareAccountId}\n`;
+      }
+      process.env.CLOUDFLARE_ACCOUNT_ID = cloudflareAccountId;
     }
 
     fs.writeFileSync(envPath, envContent, "utf-8");

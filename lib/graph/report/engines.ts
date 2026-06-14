@@ -42,10 +42,10 @@ export class ChartEngine {
       });
     } else {
       costBreakdown.push(
-        { label: "Embedded Dev / OCPP", value: 80000 },
-        { label: "Marketing & Pilots", value: 50000 },
-        { label: "Server & DB Hosting", value: 30000 },
-        { label: "Operations & Travel", value: 40000 }
+        { label: "Product Development", value: 80000 },
+        { label: "Marketing & Acquisition", value: 50000 },
+        { label: "Operations & Hosting", value: 30000 },
+        { label: "Legal & Compliance", value: 40000 }
       );
     }
 

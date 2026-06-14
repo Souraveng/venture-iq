@@ -78,8 +78,19 @@ Based on the above facts, formulate the SWOT Intelligence Report. Provide Streng
       throw new Error("Invalid or empty SWOT intelligence report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for SWOT:", err);
-    throw err;
+    console.error("Structured LLM query failed for SWOT, returning empty report:", err);
+    report = {
+      strengths: [],
+      weaknesses: [],
+      opportunities: [],
+      threats: [],
+      strategicSummary: {
+        topStrengths: [],
+        topWeaknesses: [],
+        topOpportunities: [],
+        topThreats: []
+      }
+    };
   }
 
   // 3. Programmatic Verifications & Adjustments

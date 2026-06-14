@@ -38,7 +38,8 @@ export default function RoadmapPage() {
   ];
 
   const mappedPhases = TIMELINE_PHASES.map((ph, idx) => {
-    const phaseMilestones = (roadmap.milestones || []).filter((ms: any) => {
+    const phaseMilestones = (Array.isArray(roadmap?.milestones) ? roadmap.milestones : []).filter((ms: any) => {
+      if (!ms || typeof ms !== 'object') return false;
       const mIdx = TimelineAlignmentEngine.getTimelineIndex(ms.timeline);
       return mIdx === idx;
     });
@@ -46,7 +47,7 @@ export default function RoadmapPage() {
     // Determine KPIs for this phase dynamically
     let kpis: string[] = [];
     if (idx === 0) {
-      kpis = (roadmap.validationRoadmap || []).slice(0, 3).map((v: any) => v.successMetric) || [];
+      kpis = (Array.isArray(roadmap?.validationRoadmap) ? roadmap.validationRoadmap : []).slice(0, 3).map((v: any) => v?.successMetric || "").filter(Boolean);
       if (kpis.length === 0) kpis = ["30 Interviews Completed", "Willingness to Pay verified"];
     } else if (idx === 1) {
       kpis = ["MVP Dashboard Live", "5 Pilot Projects Running", "Peak Load Decreased >20%"];
@@ -62,10 +63,10 @@ export default function RoadmapPage() {
       ...ph,
       status: idx === 0 ? "active" : "upcoming",
       milestones: phaseMilestones.map((ms: any, mIdx: number) => ({
-        task: ms.goal,
-        criteria: ms.successCriteria,
-        dependencies: ms.dependencies || [],
-        priority: ms.priority,
+        task: ms.goal || "Milestone goal",
+        criteria: ms.successCriteria || "Success criteria",
+        dependencies: Array.isArray(ms.dependencies) ? ms.dependencies : [],
+        priority: ms.priority || "MEDIUM",
         // Mark first validation milestone as done to show active execution status
         done: idx === 0 && mIdx === 0
       })),
@@ -74,7 +75,7 @@ export default function RoadmapPage() {
   });
 
   // Sort hiring roadmap by priority
-  const sortedHiring = [...(roadmap.hiringRoadmap || [])].sort((a: any, b: any) => a.priority - b.priority);
+  const sortedHiring = [...(Array.isArray(roadmap?.hiringRoadmap) ? roadmap.hiringRoadmap : [])].sort((a: any, b: any) => (a?.priority || 0) - (b?.priority || 0));
 
   return (
     <ProjectGuard>
@@ -195,7 +196,7 @@ export default function RoadmapPage() {
                         <h3 className="font-bold text-white">30-Day Validation Plan</h3>
                       </div>
                       <ul className="space-y-3">
-                        {(roadmap["30DayPlan"] || []).map((plan: string, i: number) => (
+                        {(Array.isArray(roadmap["30DayPlan"]) ? roadmap["30DayPlan"] : []).map((plan: string, i: number) => (
                           <li key={i} className="text-xs text-gray-400 leading-relaxed flex items-start gap-2">
                             <span className="text-[var(--accent)] mt-0.5">•</span>
                             <span>{plan}</span>
@@ -210,7 +211,7 @@ export default function RoadmapPage() {
                         <h3 className="font-bold text-white">90-Day MVP & Pilot Plan</h3>
                       </div>
                       <ul className="space-y-3">
-                        {(roadmap["90DayPlan"] || []).map((plan: string, i: number) => (
+                        {(Array.isArray(roadmap["90DayPlan"]) ? roadmap["90DayPlan"] : []).map((plan: string, i: number) => (
                           <li key={i} className="text-xs text-gray-400 leading-relaxed flex items-start gap-2">
                             <span className="text-emerald-400 mt-0.5">•</span>
                             <span>{plan}</span>
@@ -225,7 +226,7 @@ export default function RoadmapPage() {
                         <h3 className="font-bold text-white">1-Year Scaling Plan</h3>
                       </div>
                       <ul className="space-y-3">
-                        {(roadmap["1YearPlan"] || []).map((plan: string, i: number) => (
+                        {(Array.isArray(roadmap["1YearPlan"]) ? roadmap["1YearPlan"] : []).map((plan: string, i: number) => (
                           <li key={i} className="text-xs text-gray-400 leading-relaxed flex items-start gap-2">
                             <span className="text-indigo-400 mt-0.5">•</span>
                             <span>{plan}</span>
@@ -375,7 +376,7 @@ export default function RoadmapPage() {
                         <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">HIGH IMPACT · LOW EFFORT</span>
                       </div>
                       <ul className="space-y-2.5">
-                        {(roadmap.priorityMatrix?.highImpactLowEffort || []).map((task: string, i: number) => (
+                        {(Array.isArray(roadmap.priorityMatrix?.highImpactLowEffort) ? roadmap.priorityMatrix.highImpactLowEffort : []).map((task: string, i: number) => (
                           <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2">
                             <span className="text-emerald-400 mt-0.5">✓</span>
                             <span>{task}</span>
@@ -391,7 +392,7 @@ export default function RoadmapPage() {
                         <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">HIGH IMPACT · HIGH EFFORT</span>
                       </div>
                       <ul className="space-y-2.5">
-                        {(roadmap.priorityMatrix?.highImpactHighEffort || []).map((task: string, i: number) => (
+                        {(Array.isArray(roadmap.priorityMatrix?.highImpactHighEffort) ? roadmap.priorityMatrix.highImpactHighEffort : []).map((task: string, i: number) => (
                           <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2">
                             <span className="text-cyan-400 mt-0.5">★</span>
                             <span>{task}</span>
@@ -407,7 +408,7 @@ export default function RoadmapPage() {
                         <span className="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-bold">LOW IMPACT · LOW EFFORT</span>
                       </div>
                       <ul className="space-y-2.5">
-                        {(roadmap.priorityMatrix?.lowImpactLowEffort || []).map((task: string, i: number) => (
+                        {(Array.isArray(roadmap.priorityMatrix?.lowImpactLowEffort) ? roadmap.priorityMatrix.lowImpactLowEffort : []).map((task: string, i: number) => (
                           <li key={i} className="text-xs text-gray-400 leading-relaxed flex items-start gap-2">
                             <span className="text-gray-500 mt-0.5">•</span>
                             <span>{task}</span>
@@ -423,7 +424,7 @@ export default function RoadmapPage() {
                         <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">LOW IMPACT · HIGH EFFORT</span>
                       </div>
                       <ul className="space-y-2.5">
-                        {(roadmap.priorityMatrix?.lowImpactHighEffort || []).map((task: string, i: number) => (
+                        {(Array.isArray(roadmap.priorityMatrix?.lowImpactHighEffort) ? roadmap.priorityMatrix.lowImpactHighEffort : []).map((task: string, i: number) => (
                           <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2">
                             <span className="text-amber-500 mt-0.5">!</span>
                             <span className="text-gray-400">{task}</span>

@@ -99,6 +99,7 @@ export default function ValidationPage() {
     if (vf && Array.isArray(vf) && vf.length > 0) {
       const grouped: Record<string, { label: string; pass: boolean; confidence?: number }[]> = {};
       vf.forEach((fact: any) => {
+        if (!fact || typeof fact !== 'object') return;
         const cat = fact.category || "General";
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push({
@@ -192,7 +193,7 @@ export default function ValidationPage() {
               <span>⚠</span> VC Due Diligence Red Flags
             </h3>
             <ul className="space-y-3">
-              {analystData.redFlags.map((flag: string, i: number) => (
+              {(Array.isArray(analystData?.redFlags) ? analystData.redFlags : []).map((flag: string, i: number) => (
                 <li key={i} className="text-xs text-white leading-relaxed flex items-start gap-2">
                   <span className="text-red-400 mt-0.5">•</span>
                   <span>{flag}</span>
@@ -207,7 +208,7 @@ export default function ValidationPage() {
               <span>✓</span> Required Milestones to Secure Capital
             </h3>
             <ul className="space-y-3">
-              {analystData.investmentRecommendation.requiredMilestones.map((ms: string, i: number) => (
+              {(Array.isArray(analystData?.investmentRecommendation?.requiredMilestones) ? analystData.investmentRecommendation.requiredMilestones : []).map((ms: string, i: number) => (
                 <li key={i} className="text-xs text-white leading-relaxed flex items-center gap-2">
                   <span className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 text-[10px]"
                     style={{ background: "rgba(218, 242, 100, 0.12)", color: "var(--accent)" }}>
@@ -290,7 +291,7 @@ export default function ValidationPage() {
         </div>
 
         {/* Data Conflicts */}
-        {activeProject?.conflicts && activeProject.conflicts.length > 0 && (
+        {activeProject?.conflicts && Array.isArray(activeProject.conflicts) && activeProject.conflicts.length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "rgba(245,158,11,0.03)", border: "1px solid rgba(245,158,11,0.15)" }}>
             <h3 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <span>⚡</span> Data Conflicts ({activeProject.conflicts.length})
@@ -299,7 +300,7 @@ export default function ValidationPage() {
               {activeProject.conflicts.map((c: any, i: number) => (
                 <li key={i} className="text-xs text-white leading-relaxed flex items-start gap-2">
                   <span className="text-yellow-400 mt-0.5 flex-shrink-0">•</span>
-                  <span>{c.description || c.claim || JSON.stringify(c)}</span>
+                  <span>{c && typeof c === 'object' ? (c.description || c.claim || JSON.stringify(c)) : String(c)}</span>
                 </li>
               ))}
             </ul>
@@ -307,7 +308,7 @@ export default function ValidationPage() {
         )}
 
         {/* Source Reliability */}
-        {activeProject?.reliability && Object.keys(activeProject.reliability).length > 0 && (
+        {activeProject?.reliability && typeof activeProject.reliability === "object" && !Array.isArray(activeProject.reliability) && Object.keys(activeProject.reliability).length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
             <h3 className="text-sm font-semibold text-white mb-3">Source Reliability</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

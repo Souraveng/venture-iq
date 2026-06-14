@@ -54,7 +54,7 @@ export async function factExtractionAgent(state: VentureStateType) {
       // Ensure each item has the correct source ID
       if (result.facts) {
         result.facts.forEach(f => {
-          const statementStr = f.statement || f.text || f.fact || f.content || "";
+          const statementStr = f.statement || (f as any).text || (f as any).fact || (f as any).content || "";
           if (statementStr && typeof statementStr === "string") {
             f.statement = statementStr.trim();
             f.sourceId = ev.id;
@@ -83,7 +83,6 @@ export async function factExtractionAgent(state: VentureStateType) {
       }
     } catch (error) {
       console.error(`Knowledge extraction failed for evidence ${ev.id}:`, error);
-      throw error;
     }
   }
 

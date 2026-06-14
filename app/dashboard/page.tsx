@@ -106,6 +106,23 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 export default function DashboardPage() {
   const { projects, activeId, updateProject, addNotification, addAuditEntry, addProject } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
+
+  const formatMarketValue = (val: any): string => {
+    if (!val) return "";
+    if (typeof val === "object") {
+      return String(val.value || val.val || JSON.stringify(val));
+    }
+    return String(val);
+  };
+
+  const formatMarketDesc = (val: any): string => {
+    if (!val) return "";
+    if (typeof val === "object") {
+      return String(val.description || val.value || val.val || JSON.stringify(val));
+    }
+    return String(val);
+  };
+
   const [editOpen, setEditOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -455,7 +472,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }} className="w-full">
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }} className="w-full space-y-4">
                     <button onClick={handleLaunch}
                       className="w-full py-4 rounded-2xl text-base font-bold transition-all hover:opacity-90"
                       style={{
@@ -465,9 +482,39 @@ export default function DashboardPage() {
                       }}>
                       Start Venture Analysis →
                     </button>
-                    <p className="text-xs mt-2" style={{ color: "#333" }}>
+                    <p className="text-xs" style={{ color: "#333" }}>
                       15 validation agents will execute in sequence to generate your analysis report.
                     </p>
+
+                    {activeProject && activeProject.agentsDone > 0 && (
+                      <div className="p-4 rounded-xl border border-dashed border-zinc-800 bg-white/[0.02] text-left mt-2">
+                        <p className="text-xs font-semibold text-white mb-1">
+                          Saved Analysis Progress Found ({activeProject.agentsDone}/15 steps completed)
+                        </p>
+                        <p className="text-[11px] text-zinc-400 mb-3 leading-normal">
+                          The system has already saved data from the first {activeProject.agentsDone} agents. If you want to view this data immediately on the dashboard without running the remaining steps, you can bypass the lock.
+                        </p>
+                        <button
+                          onClick={() => {
+                            updateProject(activeProject.id, { intakeComplete: true });
+                            addNotification(activeProject.id, {
+                              title: "Lock Bypassed",
+                              body: "Unlocked dashboard tabs manually to view saved data.",
+                              severity: "info",
+                              agent: "System"
+                            });
+                          }}
+                          className="w-full py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-white/5"
+                          style={{
+                            background: "transparent",
+                            color: "var(--accent)",
+                            border: "1px solid var(--accent)",
+                          }}
+                        >
+                          Bypass Lock & Inspect Saved Data
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 </motion.div>
               )}
@@ -518,6 +565,27 @@ export default function DashboardPage() {
                         width: `${activeProject?.progress || 0}%` 
                       }} />
                   </div>
+                  {activeProject && activeProject.agentsDone > 0 && (
+                    <button
+                      onClick={() => {
+                        updateProject(activeProject.id, { intakeComplete: true, isAnalyzing: false });
+                        addNotification(activeProject.id, {
+                          title: "Lock Bypassed",
+                          body: "Unlocked dashboard tabs manually to view saved data.",
+                          severity: "info",
+                          agent: "System"
+                        });
+                      }}
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all hover:bg-white/5 mt-2"
+                      style={{
+                        background: "transparent",
+                        color: "var(--accent)",
+                        border: "1px solid var(--accent)",
+                      }}
+                    >
+                      Bypass lock & inspect current data ({activeProject.agentsDone}/15 done)
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -537,12 +605,16 @@ export default function DashboardPage() {
   const confidence = decReport?.confidence?.score ?? 82;
   
   const decision = decReport?.verdict?.decision || "PROCEED";
-  const reasoning = decReport?.verdict?.reasoning || [];
+  const reasoning = Array.isArray(decReport?.verdict?.reasoning)
+    ? decReport.verdict.reasoning
+    : typeof decReport?.verdict?.reasoning === 'string'
+    ? [decReport.verdict.reasoning]
+    : [];
   const stage = decReport?.ventureReadiness?.stage || "N/A";
   const executiveSummary = decReport?.executiveSummary || "";
-  const topOpportunities = decReport?.topOpportunities || [];
-  const topRisks = decReport?.topRisks || [];
-  const recommendedActions = decReport?.recommendedActions || [];
+  const topOpportunities = Array.isArray(decReport?.topOpportunities) ? decReport.topOpportunities : [];
+  const topRisks = Array.isArray(decReport?.topRisks) ? decReport.topRisks : [];
+  const recommendedActions = Array.isArray(decReport?.recommendedActions) ? decReport.recommendedActions : [];
 
   const scores = [
     { label: "Venture Readiness", value: readiness, color: "#daf264" },
@@ -723,7 +795,18 @@ export default function DashboardPage() {
             )}
             {activeProject.ventureContext.location && (
               <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(52,211,153,0.08)", color: "#34d399", border: "1px solid rgba(52,211,153,0.15)" }}>
-                📍 {activeProject.ventureContext.location}
+                📍 {(() => {
+                  const loc = activeProject.ventureContext.location;
+                  if (!loc) return "";
+                  if (typeof loc === "string") return loc;
+                  if (typeof loc !== "object") return "";
+                  const parts = [
+                    loc.city || loc.village,
+                    loc.state || loc.region,
+                    loc.country
+                  ].filter(Boolean);
+                  return parts.length > 0 ? parts.join(", ") : "Specified Location";
+                })()}
               </span>
             )}
             {activeProject.ventureContext.budget && (
@@ -739,7 +822,7 @@ export default function DashboardPage() {
           style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold"
             style={{ background: "var(--accent)", color: "#0a0a0a" }}>
-            {activeProject.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2)}
+            {(activeProject.name || "").split(" ").map((w: string) => w[0] || "").join("").slice(0, 2)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">{activeProject.name}</p>
@@ -952,10 +1035,12 @@ export default function DashboardPage() {
           {[
             {
               title: "Market Size (TAM)",
-              value: activeProject?.marketIntel?.marketSize?.tam
-                ? activeProject.marketIntel.marketSize.tam
-                : activeProject?.marketIntel?.tam || "$2.4T",
-              sub: activeProject?.marketIntel?.marketSize?.description || "Total addressable market",
+              value: formatMarketValue(
+                activeProject?.marketIntel?.marketSize?.tam
+                  ? activeProject.marketIntel.marketSize.tam
+                  : activeProject?.marketIntel?.tam || "$2.4T"
+              ),
+              sub: formatMarketDesc(activeProject?.marketIntel?.marketSize?.description || "Total addressable market"),
               icon: "◎"
             },
             {

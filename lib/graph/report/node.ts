@@ -66,8 +66,85 @@ Generate the complete portfolio of 7 deliverables and the corresponding chart da
       throw new Error("Invalid or empty venture reports container received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Report Engine:", err);
-    throw err;
+    console.error("Structured LLM query failed for Report Engine, returning empty report:", err);
+    reportIntel = {
+      executiveSummary: {
+        title: "Executive Summary",
+        sections: {
+          opportunity: ["Opportunity details not specified."],
+          market: ["Market details not specified."],
+          competition: ["Competition details not specified."],
+          risk: ["Risk details not specified."],
+          financials: ["Financial details not specified."],
+          verdict: ["Verdict details not specified."]
+        }
+      },
+      businessPlan: {
+        title: "Startup Business Plan",
+        sections: {
+          problem: ["Problem details not specified."],
+          solution: ["Solution details not specified."],
+          market: ["Market details not specified."],
+          businessModel: ["Business model details not specified."],
+          competition: ["Competition details not specified."],
+          financials: ["Financial details not specified."],
+          roadmap: ["Roadmap details not specified."],
+          risk: ["Risk details not specified."],
+          funding: ["Funding details not specified."]
+        }
+      },
+      investorReport: {
+        title: "Investor Report",
+        sections: {
+          marketAnalysis: ["Market analysis details not specified."],
+          tamSamSom: ["TAM SAM SOM details not specified."],
+          competition: ["Competition details not specified."],
+          moat: ["Moat details not specified."],
+          financialViability: ["Financial viability details not specified."],
+          investmentRecommendation: ["Investment recommendation details not specified."],
+          redFlags: ["Red flags details not specified."]
+        }
+      },
+      founderRoadmap: {
+        title: "Founder Roadmap",
+        sections: {
+          plan30Day: ["30-day plan details not specified."],
+          plan90Day: ["90-day plan details not specified."],
+          plan1Year: ["1-year plan details not specified."],
+          milestones: ["Milestones details not specified."],
+          kpis: ["KPIs details not specified."],
+          riskMitigation: ["Risk mitigation details not specified."]
+        }
+      },
+      pitchDeck: [],
+      opportunityAnalysis: {
+        title: "Opportunity Analysis",
+        overallScore: 0,
+        breakdown: {
+          marketOpportunityScore: 0,
+          competitionScore: 0,
+          financialViabilityScore: 0,
+          executionFeasibilityScore: 0,
+          fundingPotentialScore: 0,
+          riskResilienceScore: 0
+        },
+        keyFindings: ["Key findings not specified."]
+      },
+      onePageBrief: {
+        title: "One-Page Brief",
+        summary: "Summary details not specified.",
+        keyMetrics: [],
+        recommendedActions: []
+      },
+      charts: {
+        marketGrowth: [],
+        revenueForecast: [],
+        costBreakdown: [],
+        riskMatrix: [],
+        competitorMatrix: [],
+        roadmapTimeline: []
+      }
+    };
   }
 
   // Enforce programmatic chart validations & syncing with actual financial and market details

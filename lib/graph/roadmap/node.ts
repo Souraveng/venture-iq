@@ -98,8 +98,42 @@ Based on the above intelligence inputs, formulate the Founder Roadmap & Executio
       throw new Error("Invalid or empty founder roadmap report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Founder Roadmap:", err);
-    throw err;
+    console.error("Structured LLM query failed for Founder Roadmap, returning empty report:", err);
+    report = {
+      "30DayPlan": [],
+      "90DayPlan": [],
+      "1YearPlan": [],
+      validationRoadmap: [],
+      goToMarketPlan: {
+        customerAcquisitionStrategy: "Not specified.",
+        channels: [],
+        partnerships: [],
+        marketing: [],
+        sales: [],
+        distribution: []
+      },
+      fundraisingRoadmap: {
+        bootstrapStage: [],
+        grantStage: [],
+        angelStage: [],
+        seedStage: [],
+        requirements: {
+          bootstrap: [],
+          grant: [],
+          angel: [],
+          seed: []
+        }
+      },
+      hiringRoadmap: [],
+      milestones: [],
+      priorityMatrix: {
+        highImpactLowEffort: [],
+        highImpactHighEffort: [],
+        lowImpactLowEffort: [],
+        lowImpactHighEffort: []
+      },
+      keySuccessFactors: []
+    };
   }
 
   // 3. Programmatic Engines

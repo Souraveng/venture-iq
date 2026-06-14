@@ -82,8 +82,8 @@ export default function PitchPage() {
   const activeProject = projects.find((p) => p.id === activeId);
 
   // Fallback to MOCK_REPORTS_CONTAINER if reportIntel is missing
-  const reports = activeProject?.reportIntel || MOCK_REPORTS_CONTAINER;
-  const dynamicSlides = reports.pitchDeck || MOCK_REPORTS_CONTAINER.pitchDeck;
+  const reports = activeProject?.reportIntel && typeof activeProject.reportIntel === 'object' ? activeProject.reportIntel : MOCK_REPORTS_CONTAINER;
+  const dynamicSlides = Array.isArray(reports?.pitchDeck) ? reports.pitchDeck : MOCK_REPORTS_CONTAINER.pitchDeck;
 
   const [activeTab, setActiveTab] = useState<"deck" | "reports">("deck");
   const [styleMode, setStyleMode] = useState<keyof typeof styleMap>("NORMAL");
@@ -95,27 +95,28 @@ export default function PitchPage() {
 
   // Map of accessible reports for display
   const reportsMeta = [
-    { key: "executiveSummary", label: "Executive Summary", desc: "1-3 page synthesis of core venture metrics", data: reports.executiveSummary },
-    { key: "businessPlan", label: "Business Plan", desc: "Structured operational proposal with 9 core sections", data: reports.businessPlan },
-    { key: "investorReport", label: "Investor Due Diligence", desc: "Comprehensive investment viability and flags report", data: reports.investorReport },
-    { key: "founderRoadmap", label: "Founder Roadmap", desc: "Tactical 30/90-Day milestone delivery program", data: reports.founderRoadmap },
-    { key: "opportunityAnalysis", label: "Opportunity Analysis", desc: "Evidence-backed multi-agent opportunity breakdown", data: reports.opportunityAnalysis },
-    { key: "onePageBrief", label: "One-Page Executive Brief", desc: "Highly condensed high-conviction briefing summary", data: reports.onePageBrief }
+    { key: "executiveSummary", label: "Executive Summary", desc: "1-3 page synthesis of core venture metrics", data: reports?.executiveSummary },
+    { key: "businessPlan", label: "Business Plan", desc: "Structured operational proposal with 9 core sections", data: reports?.businessPlan },
+    { key: "investorReport", label: "Investor Due Diligence", desc: "Comprehensive investment viability and flags report", data: reports?.investorReport },
+    { key: "founderRoadmap", label: "Founder Roadmap", desc: "Tactical 30/90-Day milestone delivery program", data: reports?.founderRoadmap },
+    { key: "opportunityAnalysis", label: "Opportunity Analysis", desc: "Evidence-backed multi-agent opportunity breakdown", data: reports?.opportunityAnalysis },
+    { key: "onePageBrief", label: "One-Page Executive Brief", desc: "Highly condensed high-conviction briefing summary", data: reports?.onePageBrief }
   ];
 
   const currentReport = reportsMeta.find(r => r.key === activeReportKey) || reportsMeta[0];
 
   // Helper function to serialize any report back into Markdown
   const serializeReportToMarkdown = (key: string, data: any): string => {
+    if (!data || typeof data !== 'object') return `# ${key}\n\nNo report data available.`;
     if (key === "opportunityAnalysis") {
-      return `# ${data.title}\n\nOverall Score: **${data.overallScore}/100**\n\n## Component Breakdown\n` +
+      return `# ${data.title || 'Opportunity Analysis'}\n\nOverall Score: **${data.overallScore || 0}/100**\n\n## Component Breakdown\n` +
         Object.entries(data.breakdown || {}).map(([k, v]) => `- **${k.replace(/([A-Z])/g, " $1")}**: ${v}/100`).join("\n") +
-        `\n\n## Key Findings\n` + (data.keyFindings || []).map((f: string) => `- ${f}`).join("\n");
+        `\n\n## Key Findings\n` + (Array.isArray(data.keyFindings) ? data.keyFindings : []).map((f: string) => `- ${f}`).join("\n");
     }
     if (key === "onePageBrief") {
-      return `# ${data.title}\n\n${data.summary}\n\n## Key Metrics\n` +
-        (data.keyMetrics || []).map((m: any) => `- **${m.label}**: ${m.value}`).join("\n") +
-        `\n\n## Recommended Actions\n` + (data.recommendedActions || []).map((a: string) => `- ${a}`).join("\n");
+      return `# ${data.title || 'One-Page Executive Brief'}\n\n${data.summary || ''}\n\n## Key Metrics\n` +
+        (Array.isArray(data.keyMetrics) ? data.keyMetrics : []).map((m: any) => `- **${m?.label || ''}**: ${m?.value || ''}`).join("\n") +
+        `\n\n## Recommended Actions\n` + (Array.isArray(data.recommendedActions) ? data.recommendedActions : []).map((a: string) => `- ${a}`).join("\n");
     }
     // Standard structured sections
     let md = `# ${data.title || key}\n\n`;
@@ -316,7 +317,7 @@ export default function PitchPage() {
                       </h2>
 
                       {/* Render Lists */}
-                      {slide.points && slide.points.length > 0 && (
+                      {slide && Array.isArray(slide.points) && slide.points.length > 0 && (
                         <ul className="space-y-4">
                           {slide.points.map((p: string, idx: number) => (
                             <li key={idx} className="flex items-start gap-3">
@@ -330,43 +331,43 @@ export default function PitchPage() {
                       )}
 
                       {/* Render Stats Grid */}
-                      {slide.stats && slide.stats.length > 0 && (
+                      {slide && Array.isArray(slide.stats) && slide.stats.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4">
                           {slide.stats.map((st: any, idx: number) => (
                             <div key={idx} className={`text-center p-6 rounded-2xl border ${activeTheme.borderColor}`}
                               style={{ background: "rgba(255,255,255,0.01)" }}>
-                              <p className={`text-4xl font-extrabold ${activeTheme.accentText}`}>{st.value}</p>
-                              <p className="text-xs mt-2 text-gray-400 font-semibold tracking-wider uppercase">{st.label}</p>
+                              <p className={`text-4xl font-extrabold ${activeTheme.accentText}`}>{st?.value || ''}</p>
+                              <p className="text-xs mt-2 text-gray-400 font-semibold tracking-wider uppercase">{st?.label || ''}</p>
                             </div>
                           ))}
                         </div>
                       )}
 
                       {/* Render Business Pricing Models */}
-                      {slide.models && slide.models.length > 0 && (
+                      {slide && Array.isArray(slide.models) && slide.models.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
                           {slide.models.map((m: any, idx: number) => (
                             <div key={idx} className={`rounded-xl p-5 border ${activeTheme.borderColor}`}
                               style={{ background: "rgba(255,255,255,0.02)" }}>
-                              <p className={`text-xs font-bold mb-2 uppercase tracking-wide ${activeTheme.accentText}`}>{m.type}</p>
-                              <p className={`text-2xl font-black ${activeTheme.textColor}`}>{m.price}</p>
-                              <p className="text-xs mt-1 text-gray-400">{m.note}</p>
+                              <p className={`text-xs font-bold mb-2 uppercase tracking-wide ${activeTheme.accentText}`}>{m?.type || ''}</p>
+                              <p className={`text-2xl font-black ${activeTheme.textColor}`}>{m?.price || ''}</p>
+                              <p className="text-xs mt-1 text-gray-400">{m?.note || ''}</p>
                             </div>
                           ))}
                         </div>
                       )}
 
                       {/* Render Team Members */}
-                      {slide.members && slide.members.length > 0 && (
+                      {slide && Array.isArray(slide.members) && slide.members.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                           {slide.members.map((m: any, idx: number) => (
                             <div key={idx} className="text-center">
                               <div className={`w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-2xl font-bold border ${activeTheme.borderColor}`}
                                 style={{ background: `${activeTheme.accentColor}10`, color: activeTheme.accentColor }}>
-                                {m.name[0]}
+                                {m?.name ? m.name[0] : '?'}
                               </div>
-                              <p className={`text-sm font-bold ${activeTheme.textColor}`}>{m.name}</p>
-                              <p className="text-xs mt-1 text-gray-400">{m.bg}</p>
+                              <p className={`text-sm font-bold ${activeTheme.textColor}`}>{m?.name || ''}</p>
+                              <p className="text-xs mt-1 text-gray-400">{m?.bg || ''}</p>
                             </div>
                           ))}
                         </div>
@@ -583,7 +584,7 @@ export default function PitchPage() {
                 {s.headline}
               </h2>
 
-              {s.points && s.points.length > 0 && (
+              {s && Array.isArray(s.points) && s.points.length > 0 && (
                 <ul style={{ listStyleType: "none", padding: 0, margin: 0 }}>
                   {s.points.map((p: string, idx: number) => (
                     <li key={idx} style={{ fontSize: "16px", marginBottom: "16px", display: "flex", alignItems: "flex-start" }}>
@@ -594,38 +595,38 @@ export default function PitchPage() {
                 </ul>
               )}
 
-              {s.stats && s.stats.length > 0 && (
+              {s && Array.isArray(s.stats) && s.stats.length > 0 && (
                 <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
                   {s.stats.map((st: any, idx: number) => (
                     <div key={idx} style={{ flex: 1, textAlign: "center", padding: "20px", border: "1px solid #333", borderRadius: "8px" }}>
-                      <p style={{ fontSize: "36px", fontWeight: "800", color: "#daf264", margin: 0 }}>{st.value}</p>
-                      <p style={{ fontSize: "12px", color: "#aaa", textTransform: "uppercase", marginTop: "8px", letterSpacing: "0.5px" }}>{st.label}</p>
+                      <p style={{ fontSize: "36px", fontWeight: "800", color: "#daf264", margin: 0 }}>{st?.value || ''}</p>
+                      <p style={{ fontSize: "12px", color: "#aaa", textTransform: "uppercase", marginTop: "8px", letterSpacing: "0.5px" }}>{st?.label || ''}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              {s.models && s.models.length > 0 && (
+              {s && Array.isArray(s.models) && s.models.length > 0 && (
                 <div style={{ display: "flex", gap: "15px", marginTop: "20px" }}>
                   {s.models.map((m: any, idx: number) => (
                     <div key={idx} style={{ flex: 1, padding: "15px", border: "1px solid #333", borderRadius: "8px" }}>
-                      <p style={{ fontSize: "11px", fontWeight: "bold", color: "#daf264", margin: "0 0 6px 0", textTransform: "uppercase" }}>{m.type}</p>
-                      <p style={{ fontSize: "20px", fontWeight: "900", margin: 0 }}>{m.price}</p>
-                      <p style={{ fontSize: "11px", color: "#888", marginTop: "4px", margin: 0 }}>{m.note}</p>
+                      <p style={{ fontSize: "11px", fontWeight: "bold", color: "#daf264", margin: "0 0 6px 0", textTransform: "uppercase" }}>{m?.type || ''}</p>
+                      <p style={{ fontSize: "20px", fontWeight: "900", margin: 0 }}>{m?.price || ''}</p>
+                      <p style={{ fontSize: "11px", color: "#888", marginTop: "4px", margin: 0 }}>{m?.note || ''}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              {s.members && s.members.length > 0 && (
+              {s && Array.isArray(s.members) && s.members.length > 0 && (
                 <div style={{ display: "flex", gap: "30px", marginTop: "20px" }}>
                   {s.members.map((m: any, idx: number) => (
                     <div key={idx} style={{ textAlign: "center" }}>
                       <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "#222", border: "1px solid #444", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: "bold", margin: "0 auto 10px auto", color: "#daf264" }}>
-                        {m.name[0]}
+                        {m?.name ? m.name[0] : '?'}
                       </div>
-                      <p style={{ fontSize: "14px", fontWeight: "bold", margin: 0 }}>{m.name}</p>
-                      <p style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>{m.bg}</p>
+                      <p style={{ fontSize: "14px", fontWeight: "bold", margin: 0 }}>{m?.name || ''}</p>
+                      <p style={{ fontSize: "12px", color: "#888", marginTop: "2px" }}>{m?.bg || ''}</p>
                     </div>
                   ))}
                 </div>

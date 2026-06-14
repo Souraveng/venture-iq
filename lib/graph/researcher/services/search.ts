@@ -29,12 +29,28 @@ export class SearchService {
       return [];
     }
 
+    const includeDomainsStr = process.env.INCLUDE_DOMAINS || "";
+    const includeDomains = includeDomainsStr
+      ? includeDomainsStr.split(",").map((d) => d.trim()).filter(Boolean)
+      : [];
+
+    const excludeDomainsStr = process.env.EXCLUDE_DOMAINS || "";
+    const excludeDomains = excludeDomainsStr
+      ? excludeDomainsStr.split(",").map((d) => d.trim()).filter(Boolean)
+      : [
+          "quora.com", "reddit.com", "pinterest.com", "instagram.com", "facebook.com",
+          "twitter.com", "linkedin.com", "youtube.com", "tiktok.com",
+          "slideshare.net", "scribd.com", "medium.com", "wordpress.com", "blogspot.com"
+        ];
+
+    const searchDepth = process.env.SEARCH_DEPTH || "advanced";
+
     let attempt = 0;
     let delay = 1000; // start with 1s delay
 
     while (attempt < retries) {
       try {
-        console.log(`Searching: "${query}" (Attempt ${attempt + 1}/${retries})`);
+        console.log(`Searching: "${query}" (Depth: ${searchDepth}, Attempt ${attempt + 1}/${retries})`);
         
         const response = await fetch("https://api.tavily.com/search", {
           method: "POST",
@@ -44,10 +60,10 @@ export class SearchService {
           body: JSON.stringify({
             api_key: this.apiKey,
             query: query,
-            search_depth: "basic",
+            search_depth: searchDepth,
             max_results: maxResults,
-            include_domains: [],
-            exclude_domains: [],
+            include_domains: includeDomains,
+            exclude_domains: excludeDomains,
           }),
         });
 

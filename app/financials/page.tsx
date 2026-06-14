@@ -80,32 +80,35 @@ export default function FinancialsPage() {
     { label: "Target Valuation",value: valuationValue,   sub: "Post-seed (10x ARR)", highlight: true  },
   ];
 
-  const dynamicRevenueData = fi?.cashFlowForecast?.forecast
-    ? fi.cashFlowForecast.forecast.map((item: any) => ({
-        month: item.period,
-        revenue: item.revenue >= 1000 ? Math.round(item.revenue / 1000) : item.revenue,
-        expenses: item.expenses >= 1000 ? Math.round(item.expenses / 1000) : item.expenses,
-        cashflow: item.cashflow >= 1000 ? Math.round(item.cashflow / 1000) : (item.cashflow <= -1000 ? Math.round(item.cashflow / 1000) : item.cashflow)
-      }))
+  const dynamicRevenueData = Array.isArray(fi?.cashFlowForecast?.forecast)
+    ? fi.cashFlowForecast.forecast.map((item: any) => {
+        if (!item || typeof item !== 'object') return { month: "", revenue: 0, expenses: 0, cashflow: 0 };
+        return {
+          month: item.period || "",
+          revenue: typeof item.revenue === 'number' ? (item.revenue >= 1000 ? Math.round(item.revenue / 1000) : item.revenue) : 0,
+          expenses: typeof item.expenses === 'number' ? (item.expenses >= 1000 ? Math.round(item.expenses / 1000) : item.expenses) : 0,
+          cashflow: typeof item.cashflow === 'number' ? (item.cashflow >= 1000 ? Math.round(item.cashflow / 1000) : (item.cashflow <= -1000 ? Math.round(item.cashflow / 1000) : item.cashflow)) : 0
+        };
+      })
     : revenueData;
 
-  const dynamicUnitEcon = fi?.unitEconomics
+  const dynamicUnitEcon = fi?.unitEconomics && typeof fi.unitEconomics === 'object' && !Array.isArray(fi.unitEconomics)
     ? [
-        { metric: "ACV",           value: fi.unitEconomics.revenuePerCustomer >= 1000 ? `$${(fi.unitEconomics.revenuePerCustomer / 1000).toFixed(1)}K` : `$${fi.unitEconomics.revenuePerCustomer}`,   sub: "Annual contract value (fleet)" },
-        { metric: "CAC",           value: `$${fi.unitEconomics.cac}`,     sub: "Customer acquisition cost" },
-        { metric: "LTV",           value: fi.unitEconomics.ltv >= 1000 ? `$${(fi.unitEconomics.ltv / 1000).toFixed(1)}K` : `$${fi.unitEconomics.ltv}`,     sub: "Customer lifetime value" },
-        { metric: "LTV:CAC",       value: `${fi.unitEconomics.ltvToCacRatio}x`,      sub: "Healthy > 3x" },
-        { metric: "Payback Period",value: `${fi.unitEconomics.paybackPeriod} mo`,   sub: "Best-in-class < 12mo" },
-        { metric: "Gross Margin",  value: `${fi.unitEconomics.grossMargin}%`,      sub: "SaaS target > 70%" },
+        { metric: "ACV",           value: typeof fi.unitEconomics.revenuePerCustomer === 'number' ? (fi.unitEconomics.revenuePerCustomer >= 1000 ? `$${(fi.unitEconomics.revenuePerCustomer / 1000).toFixed(1)}K` : `$${fi.unitEconomics.revenuePerCustomer}`) : "$0",   sub: "Annual contract value (fleet)" },
+        { metric: "CAC",           value: `$${fi.unitEconomics.cac || 0}`,     sub: "Customer acquisition cost" },
+        { metric: "LTV",           value: typeof fi.unitEconomics.ltv === 'number' ? (fi.unitEconomics.ltv >= 1000 ? `$${(fi.unitEconomics.ltv / 1000).toFixed(1)}K` : `$${fi.unitEconomics.ltv}`) : "$0",     sub: "Customer lifetime value" },
+        { metric: "LTV:CAC",       value: `${fi.unitEconomics.ltvToCacRatio || 0}x`,      sub: "Healthy > 3x" },
+        { metric: "Payback Period",value: `${fi.unitEconomics.paybackPeriod || 0} mo`,   sub: "Best-in-class < 12mo" },
+        { metric: "Gross Margin",  value: `${fi.unitEconomics.grossMargin || 0}%`,      sub: "SaaS target > 70%" },
       ]
     : unitEcon;
 
-  const dynamicFundingBreakdown = fi?.fundingRequirements?.allocation
+  const dynamicFundingBreakdown = fi?.fundingRequirements?.allocation && typeof fi.fundingRequirements.allocation === 'object' && !Array.isArray(fi.fundingRequirements.allocation)
     ? [
-        { name: "Product & Eng",    pct: fi.fundingRequirements.allocation.productEng, color: "#daf264" },
-        { name: "Sales & Marketing",pct: fi.fundingRequirements.allocation.salesMarketing, color: "#c8e84a" },
-        { name: "Operations",       pct: fi.fundingRequirements.allocation.operations, color: "#7ab010" },
-        { name: "G&A / Legal",      pct: fi.fundingRequirements.allocation.legalGna, color: "#4a7a00" },
+        { name: "Product & Eng",    pct: fi.fundingRequirements.allocation.productEng || 0, color: "#daf264" },
+        { name: "Sales & Marketing",pct: fi.fundingRequirements.allocation.salesMarketing || 0, color: "#c8e84a" },
+        { name: "Operations",       pct: fi.fundingRequirements.allocation.operations || 0, color: "#7ab010" },
+        { name: "G&A / Legal",      pct: fi.fundingRequirements.allocation.legalGna || 0, color: "#4a7a00" },
       ]
     : fundingBreakdown;
 

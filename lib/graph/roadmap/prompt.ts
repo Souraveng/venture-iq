@@ -19,7 +19,7 @@ This must be translated into:
 
 CRITICAL DIRECTIVES:
 - Do NOT perform market research, do NOT generate SWOT, and do NOT generate financial projections. Focus strictly and entirely on EXECUTION.
-- Avoid generic startup platitudes (e.g. "hire a good team", "build a pitch deck"). Address specific details from the opportunity context (e.g., Pune-based charging network logistics, ₹2 Lakhs budget limit, Indian electrical grid latency, local regulatory and subsidy compliance, competing with Ather Grid and Tata Power, targeting local e-rickshaw fleets or logistics partners).
+- Avoid generic startup platitudes (e.g. "hire a good team", "build a pitch deck"). Address specific details from the opportunity context (e.g., specific location, budget limits, industry constraints, target customer segments, and direct competitor profiles of the user's specific startup idea).
 - Ensure milestones contain valid ID dependencies (e.g. "ms-2" depends on ["ms-1"]).
 - Ensure the hiring sequence lists the priority explicitly (e.g. 1, 2, 3...) starting with the most critical hire first.
 - The 2x2 priority matrix must classify specific execution tasks, not high-level concepts.

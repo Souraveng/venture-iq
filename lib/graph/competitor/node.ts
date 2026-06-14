@@ -79,8 +79,38 @@ Based on the above facts, formulate the Competitor Intelligence Report. Categori
       throw new Error("Invalid or empty competitor intelligence report received from LLM");
     }
   } catch (err: any) {
-    console.error("Structured LLM query failed for Competitor Intelligence:", err);
-    throw err;
+    console.error("Structured LLM query failed for Competitor Intelligence, returning empty report:", err);
+    report = {
+      directCompetitors: [],
+      indirectCompetitors: [],
+      competitorProfiles: [],
+      featureMatrix: {
+        features: [],
+        comparisons: []
+      },
+      pricingAnalysis: {
+        pricingModels: [],
+        segments: []
+      },
+      positioningAnalysis: {
+        positioningMap: [],
+        strategicPosition: "Missing competitor intelligence data."
+      },
+      marketGaps: [],
+      moatOpportunities: [],
+      differentiationOpportunities: [],
+      competitiveIntensity: {
+        score: 0,
+        factors: [],
+        reasoning: ["Missing competitor data."]
+      },
+      confidence: {
+        overallConfidence: "LOW",
+        supportingSources: [],
+        evidenceCount: 0,
+        reasoning: "Heuristic fallback report utilized"
+      }
+    };
   }
 
   // 3. Programmatic Verifications & Adjustments
