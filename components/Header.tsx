@@ -287,7 +287,7 @@ export default function Header() {
                         style={{ background: "rgba(218,242,100,0.1)", color: "var(--accent)" }}
                       >
                         <span className="w-1 h-1 rounded-full bg-current" />
-                        Active
+                        {t("active")}
                       </span>
                     </div>
                   </div>
@@ -331,7 +331,7 @@ export default function Header() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                         </svg>
-                        <span>Signing out…</span>
+                        <span>{t("signingOut")}</span>
                       </>
                     ) : (
                       <>

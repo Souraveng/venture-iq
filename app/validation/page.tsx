@@ -5,33 +5,9 @@ import { motion } from "framer-motion";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
+import { useTranslation } from "@/context/TranslationContext";
 
-const checks = [
-  { category: "Market Validation",  items: [
-    { label: "Problem clearly defined and validated",        pass: true  },
-    { label: "Target customer segment identified",           pass: true  },
-    { label: "Willingness to pay confirmed",                 pass: true  },
-    { label: "Market size > $100M addressable",              pass: true  },
-  ]},
-  { category: "Business Model",     items: [
-    { label: "Revenue model defined",                        pass: true  },
-    { label: "Pricing validated with prospects",             pass: false },
-    { label: "Unit economics positive at scale",             pass: true  },
-    { label: "Clear path to profitability",                  pass: true  },
-  ]},
-  { category: "Legal & Compliance", items: [
-    { label: "Business entity registered",                   pass: false },
-    { label: "IP strategy defined",                          pass: false },
-    { label: "Regulatory requirements mapped",               pass: true  },
-    { label: "Data privacy compliance plan",                 pass: false },
-  ]},
-  { category: "Investor Readiness", items: [
-    { label: "Pitch deck complete",                          pass: false },
-    { label: "Financial model 3-year projection",            pass: true  },
-    { label: "Cap table structure defined",                  pass: false },
-    { label: "Due diligence data room ready",                pass: false },
-  ]},
-];
+
 
 function getColor(score: number) {
   if (score >= 80) return "#daf264";
@@ -40,32 +16,63 @@ function getColor(score: number) {
 }
 
 export default function ValidationPage() {
+  const { t } = useTranslation();
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
   const baseReadiness = activeProject?.finalReport?.readinessScore ?? 74;
+
+  const checks = [
+    { category: t("marketValidation") !== "marketValidation" ? t("marketValidation") : "Market Validation",  items: [
+      { label: t("chkProblemValidated") !== "chkProblemValidated" ? t("chkProblemValidated") : "Problem clearly defined and validated",        pass: true  },
+      { label: t("chkSegmentIdentified") !== "chkSegmentIdentified" ? t("chkSegmentIdentified") : "Target customer segment identified",           pass: true  },
+      { label: t("chkPayConfirmed") !== "chkPayConfirmed" ? t("chkPayConfirmed") : "Willingness to pay confirmed",                 pass: true  },
+      { label: t("chkMarketSizeLarge") !== "chkMarketSizeLarge" ? t("chkMarketSizeLarge") : "Market size > $100M addressable",              pass: true  },
+    ]},
+    { category: t("businessModel") !== "businessModel" ? t("businessModel") : "Business Model",     items: [
+      { label: t("chkRevModelDefined") !== "chkRevModelDefined" ? t("chkRevModelDefined") : "Revenue model defined",                        pass: true  },
+      { label: t("chkPriceValidated") !== "chkPriceValidated" ? t("chkPriceValidated") : "Pricing validated with prospects",             pass: false },
+      { label: t("chkUnitEconPositive") !== "chkUnitEconPositive" ? t("chkUnitEconPositive") : "Unit economics positive at scale",             pass: true  },
+      { label: t("chkPathProfitability") !== "chkPathProfitability" ? t("chkPathProfitability") : "Clear path to profitability",                  pass: true  },
+    ]},
+    { category: t("legalComplianceCategory") !== "legalComplianceCategory" ? t("legalComplianceCategory") : "Legal & Compliance", items: [
+      { label: t("chkEntityRegistered") !== "chkEntityRegistered" ? t("chkEntityRegistered") : "Business entity registered",                   pass: false },
+      { label: t("chkIpStrategy") !== "chkIpStrategy" ? t("chkIpStrategy") : "IP strategy defined",                          pass: false },
+      { label: t("chkRegulatoryMapped") !== "chkRegulatoryMapped" ? t("chkRegulatoryMapped") : "Regulatory requirements mapped",               pass: true  },
+      { label: t("chkPrivacyPlan") !== "chkPrivacyPlan" ? t("chkPrivacyPlan") : "Data privacy compliance plan",                 pass: false },
+    ]},
+    { category: t("investorReadiness") !== "investorReadiness" ? t("investorReadiness") : "Investor Readiness", items: [
+      { label: t("chkDeckComplete") !== "chkDeckComplete" ? t("chkDeckComplete") : "Pitch deck complete",                          pass: false },
+      { label: t("chkFinModelProj") !== "chkFinModelProj" ? t("chkFinModelProj") : "Financial model 3-year projection",            pass: true  },
+      { label: t("chkCapTableDef") !== "chkCapTableDef" ? t("chkCapTableDef") : "Cap table structure defined",                  pass: false },
+      { label: t("chkDataRoom") !== "chkDataRoom" ? t("chkDataRoom") : "Due diligence data room ready",                pass: false },
+    ]},
+  ];
 
   const fallbackAnalystReport = {
     investmentRecommendation: {
       decision: "YES",
       confidence: 78,
       reasoning: [
-        "Extremely healthy unit economics with a projected LTV:CAC of 20x.",
-        "Optimal entry timing aligning with massive fleet electrification cycles.",
-        "Clear software-first value proposition avoiding capital-heavy hardware acquisitions."
+        t("fbReason1") !== "fbReason1" ? t("fbReason1") : "Extremely healthy unit economics with a projected LTV:CAC of 20x.",
+        t("fbReason2") !== "fbReason2" ? t("fbReason2") : "Optimal entry timing aligning with massive fleet electrification cycles.",
+        t("fbReason3") !== "fbReason3" ? t("fbReason3") : "Clear software-first value proposition avoiding capital-heavy hardware acquisitions."
       ],
       requiredMilestones: [
-        "Validate initial charging telemetry software with at least 5 charge points under a live pilot.",
-        "Deploy fallback status caching to handle grid latency or dropouts."
+        t("fbMilestone1") !== "fbMilestone1" ? t("fbMilestone1") : "Validate initial charging telemetry software with at least 5 charge points under a live pilot.",
+        t("fbMilestone2") !== "fbMilestone2" ? t("fbMilestone2") : "Deploy fallback status caching to handle grid latency or dropouts."
       ]
     },
     redFlags: [
-      "Strict ₹2 Lakhs initial budget constraint severely limits runway and early hardware testing capacity.",
-      "Ather Grid and Tata Power command massive pre-existing real estate advantages at prime charging spots.",
-      "High reliance on third-party electricity grid distribution reliability and local DISCOM policies."
+      t("fbFlag1") !== "fbFlag1" ? t("fbFlag1") : "Strict ₹2 Lakhs initial budget constraint severely limits runway and early hardware testing capacity.",
+      t("fbFlag2") !== "fbFlag2" ? t("fbFlag2") : "Ather Grid and Tata Power command massive pre-existing real estate advantages at prime charging spots.",
+      t("fbFlag3") !== "fbFlag3" ? t("fbFlag3") : "High reliance on third-party electricity grid distribution reliability and local DISCOM policies."
     ],
     moatAnalysis: {
-      identifiedMoats: ["Proprietary grid load balancing algorithm", "Fleet transaction data network"],
+      identifiedMoats: [
+        t("fbMoat1") !== "fbMoat1" ? t("fbMoat1") : "Proprietary grid load balancing algorithm",
+        t("fbMoat2") !== "fbMoat2" ? t("fbMoat2") : "Fleet transaction data network"
+      ],
       moatStrengthScore: 72,
       sustainabilityScore: 78
     }
@@ -92,12 +99,12 @@ export default function ValidationPage() {
   const executionRisk = translatedFinalReport?.ventureReadiness?.customerValidationScore ?? Math.max(0, Math.round(100 - baseReadiness * 0.8));
 
   const scores = [
-    { dimension: "Market Size",       score: marketSize, max: 100, color: "#daf264", insight: "Evaluated from live market size and growth analysis" },
-    { dimension: "Competition Moat",  score: competition, max: 100, color: "#daf264", insight: "Based on defensibility barriers and replication difficulty" },
-    { dimension: "Team Readiness",    score: teamReadiness, max: 100, color: "#daf264", insight: "Venture founder-market fit and execution analysis" },
-    { dimension: "Financial Viability",score: financialViability, max: 100, color: "#daf264", insight: "Calculated from capital efficiency and payback timelines" },
-    { dimension: "Legal / Compliance",score: legalCompliance, max: 100, color: "#fbbf24", insight: "Evaluated from regulatory compliance readiness" },
-    { dimension: "Execution Risk",    score: executionRisk, max: 100, color: "#fbbf24", insight: "Evaluated from customer validation pilots and GTM status" },
+    { dimension: t("marketSize") !== "marketSize" ? t("marketSize") : "Market Size",       score: marketSize, max: 100, color: "#daf264", insight: t("marketSizeInsight") !== "marketSizeInsight" ? t("marketSizeInsight") : "Evaluated from live market size and growth analysis" },
+    { dimension: t("competitionMoat") !== "competitionMoat" ? t("competitionMoat") : "Competition Moat",  score: competition, max: 100, color: "#daf264", insight: t("competitionMoatInsight") !== "competitionMoatInsight" ? t("competitionMoatInsight") : "Based on defensibility barriers and replication difficulty" },
+    { dimension: t("teamReadiness") !== "teamReadiness" ? t("teamReadiness") : "Team Readiness",    score: teamReadiness, max: 100, color: "#daf264", insight: t("teamReadinessInsight") !== "teamReadinessInsight" ? t("teamReadinessInsight") : "Venture founder-market fit and execution analysis" },
+    { dimension: t("financialViability") !== "financialViability" ? t("financialViability") : "Financial Viability",score: financialViability, max: 100, color: "#daf264", insight: t("financialViabilityInsight") !== "financialViabilityInsight" ? t("financialViabilityInsight") : "Calculated from capital efficiency and payback timelines" },
+    { dimension: t("legalCompliance") !== "legalCompliance" ? t("legalCompliance") : "Legal / Compliance",score: legalCompliance, max: 100, color: "#fbbf24", insight: t("legalComplianceInsight") !== "legalComplianceInsight" ? t("legalComplianceInsight") : "Evaluated from regulatory compliance readiness" },
+    { dimension: t("executionRisk") !== "executionRisk" ? t("executionRisk") : "Execution Risk",    score: executionRisk, max: 100, color: "#fbbf24", insight: t("executionRiskInsight") !== "executionRiskInsight" ? t("executionRiskInsight") : "Evaluated from customer validation pilots and GTM status" },
   ];
 
   const overallScore = Math.round(scores.reduce((a, s) => a + s.score, 0) / scores.length);
@@ -144,9 +151,9 @@ export default function ValidationPage() {
     <DashboardLayout>
       <div className="p-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Startup Validation</h1>
+          <h1 className="text-2xl font-bold text-white">{t("startupValidation") !== "startupValidation" ? t("startupValidation") : "Startup Validation"}</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-            AI-generated readiness assessment · {activeProject?.name || "EV Startup Platform"}
+            {t("readinessAssessment") !== "readinessAssessment" ? t("readinessAssessment") : "AI-generated readiness assessment"} · {activeProject?.name || "EV Startup Platform"}
           </p>
         </div>
 
@@ -166,30 +173,30 @@ export default function ValidationPage() {
                 <span className="text-xs" style={{ color: "var(--muted-fg)" }}>/100</span>
               </div>
             </div>
-            <p className="text-xs font-semibold text-white mt-2">Venture Readiness Index</p>
+            <p className="text-xs font-semibold text-white mt-2">{t("ventureReadiness") !== "ventureReadiness" ? t("ventureReadiness") : "Venture Readiness Index"}</p>
           </div>
 
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <h2 className="text-xl font-bold text-white">
-                Verdict: {activeProject?.finalReport?.verdict || "Proceed"}
+                {t("verdict") !== "verdict" ? t("verdict") : "Verdict"}: {activeProject?.finalReport?.verdict || "Proceed"}
               </h2>
               <span className="text-xs font-bold px-2 py-0.5 rounded"
                 style={{ background: decStyle.bg, color: decStyle.text, border: `1px solid ${decStyle.border}` }}>
-                INVESTOR DECISION: {analystData.investmentRecommendation.decision}
+                {t("investorDecision") !== "investorDecision" ? t("investorDecision") : "INVESTOR DECISION"}: {analystData.investmentRecommendation.decision}
               </span>
             </div>
             <p className="text-sm mb-4 leading-relaxed" style={{ color: "var(--muted-fg)" }}>
-              {activeProject?.finalReport?.summary || "Your startup venture has been evaluated by our multi-agent network. Start an analysis run or edit your idea to see the updated readiness verdict."}
+              {activeProject?.finalReport?.summary || (t("validationHeroDesc") !== "validationHeroDesc" ? t("validationHeroDesc") : "Your startup venture has been evaluated by our multi-agent network. Start an analysis run or edit your idea to see the updated readiness verdict.")}
             </p>
             <div className="flex gap-3">
               <div className="text-center px-4 py-2 rounded-xl" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 <p className="text-xl font-bold" style={{ color: "var(--accent)" }}>{passedChecks}/{totalChecks}</p>
-                <p className="text-xs" style={{ color: "var(--muted-fg)" }}>Checks passed</p>
+                <p className="text-xs" style={{ color: "var(--muted-fg)" }}>{t("checksPassed") !== "checksPassed" ? t("checksPassed") : "Checks passed"}</p>
               </div>
               <div className="text-center px-4 py-2 rounded-xl" style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)" }}>
                 <p className="text-xl font-bold text-yellow-400">{totalChecks - passedChecks}</p>
-                <p className="text-xs" style={{ color: "var(--muted-fg)" }}>Action items</p>
+                <p className="text-xs" style={{ color: "var(--muted-fg)" }}>{t("actionItems") !== "actionItems" ? t("actionItems") : "Action items"}</p>
               </div>
             </div>
           </div>
@@ -200,7 +207,7 @@ export default function ValidationPage() {
           {/* Red flags */}
           <div className="rounded-xl p-5 border lg:col-span-1" style={{ background: "rgba(239, 68, 68, 0.02)", borderColor: "rgba(239, 68, 68, 0.15)" }}>
             <h3 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <span>⚠</span> VC Due Diligence Red Flags
+              <span>⚠</span> {t("vcDueDiligence") !== "vcDueDiligence" ? t("vcDueDiligence") : "VC Due Diligence Red Flags"}
             </h3>
             <ul className="space-y-3">
               {(Array.isArray(analystData?.redFlags) ? analystData.redFlags : []).map((flag: string, i: number) => (
@@ -215,7 +222,7 @@ export default function ValidationPage() {
           {/* Required Milestones */}
           <div className="rounded-xl p-5 border lg:col-span-2" style={{ background: "rgba(218, 242, 100, 0.02)", borderColor: "rgba(218, 242, 100, 0.15)" }}>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: "var(--accent)" }}>
-              <span>✓</span> Required Milestones to Secure Capital
+              <span>✓</span> {t("milestonesToSecureCapital") !== "milestonesToSecureCapital" ? t("milestonesToSecureCapital") : "Required Milestones to Secure Capital"}
             </h3>
             <ul className="space-y-3">
               {(Array.isArray(analystData?.investmentRecommendation?.requiredMilestones) ? analystData.investmentRecommendation.requiredMilestones : []).map((ms: string, i: number) => (
@@ -234,7 +241,7 @@ export default function ValidationPage() {
         {/* Dimension scores + radar */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-xl p-5 space-y-3" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="text-sm font-semibold text-white mb-3">Score by Dimension</h3>
+            <h3 className="text-sm font-semibold text-white mb-3">{t("scoreByDimension") !== "scoreByDimension" ? t("scoreByDimension") : "Score by Dimension"}</h3>
             {scores.map((s) => (
               <div key={s.dimension}>
                 <div className="flex justify-between text-xs mb-1">
@@ -252,7 +259,7 @@ export default function ValidationPage() {
           </div>
 
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="text-sm font-semibold text-white mb-4">Capability Radar</h3>
+            <h3 className="text-sm font-semibold text-white mb-4">{t("capabilityRadar") !== "capabilityRadar" ? t("capabilityRadar") : "Capability Radar"}</h3>
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#222" />
@@ -304,7 +311,7 @@ export default function ValidationPage() {
         {translatedConflicts && Array.isArray(translatedConflicts) && translatedConflicts.length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "rgba(245,158,11,0.03)", border: "1px solid rgba(245,158,11,0.15)" }}>
             <h3 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <span>⚡</span> Data Conflicts ({translatedConflicts.length})
+              <span>⚡</span> {t("conflictDetection") !== "conflictDetection" ? t("conflictDetection") : "Data Conflicts"} ({translatedConflicts.length})
             </h3>
             <ul className="space-y-2">
               {translatedConflicts.map((c: any, i: number) => (
@@ -320,7 +327,7 @@ export default function ValidationPage() {
         {/* Source Reliability */}
         {translatedReliability && typeof translatedReliability === "object" && !Array.isArray(translatedReliability) && Object.keys(translatedReliability).length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="text-sm font-semibold text-white mb-3">Source Reliability</h3>
+            <h3 className="text-sm font-semibold text-white mb-3">{t("reliabilityAssessment") !== "reliabilityAssessment" ? t("reliabilityAssessment") : "Source Reliability"}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(translatedReliability).map(([key, val]: [string, any]) => (
                 <div key={key} className="text-center p-3 rounded-lg" style={{ background: "var(--background)", border: "1px solid var(--card-border)" }}>

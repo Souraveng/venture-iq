@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
+import { useTranslation } from "@/context/TranslationContext";
 
 const suggestions = [
   "An AI-powered hiring platform for remote teams",
@@ -105,6 +106,7 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const { projects, activeId, updateProject, addNotification, addAuditEntry, addProject } = useProjectStore();
   const rawActiveProject = projects.find((p) => p.id === activeId);
 
@@ -370,7 +372,7 @@ export default function DashboardPage() {
                       style={{ background: "var(--accent)", color: "#0a0a0a" }}>
                       {(activeProject?.name ?? "V").slice(0, 1).toUpperCase()}
                     </span>
-                    {activeProject?.name ?? "New Venture Idea"}
+                    {activeProject?.name ?? t("yourVentureIdea")}
                   </div>
 
                   <h1 style={{
@@ -380,12 +382,12 @@ export default function DashboardPage() {
                     letterSpacing: "-0.01em",
                     color: "#f0f0f0",
                   }}>
-                    Where do I start{" "}
-                    <span style={{ color: "var(--accent)" }}>your venture validation?</span>
+                    {t("whereDoIStart")}{" "}
+                    <span style={{ color: "var(--accent)" }}>{t("yourVentureValidation")}</span>
                   </h1>
 
                   <p className="text-sm max-w-md leading-relaxed" style={{ color: "#555" }}>
-                    Tell me your startup or business concept in detail. The more info you provide, the deeper our agent analysis will be.
+                    {t("onboardingDesc")}
                   </p>
 
                   <div className="w-full rounded-2xl p-3 pl-5 flex items-end gap-3"
@@ -395,7 +397,7 @@ export default function DashboardPage() {
                       value={idea}
                       onChange={(e) => setIdea(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-                      placeholder="e.g. I want to build a marketplace for electric vehicles in South-East Asia..."
+                      placeholder={t("onboardingPlaceholder") !== "onboardingPlaceholder" ? t("onboardingPlaceholder") : "e.g. I want to build a marketplace for electric vehicles in South-East Asia..."}
                       rows={3}
                       className="flex-1 bg-transparent text-sm resize-none outline-none text-white placeholder-gray-600 leading-relaxed"
                     />
@@ -408,7 +410,7 @@ export default function DashboardPage() {
                         background: idea.trim() ? "var(--accent)" : "#1e1e1e",
                         color: idea.trim() ? "#0a0a0a" : "#333",
                       }}>
-                      Analyse →
+                      {t("analyse")} →
                     </motion.button>
                   </div>
 
@@ -430,7 +432,7 @@ export default function DashboardPage() {
                         {a.icon}
                       </div>
                     ))}
-                    <span className="text-xs ml-1" style={{ color: "#333" }}>15 specialized agents ready</span>
+                    <span className="text-xs ml-1" style={{ color: "#333" }}>{t("agentsReady")}</span>
                   </div>
                 </motion.div>
               )}
@@ -454,16 +456,16 @@ export default function DashboardPage() {
                       color: "#f0f0f0",
                       lineHeight: 1.2,
                     }}>
-                      Briefing your validation agents
+                      {t("briefingAgents")}
                     </h2>
                     <p className="text-sm mt-2" style={{ color: "#555" }}>
-                      Each agent is reviewing your concept and planning their analysis criteria.
+                      {t("briefingDesc")}
                     </p>
                   </div>
 
                   <div className="w-full rounded-xl px-4 py-3 text-left"
                     style={{ background: "#161616", border: "1px solid #222" }}>
-                    <p className="text-xs mb-1 font-medium" style={{ color: "#444" }}>Your Venture Idea</p>
+                    <p className="text-xs mb-1 font-medium" style={{ color: "#444" }}>{t("yourVentureIdea")}</p>
                     <p className="text-sm text-white leading-relaxed">{idea}</p>
                   </div>
 
@@ -486,7 +488,7 @@ export default function DashboardPage() {
                           className="flex items-center gap-1.5 text-xs font-medium"
                           style={{ color: "var(--accent)" }}>
                           <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--accent)" }} />
-                          Ready
+                          {t("ready") !== "ready" ? t("ready") : "Ready"}
                         </motion.div>
                       </motion.div>
                     ))}
@@ -500,19 +502,19 @@ export default function DashboardPage() {
                         color: "#0a0a0a",
                         boxShadow: "0 0 40px rgba(218,242,100,0.2)",
                       }}>
-                      Start Venture Analysis →
+                      {t("startVentureAnalysis")} →
                     </button>
                     <p className="text-xs" style={{ color: "#333" }}>
-                      15 validation agents will execute in sequence to generate your analysis report.
+                      {t("pipelineDesc") !== "pipelineDesc" ? t("pipelineDesc") : "15 validation agents will execute in sequence to generate your analysis report."}
                     </p>
 
                     {activeProject && activeProject.agentsDone > 0 && (
                       <div className="p-4 rounded-xl border border-dashed border-zinc-800 bg-white/[0.02] text-left mt-2">
                         <p className="text-xs font-semibold text-white mb-1">
-                          Saved Analysis Progress Found ({activeProject.agentsDone}/15 steps completed)
+                          {t("savedProgressFound")} ({activeProject.agentsDone}/15)
                         </p>
                         <p className="text-[11px] text-zinc-400 mb-3 leading-normal">
-                          The system has already saved data from the first {activeProject.agentsDone} agents. If you want to view this data immediately on the dashboard without running the remaining steps, you can bypass the lock.
+                          {t("savedProgressDesc")}
                         </p>
                         <button
                           onClick={() => {
@@ -531,7 +533,7 @@ export default function DashboardPage() {
                             border: "1px solid var(--accent)",
                           }}
                         >
-                          Bypass Lock & Inspect Saved Data
+                          {t("bypassLock")}
                         </button>
                       </div>
                     )}
@@ -567,15 +569,15 @@ export default function DashboardPage() {
                     <p className="text-lg font-bold text-white">
                       {activeProject?.activeAgentNode 
                         ? (AGENT_NAMES_GLOBAL[activeProject.activeAgentNode] || "VentureIQ Agent")
-                        : "Initializing analysis pipeline..."}
+                        : t("initializingPipeline")}
                     </p>
                     <p className="text-xs transition-colors duration-300" style={{ color: "var(--accent)" }}>
                       {activeProject?.activeAgentNode 
                         ? (AGENT_ACTIVITIES_GLOBAL[activeProject.activeAgentNode] || "Analyzing startup data...")
-                        : "Warming up agent environments..."}
+                        : t("warmingUp")}
                     </p>
                     <p className="text-[10px]" style={{ color: "#555" }}>
-                      Completed {activeProject?.agentsDone || 0} of 15 validation steps
+                      {t("completedSteps")}: {activeProject?.agentsDone || 0}/15
                     </p>
                   </div>
                   <div className="w-64 h-1.5 rounded-full overflow-hidden" style={{ background: "#1a1a1a" }}>
@@ -603,7 +605,7 @@ export default function DashboardPage() {
                         border: "1px solid var(--accent)",
                       }}
                     >
-                      Bypass lock & inspect current data ({activeProject.agentsDone}/15 done)
+                      {t("bypassLock")} ({activeProject.agentsDone}/15)
                     </button>
                   )}
                 </motion.div>
@@ -637,10 +639,10 @@ export default function DashboardPage() {
   const recommendedActions = Array.isArray(decReport?.recommendedActions) ? decReport.recommendedActions : [];
 
   const scores = [
-    { label: "Venture Readiness", value: readiness, color: "#daf264" },
-    { label: "Opportunity Score", value: opportunity, color: "#daf264" },
-    { label: "Overall Risk Index", value: risk, color: risk > 50 ? "#ef4444" : "#daf264" },
-    { label: "Data Confidence",    value: confidence, color: "#daf264" },
+    { label: t("ventureReadiness"), value: readiness, color: "#daf264" },
+    { label: t("opportunityScore"), value: opportunity, color: "#daf264" },
+    { label: t("overallRiskIndex"), value: risk, color: risk > 50 ? "#ef4444" : "#daf264" },
+    { label: t("dataConfidence"),    value: confidence, color: "#daf264" },
   ];
 
   async function handleRerun() {
@@ -792,11 +794,11 @@ export default function DashboardPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <p className="text-sm" style={{ color: "var(--muted-fg)" }}>Good morning, Founder.</p>
-          <h1 className="text-2xl font-bold mt-0.5 text-white">Venture Intelligence Overview</h1>
+          <p className="text-sm" style={{ color: "var(--muted-fg)" }}>{t("goodMorning")}</p>
+          <h1 className="text-2xl font-bold mt-0.5 text-white">{t("ventureIntelOverview")}</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-            Analyzing: <span className="font-semibold" style={{ color: "var(--accent)" }}>{activeProject.name}</span>
-            &nbsp;·&nbsp; {loading ? "Re-running pipeline..." : `${activeProject.agentsDone} of ${activeProject.totalAgents} agents completed`}
+            {t("analyzing")}: <span className="font-semibold" style={{ color: "var(--accent)" }}>{activeProject.name}</span>
+            &nbsp;·&nbsp; {loading ? t("running") : `${activeProject.agentsDone} / ${activeProject.totalAgents} ${t("activeAgents")}`}
           </p>
         </motion.div>
 
@@ -810,7 +812,7 @@ export default function DashboardPage() {
             )}
             {activeProject.ventureContext.stage && (
               <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: "rgba(130,140,248,0.08)", color: "#818cf8", border: "1px solid rgba(130,140,248,0.15)" }}>
-                Stage: {activeProject.ventureContext.stage}
+                {t("stage")}: {activeProject.ventureContext.stage}
               </span>
             )}
             {activeProject.ventureContext.location && (
@@ -852,20 +854,20 @@ export default function DashboardPage() {
             onClick={() => setEditOpen(true)}
             className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors hover:opacity-80"
             style={{ background: "rgba(218,242,100,0.1)", color: "var(--accent)", border: "1px solid rgba(218,242,100,0.2)" }}>
-            ✎ Edit idea
+            ✎ {t("editIdea")}
           </button>
           <button 
             onClick={handleRerun}
             disabled={loading}
             className="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-opacity disabled:opacity-50"
             style={{ background: "var(--accent)", color: "#0a0a0a" }}>
-            {loading ? "Running..." : "⟳ Re-run all"}
+            {loading ? t("running") : `⟳ ${t("rerunAll")}`}
           </button>
         </div>
 
         {/* Score gauges */}
         <div>
-          <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--muted-fg)" }}>Venture Validation Scores</h2>
+          <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--muted-fg)" }}>{t("ventureValidationScores")}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {scores.map((s) => <ScoreGauge key={s.label} {...s} />)}
           </div>
@@ -901,10 +903,10 @@ export default function DashboardPage() {
                         ? "#eab308"
                         : "#ef4444"
                   }}>
-                  INVESTMENT VERDICT
+                  {t("investmentVerdict")}
                 </span>
                 <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-black/40 border border-white/5">
-                  STAGE: {stage}
+                  {t("stage")}: {stage}
                 </span>
               </div>
               <h2 className="text-2xl font-black text-white">
@@ -922,7 +924,7 @@ export default function DashboardPage() {
 
             {/* Executive Summary */}
             <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)]">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Executive Summary</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">{t("executiveSummary")}</h3>
               <p className="text-xs leading-relaxed text-gray-300 whitespace-pre-line">
                 {executiveSummary}
               </p>
@@ -934,7 +936,7 @@ export default function DashboardPage() {
               {/* Opportunities */}
               <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                  <span>◎</span> Key Opportunities
+                  <span>◎</span> {t("keyOpportunities")}
                 </h3>
                 <ul className="space-y-3">
                   {topOpportunities.map((o: string, i: number) => (
@@ -951,7 +953,7 @@ export default function DashboardPage() {
               {/* Risks */}
               <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 flex items-center gap-2">
-                  <span>⚠</span> Key Risks
+                  <span>⚠</span> {t("keyRisks")}
                 </h3>
                 <ul className="space-y-3">
                   {topRisks.map((r: string, i: number) => (
@@ -970,7 +972,7 @@ export default function DashboardPage() {
             {/* Recommended Next Actions */}
             <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
               <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--accent)]">
-                Recommended Action Plan
+                {t("recommendedActionPlan")}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {recommendedActions.map((action: string, i: number) => (
@@ -989,7 +991,7 @@ export default function DashboardPage() {
           /* Fallback Basic Summary if not analyzed yet */
           activeProject?.finalReport?.summary && (
             <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
-              <h2 className="text-sm font-semibold mb-2 text-white">AI Agent Executive Summary (Live Graph Output)</h2>
+              <h2 className="text-sm font-semibold mb-2 text-white">AI {t("executiveSummary")}</h2>
               <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
                 {activeProject.finalReport.summary}
               </p>
@@ -1001,7 +1003,7 @@ export default function DashboardPage() {
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
           <div className="px-5 py-4 flex items-center justify-between"
             style={{ background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
-            <h2 className="text-sm font-semibold">VentureIQ Agent Pipeline</h2>
+            <h2 className="text-sm font-semibold">{t("ventureIQAgentPipeline")}</h2>
             <span className="text-xs px-2.5 py-1 rounded-full font-medium"
               style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
               {activeProject?.agentsDone === activeProject?.totalAgents ? "✓ Complete" : "● Live"}
@@ -1027,7 +1029,7 @@ export default function DashboardPage() {
                     {agent.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-white">{agent.name}</p>
+                    <p className="text-xs font-semibold text-white">{t(agent.nodeKey) !== agent.nodeKey ? t(agent.nodeKey) : agent.name}</p>
                     {isRunning && (
                       <p className="text-[10px] mt-0.5 animate-pulse" style={{ color: "var(--accent)" }}>
                         {AGENT_ACTIVITIES_GLOBAL[agent.nodeKey] || "Executing..."}
@@ -1035,14 +1037,14 @@ export default function DashboardPage() {
                     )}
                     {isDone && (
                       <p className="text-[10px] mt-0.5" style={{ color: "var(--muted-fg)" }}>
-                        Completed successfully
+                        {t("completedSuccessfully") !== "completedSuccessfully" ? t("completedSuccessfully") : "Completed successfully"}
                       </p>
                     )}
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
                     style={{ background: s.bg, color: s.color }}>
                     {isRunning && <span className="mr-1 inline-block w-1 h-1 rounded-full bg-current animate-pulse" />}
-                    {s.label}
+                    {t(status) !== status ? t(status) : s.label}
                   </span>
                 </motion.div>
               );
@@ -1054,7 +1056,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
             {
-              title: "Market Size (TAM)",
+              title: t("marketSizeTam"),
               value: formatMarketValue(
                 activeProject?.marketIntel?.marketSize?.tam
                   ? activeProject.marketIntel.marketSize.tam
@@ -1064,7 +1066,7 @@ export default function DashboardPage() {
               icon: "◎"
             },
             {
-              title: "Top Competitor",
+              title: t("topCompetitor"),
               value: activeProject?.competitorIntel?.competitorProfiles?.[0]?.name || "Not analyzed",
               sub: activeProject?.competitorIntel?.competitorProfiles?.[0]?.type
                 ? `${activeProject.competitorIntel.competitorProfiles[0].type} · ${activeProject.competitorIntel.competitorProfiles[0].geography || "Global"}`
@@ -1072,7 +1074,7 @@ export default function DashboardPage() {
               icon: "⬡"
             },
             {
-              title: "Funding Required",
+              title: t("fundingRequired"),
               value: activeProject?.financialIntel?.fundingRequirements?.capitalNeeded
                 ? (activeProject.financialIntel.fundingRequirements.capitalNeeded >= 1000000
                     ? `$${(activeProject.financialIntel.fundingRequirements.capitalNeeded / 1000000).toFixed(1)}M`
@@ -1097,7 +1099,7 @@ export default function DashboardPage() {
 
         {activeProject?.finalReport?.financialProjection && (
           <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.03)", border: "1px solid var(--card-border)" }}>
-            <h2 className="text-sm font-semibold mb-2 text-white">AI Financial Evaluation & Capital Allocation</h2>
+            <h2 className="text-sm font-semibold mb-2 text-white">{t("aiFinancialEvaluation")}</h2>
             <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
               {activeProject.finalReport.financialProjection}
             </p>

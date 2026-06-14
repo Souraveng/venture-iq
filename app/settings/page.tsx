@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
+import { useTranslation } from "@/context/TranslationContext";
 
 const members = [
   { name: "Sarah Chen",    email: "sarah@studio.ai",  avatar: "SC", role: "Owner",     lastActive: "Just now",  color: "#818cf8" },
@@ -22,9 +23,19 @@ const roleStyle: Record<string, { bg: string; text: string }> = {
 
 const tabs = ["Profile", "Team", "General", "Billing", "API Keys", "Integrations"];
 
+const tabKeys: Record<string, string> = {
+  Profile: "profile",
+  Team: "team",
+  General: "general",
+  Billing: "billing",
+  "API Keys": "apiKeysTab",
+  Integrations: "integrations"
+};
+
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
   const [activeTab, setActiveTab] = useState("Profile");
+  const { t } = useTranslation();
   
   // Profile settings state
   const [profileName, setProfileName] = useState("");
@@ -144,8 +155,8 @@ export default function SettingsPage() {
     <DashboardLayout>
       <div className="p-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-gray-400 mt-1">Manage your workspace, team, and integrations.</p>
+          <h1 className="text-2xl font-bold">{t("settings")}</h1>
+          <p className="text-sm text-gray-400 mt-1">{t("settingsSub")}</p>
         </div>
 
         {/* Tab bar */}
@@ -158,7 +169,7 @@ export default function SettingsPage() {
                 background: activeTab === tab ? "rgba(99,102,241,0.2)" : "transparent",
                 color: activeTab === tab ? "#818cf8" : "var(--muted-fg)",
               }}>
-              {tab}
+              {t(tabKeys[tab] || tab.toLowerCase())}
             </button>
           ))}
         </div>
@@ -168,13 +179,13 @@ export default function SettingsPage() {
             <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4 max-w-xl animate-fade-in">
               <div>
-                <h2 className="text-base font-semibold">User Profile Settings</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Manage your personal profile details and database synchronization.</p>
+                <h2 className="text-base font-semibold">{t("userProfileSettings")}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{t("userProfileSettingsSub")}</p>
               </div>
 
               <div className="rounded-xl p-5 space-y-6" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 {profileLoading ? (
-                  <div className="text-xs text-gray-500 py-4 animate-pulse">Loading profile data...</div>
+                  <div className="text-xs text-gray-500 py-4 animate-pulse">{t("loadingProfileData")}</div>
                 ) : (
                   <>
                     {/* Avatar Preview & URL */}
@@ -189,7 +200,7 @@ export default function SettingsPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <label className="text-xs font-semibold text-gray-300 block mb-1.5">Avatar Image URL</label>
+                        <label className="text-xs font-semibold text-gray-300 block mb-1.5">{t("avatarImageUrl")}</label>
                         <input 
                           type="text" 
                           value={profileImage} 
@@ -202,19 +213,19 @@ export default function SettingsPage() {
 
                     {/* Email Input (Read-only) */}
                     <div>
-                      <label className="text-xs font-semibold text-gray-300 block mb-1.5">Email Address</label>
+                      <label className="text-xs font-semibold text-gray-300 block mb-1.5">{t("emailAddress")}</label>
                       <input 
                         type="text" 
                         value={profileEmail} 
                         readOnly 
                         className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg border border-white/5 text-gray-500 cursor-not-allowed" 
                       />
-                      <p className="text-[10px] text-gray-600 mt-1">Your email is managed by your Google Auth login and cannot be changed.</p>
+                      <p className="text-[10px] text-gray-600 mt-1">{t("emailManagedDesc")}</p>
                     </div>
 
                     {/* Name Input */}
                     <div>
-                      <label className="text-xs font-semibold text-gray-300 block mb-1.5">Full Name</label>
+                      <label className="text-xs font-semibold text-gray-300 block mb-1.5">{t("fullName")}</label>
                       <input 
                         type="text" 
                         value={profileName} 
@@ -231,7 +242,7 @@ export default function SettingsPage() {
                         disabled={profileUpdating}
                         className="px-4 py-2 rounded-lg text-xs font-semibold text-black transition-all hover:brightness-110 active:scale-95"
                         style={{ background: "var(--accent)" }}>
-                        {profileUpdating ? "Saving..." : profileUpdateStatus === "saved" ? "✓ Saved" : profileUpdateStatus === "error" ? "✕ Error" : "Save Changes"}
+                        {profileUpdating ? t("saving") : profileUpdateStatus === "saved" ? "✓ Saved" : profileUpdateStatus === "error" ? "✕ Error" : t("saveChanges")}
                       </button>
                     </div>
                   </>
@@ -241,32 +252,32 @@ export default function SettingsPage() {
               {/* Danger Zone */}
               <div className="rounded-xl p-5 border border-red-500/20 bg-red-500/5 space-y-4">
                 <div>
-                  <h3 className="text-sm font-semibold text-red-400">Danger Zone</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Permanently delete your VentureIQ account and all associated data.</p>
+                  <h3 className="text-sm font-semibold text-red-400">{t("dangerZone")}</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">{t("deleteAccountDesc")}</p>
                 </div>
 
                 {!deleteConfirmOpen ? (
                   <button 
                     onClick={() => setDeleteConfirmOpen(true)}
                     className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-600/20 border border-red-600/40 hover:bg-red-600/30 transition-all">
-                    Delete Account
+                    {t("deleteAccount")}
                   </button>
                 ) : (
                   <div className="space-y-3 p-3 rounded-lg border border-red-500/30 bg-red-950/20">
                     <p className="text-xs text-red-200 leading-relaxed font-semibold">
-                      ⚠️ Are you absolutely sure? This will delete your profile and purge all your projects, chat logs, and configurations from the database. This action is irreversible.
+                      ⚠️ {t("deleteAccountConfirmDesc")}
                     </p>
                     <div className="flex gap-2">
                       <button 
                         onClick={handleDeleteAccount}
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors">
-                        Yes, delete my account permanently
+                        {t("deleteAccountConfirmBtn")}
                       </button>
                       <button 
                         onClick={() => setDeleteConfirmOpen(false)}
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition-colors"
                         style={{ background: "#222" }}>
-                        Cancel
+                        {t("cancel")}
                       </button>
                     </div>
                   </div>
@@ -280,18 +291,18 @@ export default function SettingsPage() {
               className="space-y-4 max-w-2xl">
 
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">Team members <span className="text-gray-500 font-normal text-sm ml-1">({members.length})</span></h2>
+                <h2 className="text-base font-semibold">{t("teamMembers")} <span className="text-gray-500 font-normal text-sm ml-1">({members.length})</span></h2>
                 <button onClick={() => setShowInvite(true)}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
                   style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-                  + Invite member
+                  + {t("inviteMember")}
                 </button>
               </div>
 
               {showInvite && (
                 <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
                   className="rounded-xl p-4" style={{ background: "var(--card-bg)", border: "1px solid rgba(99,102,241,0.3)" }}>
-                  <p className="text-sm font-medium mb-3">Invite new member</p>
+                  <p className="text-sm font-medium mb-3">{t("inviteNewMember")}</p>
                   <div className="flex gap-2">
                     <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
                       placeholder="colleague@company.com"
@@ -299,17 +310,17 @@ export default function SettingsPage() {
                       style={{ background: "var(--background)", border: "1px solid var(--card-border)", color: "white" }} />
                     <select className="text-sm px-2 py-2 rounded-lg"
                       style={{ background: "var(--background)", border: "1px solid var(--card-border)", color: "var(--muted-fg)" }}>
-                      <option>Developer</option>
-                      <option>Admin</option>
-                      <option>Viewer</option>
+                      <option value="Developer">{t("roleDeveloper")}</option>
+                      <option value="Admin">{t("roleAdmin")}</option>
+                      <option value="Viewer">{t("roleViewer")}</option>
                     </select>
                     <button className="px-3 py-2 rounded-lg text-sm font-medium text-white"
                       style={{ background: "var(--accent)" }}>
-                      Send invite
+                      {t("sendInvite")}
                     </button>
                     <button onClick={() => setShowInvite(false)}
                       className="px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-white transition-colors">
-                      Cancel
+                      {t("cancel")}
                     </button>
                   </div>
                 </motion.div>
@@ -329,10 +340,10 @@ export default function SettingsPage() {
                       <p className="text-xs text-gray-500">{m.email}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-600">Last active: {m.lastActive}</span>
+                      <span className="text-xs text-gray-600">{t("lastActive")}: {m.lastActive}</span>
                       <span className="text-xs px-2.5 py-1 rounded-full font-medium"
                         style={{ background: roleStyle[m.role]?.bg, color: roleStyle[m.role]?.text }}>
-                        {m.role}
+                        {t("role" + m.role)}
                       </span>
                       {m.role !== "Owner" && (
                         <button className="text-gray-600 hover:text-gray-300 transition-colors text-sm">⋯</button>
@@ -347,15 +358,15 @@ export default function SettingsPage() {
           {activeTab === "General" && (
             <motion.div key="general" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4 max-w-xl">
-              <h2 className="text-base font-semibold">Workspace settings</h2>
+              <h2 className="text-base font-semibold">{t("workspaceSettings")}</h2>
               <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 {[
-                  { label: "Workspace name", value: "Studio AI", type: "text" },
-                  { label: "Timezone", value: "UTC+0 · London", type: "select" },
-                  { label: "Default model", value: "claude-sonnet-4.5", type: "select" },
+                  { label: "Workspace name", value: "Studio AI", type: "text", key: "workspaceName" },
+                  { label: "Timezone", value: "UTC+0 · London", type: "select", key: "timezone" },
+                  { label: "Default model", value: "claude-sonnet-4.5", type: "select", key: "defaultModel" },
                 ].map((f) => (
                   <div key={f.label}>
-                    <label className="text-xs font-medium text-gray-400 block mb-1.5">{f.label}</label>
+                    <label className="text-xs font-medium text-gray-400 block mb-1.5">{t(f.key)}</label>
                     <input defaultValue={f.value}
                       className="w-full bg-transparent text-sm outline-none px-3 py-2 rounded-lg"
                       style={{ background: "var(--background)", border: "1px solid var(--card-border)", color: "white" }} />
@@ -363,7 +374,7 @@ export default function SettingsPage() {
                 ))}
                 <button className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
                   style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-                  Save changes
+                  {t("saveChanges")}
                 </button>
               </div>
             </motion.div>
@@ -372,19 +383,19 @@ export default function SettingsPage() {
           {activeTab === "Billing" && (
             <motion.div key="billing" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4 max-w-xl">
-              <h2 className="text-base font-semibold">Billing & usage</h2>
+              <h2 className="text-base font-semibold">{t("billingUsage")}</h2>
               <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold">Pro Plan</p>
-                    <p className="text-xs text-gray-400 mt-0.5">$149/month · renews July 10, 2026</p>
+                    <p className="font-semibold">{t("proPlan")}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{t("proPlanDesc")}</p>
                   </div>
                   <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                    style={{ background: "rgba(16,185,129,0.1)", color: "#34d399" }}>Active</span>
+                    style={{ background: "rgba(16,185,129,0.1)", color: "#34d399" }}>{t("active")}</span>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-gray-400">Universal credit usage</span>
+                    <span className="text-gray-400">{t("creditUsage")}</span>
                     <span>8,420 / 10,000</span>
                   </div>
                   <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--background)" }}>
@@ -393,7 +404,7 @@ export default function SettingsPage() {
                 </div>
                 <button className="w-full py-2 rounded-lg text-sm font-semibold text-white"
                   style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-                  Upgrade to Enterprise
+                  {t("upgradeEnterprise")}
                 </button>
               </div>
             </motion.div>
@@ -403,23 +414,23 @@ export default function SettingsPage() {
             <motion.div key="api" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4 max-w-2xl">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">API Keys</h2>
+                <h2 className="text-base font-semibold">{t("apiKeys")}</h2>
                 <button className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
                   style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-                  + Generate key
+                  + {t("generateKey")}
                 </button>
               </div>
 
               {/* API Keys Configuration Card */}
               <div className="rounded-xl p-5 space-y-6" style={{ background: "var(--card-bg)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Model Provider API Keys</h3>
-                  <p className="text-xs text-gray-400 mt-1">Configure your Google Gemini & Cloudflare API keys.</p>
+                  <h3 className="text-sm font-semibold text-white">{t("modelProviderApiKeys")}</h3>
+                  <p className="text-xs text-gray-400 mt-1">{t("apiKeysSubtitle")}</p>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Gemini API Key (Fallback Vector Embeddings & LLM)</label>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">{t("geminiApiKeyLabel")}</label>
                     <input 
                       type="password"
                       value={geminiKey}
@@ -427,11 +438,11 @@ export default function SettingsPage() {
                       placeholder="Enter your GEMINI_API_KEY..."
                       className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Used as fallback embeddings and LLM provider.</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{t("geminiApiKeyDesc")}</p>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Cloudflare API Token (Primary Workers AI)</label>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">{t("cloudflareApiTokenLabel")}</label>
                     <input 
                       type="password"
                       value={cloudflareToken}
@@ -439,11 +450,11 @@ export default function SettingsPage() {
                       placeholder="Enter your CLOUDFLARE_API token..."
                       className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Primary key for Llama 3.3 and BGE embeddings.</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{t("cloudflareApiTokenDesc")}</p>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">Cloudflare Account ID</label>
+                    <label className="text-xs font-semibold text-gray-300 block mb-1.5">{t("cloudflareAccountIdLabel")}</label>
                     <input 
                       type="text"
                       value={cloudflareAccount}
@@ -451,7 +462,7 @@ export default function SettingsPage() {
                       placeholder="Enter your CLOUDFLARE_ACCOUNT_ID..."
                       className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
                     />
-                    <p className="text-[10px] text-gray-500 mt-1">Required to build Cloudflare Workers AI resource endpoints.</p>
+                    <p className="text-[10px] text-gray-500 mt-1">{t("cloudflareAccountIdDesc")}</p>
                   </div>
                 </div>
 
@@ -461,7 +472,7 @@ export default function SettingsPage() {
                     disabled={saveStatus === "saving"}
                     className="px-4 py-2 rounded-lg text-xs font-semibold text-black transition-all"
                     style={{ background: "var(--accent)" }}>
-                    {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : saveStatus === "error" ? "✕ Error" : "Save keys"}
+                    {saveStatus === "saving" ? t("saving") : saveStatus === "saved" ? "✓ Saved" : saveStatus === "error" ? "✕ Error" : t("saveKeys")}
                   </button>
                 </div>
               </div>
@@ -484,11 +495,11 @@ export default function SettingsPage() {
                         background: k.status === "active" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
                         color: k.status === "active" ? "#34d399" : "#fbbf24"
                       }}>
-                      {k.status}
+                      {k.status === "active" ? t("active") : k.status}
                     </span>
                     <button className="text-xs px-2.5 py-1 rounded-lg"
                       style={{ background: "var(--background)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
-                      Revoke
+                      {t("revoke")}
                     </button>
                   </div>
                 ))}
@@ -499,7 +510,7 @@ export default function SettingsPage() {
           {activeTab === "Integrations" && (
             <motion.div key="integrations" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4 max-w-xl">
-              <h2 className="text-base font-semibold">Integrations</h2>
+              <h2 className="text-base font-semibold">{t("integrations")}</h2>
               <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
                 {[
                   { name: "Slack",      desc: "Send notifications to channels",  connected: true,  color: "#818cf8" },
@@ -525,7 +536,7 @@ export default function SettingsPage() {
                         color: int.connected ? "#34d399" : "#818cf8",
                         border: `1px solid ${int.connected ? "rgba(16,185,129,0.2)" : "rgba(99,102,241,0.2)"}`,
                       }}>
-                      {int.connected ? "✓ Connected" : "Connect"}
+                      {int.connected ? `✓ ${t("connected")}` : t("connect")}
                     </button>
                   </div>
                 ))}

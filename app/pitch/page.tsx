@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
+import { useTranslation } from "@/context/TranslationContext";
 import { MOCK_REPORTS_CONTAINER } from "@/lib/graph/report/examples";
 import { ExportService, TemplateEngine } from "@/lib/graph/report/engines";
 
@@ -79,6 +80,7 @@ const getIcon = (slideNumber: number, title: string): string => {
 };
 
 export default function PitchPage() {
+  const { t } = useTranslation();
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
@@ -99,12 +101,12 @@ export default function PitchPage() {
 
   // Map of accessible reports for display
   const reportsMeta = [
-    { key: "executiveSummary", label: "Executive Summary", desc: "1-3 page synthesis of core venture metrics", data: reports?.executiveSummary },
-    { key: "businessPlan", label: "Business Plan", desc: "Structured operational proposal with 9 core sections", data: reports?.businessPlan },
-    { key: "investorReport", label: "Investor Due Diligence", desc: "Comprehensive investment viability and flags report", data: reports?.investorReport },
-    { key: "founderRoadmap", label: "Founder Roadmap", desc: "Tactical 30/90-Day milestone delivery program", data: reports?.founderRoadmap },
-    { key: "opportunityAnalysis", label: "Opportunity Analysis", desc: "Evidence-backed multi-agent opportunity breakdown", data: reports?.opportunityAnalysis },
-    { key: "onePageBrief", label: "One-Page Executive Brief", desc: "Highly condensed high-conviction briefing summary", data: reports?.onePageBrief }
+    { key: "executiveSummary", label: t("executiveSummary"), desc: "1-3 page synthesis of core venture metrics", data: reports?.executiveSummary },
+    { key: "businessPlan", label: t("businessPlan") !== "businessPlan" ? t("businessPlan") : "Business Plan", desc: "Structured operational proposal with 9 core sections", data: reports?.businessPlan },
+    { key: "investorReport", label: t("investorReport") !== "investorReport" ? t("investorReport") : "Investor Due Diligence", desc: "Comprehensive investment viability and flags report", data: reports?.investorReport },
+    { key: "founderRoadmap", label: t("founderRoadmap"), desc: "Tactical 30/90-Day milestone delivery program", data: reports?.founderRoadmap },
+    { key: "opportunityAnalysis", label: t("opportunityAnalysis") !== "opportunityAnalysis" ? t("opportunityAnalysis") : "Opportunity Analysis", desc: "Evidence-backed multi-agent opportunity breakdown", data: reports?.opportunityAnalysis },
+    { key: "onePageBrief", label: t("onePageBrief") !== "onePageBrief" ? t("onePageBrief") : "One-Page Executive Brief", desc: "Highly condensed high-conviction briefing summary", data: reports?.onePageBrief }
   ];
 
   const currentReport = reportsMeta.find(r => r.key === activeReportKey) || reportsMeta[0];
@@ -211,16 +213,16 @@ export default function PitchPage() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
                   style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
-                  Report Engine Active
+                  {t("reportEngineActive") !== "reportEngineActive" ? t("reportEngineActive") : "Report Engine Active"}
                 </span>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full"
                   style={{ background: "rgba(255, 255, 255, 0.05)", color: "#888" }}>
-                  12-Slide Deck + 6 Reports
+                  {t("deckStats") !== "deckStats" ? t("deckStats") : "12-Slide Deck + 6 Reports"}
                 </span>
               </div>
-              <h1 className="text-2xl font-bold text-white">Deliverables & Export Center</h1>
+              <h1 className="text-2xl font-bold text-white">{t("pitchDeckGenerator")}</h1>
               <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-                Export VentureIQ multi-agent intelligence into professional documents.
+                {t("pitchDeckSub")}
               </p>
             </div>
 
@@ -228,11 +230,11 @@ export default function PitchPage() {
             <div className="flex items-center gap-2">
               <button onClick={handleExportJSON} className="text-xs px-3 py-2 rounded-lg transition-all"
                 style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>
-                ↓ Export JSON
+                ↓ {t("exportJson") !== "exportJson" ? t("exportJson") : "Export JSON"}
               </button>
               <button onClick={handlePrintPdf} className="text-xs px-3 py-2 rounded-lg font-medium transition-all"
                 style={{ background: "var(--accent)", color: "#0a0a0a" }}>
-                Print PDF
+                {t("printDeck")}
               </button>
             </div>
           </div>
@@ -241,11 +243,11 @@ export default function PitchPage() {
           <div className="flex gap-2 border-b" style={{ borderColor: "var(--card-border)" }}>
             <button onClick={() => setActiveTab("deck")}
               className={`pb-3 text-sm font-semibold border-b-2 px-1 transition-all ${activeTab === "deck" ? "border-[#daf264] text-white" : "border-transparent text-[#666] hover:text-white"}`}>
-              Pitch Deck Simulator
+              {t("pitchDeckSimulator") !== "pitchDeckSimulator" ? t("pitchDeckSimulator") : "Pitch Deck Simulator"}
             </button>
             <button onClick={() => setActiveTab("reports")}
               className={`pb-3 text-sm font-semibold border-b-2 px-1 transition-all ${activeTab === "reports" ? "border-[#daf264] text-white" : "border-transparent text-[#666] hover:text-white"}`}>
-              Document Intelligence Hub
+              {t("documentHub") !== "documentHub" ? t("documentHub") : "Document Intelligence Hub"}
             </button>
           </div>
 
@@ -256,7 +258,7 @@ export default function PitchPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl gap-4"
                 style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  DESIGN MODE THEME:
+                  {t("designTheme") !== "designTheme" ? t("designTheme") : "DESIGN MODE THEME"}:
                 </span>
                 <div className="flex flex-wrap gap-1">
                   {(Object.keys(styleMap) as Array<keyof typeof styleMap>).map((mode) => (
@@ -304,7 +306,7 @@ export default function PitchPage() {
                       </span>
                     </div>
                     <span className="text-xs text-gray-500 font-medium">
-                      Slide {slide.slideNumber} / {dynamicSlides.length}
+                      {t("slide")} {slide.slideNumber} / {dynamicSlides.length}
                     </span>
                   </div>
 
@@ -385,7 +387,7 @@ export default function PitchPage() {
                       disabled={activeSlideIdx === 0}
                       className="text-xs px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-20"
                       style={{ background: "#121212", color: "#888", border: "1px solid #222" }}>
-                      ← Back
+                      ← {t("back") !== "back" ? t("back") : "Back"}
                     </button>
                     
                     <div className="flex gap-1.5">
@@ -399,7 +401,7 @@ export default function PitchPage() {
                     <button onClick={() => setActiveSlideIdx(Math.min(dynamicSlides.length - 1, activeSlideIdx + 1))}
                       disabled={activeSlideIdx === dynamicSlides.length - 1}
                       className={`text-xs px-4 py-2 rounded-lg font-bold transition-all disabled:opacity-20 ${activeTheme.btnPrimary}`}>
-                      Next →
+                      {t("next") !== "next" ? t("next") : "Next"} →
                     </button>
                   </div>
                 </div>
@@ -411,13 +413,13 @@ export default function PitchPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-lg">🖨️</span>
                   <div>
-                    <p className="text-xs font-semibold text-white">Full Slide deck vector export</p>
-                    <p className="text-[11px] text-gray-400">Click "Print PDF" at the top of the page. The system formats each slide onto a fresh page automatically.</p>
+                    <p className="text-xs font-semibold text-white">{t("pdfExportDescTitle") !== "pdfExportDescTitle" ? t("pdfExportDescTitle") : "Full Slide deck vector export"}</p>
+                    <p className="text-[11px] text-gray-400">{t("pdfExportDesc") !== "pdfExportDesc" ? t("pdfExportDesc") : "Click \"Print PDF\" at the top of the page. The system formats each slide onto a fresh page automatically."}</p>
                   </div>
                 </div>
                 <button onClick={() => ExportService.downloadTextFile("pitch_deck.md", ExportService.slidesToMarkdown(dynamicSlides))}
                   className="text-xs px-3 py-1.5 bg-black/40 border border-[#222] text-gray-400 hover:text-white rounded-lg">
-                  Export Deck as MD
+                  {t("exportDeckAsMd") !== "exportDeckAsMd" ? t("exportDeckAsMd") : "Export Deck as MD"}
                 </button>
               </div>
             </div>
@@ -480,8 +482,8 @@ export default function PitchPage() {
                           {currentReport.data.overallScore}%
                         </div>
                         <div>
-                          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Venture Opportunity Rating</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Calculated weighting of all structural validation agents.</p>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t("opportunityRating") !== "opportunityRating" ? t("opportunityRating") : "Venture Opportunity Rating"}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{t("opportunityRatingDesc") !== "opportunityRatingDesc" ? t("opportunityRatingDesc") : "Calculated weighting of all structural validation agents."}</p>
                         </div>
                       </div>
 
@@ -498,7 +500,7 @@ export default function PitchPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-white">Key Findings</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-white">{t("scoreBreakdown") !== "scoreBreakdown" ? t("scoreBreakdown") : "Score Breakdown"}</h4>
                         <ul className="list-disc pl-5 space-y-2 text-xs text-gray-300">
                           {(currentReport.data.keyFindings || []).map((f: string, idx: number) => (
                             <li key={idx}>{f}</li>
@@ -516,7 +518,7 @@ export default function PitchPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-white">Critical Metrics</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-white">{t("criticalMetrics") !== "criticalMetrics" ? t("criticalMetrics") : "Critical Metrics"}</h4>
                         <div className="grid grid-cols-3 gap-4">
                           {(currentReport.data.keyMetrics || []).map((m: any, idx: number) => (
                             <div key={idx} className="p-3 bg-black/40 border border-gray-800 rounded-lg text-center">
@@ -528,7 +530,7 @@ export default function PitchPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-white">Immediate Recommended Actions</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-white">{t("recommendedActions") !== "recommendedActions" ? t("recommendedActions") : "Immediate Recommended Actions"}</h4>
                         <ul className="list-disc pl-5 space-y-2 text-xs text-gray-300">
                           {(currentReport.data.recommendedActions || []).map((a: string, idx: number) => (
                             <li key={idx}>{a}</li>
@@ -563,8 +565,8 @@ export default function PitchPage() {
 
                 <div className="px-6 py-4 border-t text-[11px] text-gray-500 flex items-center justify-between"
                   style={{ borderColor: "var(--card-border)" }}>
-                  <span>Generated dynamically by VentureIQ strategic consultant network.</span>
-                  <span>100% data fidelity.</span>
+                  <span>{t("generatedDynamically") !== "generatedDynamically" ? t("generatedDynamically") : "Generated dynamically by VentureIQ strategic consultant network."}</span>
+                  <span>{t("dataFidelity") !== "dataFidelity" ? t("dataFidelity") : "100% data fidelity."}</span>
                 </div>
               </div>
             </div>

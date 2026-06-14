@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
+import { useTranslation } from "@/context/TranslationContext";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid,
@@ -45,6 +46,7 @@ const fundingBreakdown = [
 const ACC = "#daf264";
 
 export default function FinancialsPage() {
+  const { t } = useTranslation();
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
@@ -76,10 +78,10 @@ export default function FinancialsPage() {
     : "$18M";
 
   const metrics = [
-    { label: "Seed Ask",        value: seedAskValue,  sub: fi?.fundingRequirements?.fundingTimeline || "18-month runway", highlight: true  },
-    { label: "Break-even",      value: breakEvenValue, sub: "MRR crossover",    highlight: false },
-    { label: "ARR at Year 3",   value: arrY3Value, sub: "Expected case",  highlight: false },
-    { label: "Target Valuation",value: valuationValue,   sub: "Post-seed (10x ARR)", highlight: true  },
+    { label: t("seedAsk") !== "seedAsk" ? t("seedAsk") : "Seed Ask",        value: seedAskValue,  sub: fi?.fundingRequirements?.fundingTimeline || "18-month runway", highlight: true  },
+    { label: t("breakEven") !== "breakEven" ? t("breakEven") : "Break-even",      value: breakEvenValue, sub: "MRR crossover",    highlight: false },
+    { label: t("arrYear3") !== "arrYear3" ? t("arrYear3") : "ARR at Year 3",   value: arrY3Value, sub: "Expected case",  highlight: false },
+    { label: t("targetValuation") !== "targetValuation" ? t("targetValuation") : "Target Valuation",value: valuationValue,   sub: "Post-seed (10x ARR)", highlight: true  },
   ];
 
   const dynamicRevenueData = Array.isArray(fi?.cashFlowForecast?.forecast)
@@ -127,17 +129,17 @@ export default function FinancialsPage() {
                   background: hasFinanceData ? "rgba(218, 242, 100, 0.1)" : "rgba(251, 191, 36, 0.1)", 
                   color: hasFinanceData ? ACC : "#fbbf24" 
                 }}>
-                Finance Agent · {hasFinanceData ? "Done" : "Pending Run"}
+                {t("financials") !== "financials" ? t("financials") : "Finance Agent"} · {hasFinanceData ? t("done") : (t("pendingRun") !== "pendingRun" ? t("pendingRun") : "Pending Run")}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-white">Financial Model</h1>
+            <h1 className="text-2xl font-bold text-white">{t("financialAnalysis")}</h1>
             <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-              3-year projections · {activeProject?.name || "EV Startup India"}
+              {t("financialAnalysisSub")} · {activeProject?.name || "EV Startup India"}
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>↓ Excel</button>
-            <button className="text-xs px-3 py-2 rounded-lg font-medium" style={{ background: ACC, color: "#0a0a0a" }}>↓ PDF Report</button>
+            <button className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>↓ {t("excel") !== "excel" ? t("excel") : "Excel"}</button>
+            <button className="text-xs px-3 py-2 rounded-lg font-medium" style={{ background: ACC, color: "#0a0a0a" }}>↓ {t("pdfReport") !== "pdfReport" ? t("pdfReport") : "PDF Report"}</button>
           </div>
         </div>
 
@@ -159,7 +161,7 @@ export default function FinancialsPage() {
 
         {activeProject?.financialIntel?.projection && (
           <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.2)" }}>
-            <h3 className="font-semibold text-sm text-white mb-2">AI Agent Financial Projections</h3>
+            <h3 className="font-semibold text-sm text-white mb-2">{t("financialAnalysis")}</h3>
             <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
               {activeProject.financialIntel.projection}
             </p>
@@ -168,8 +170,8 @@ export default function FinancialsPage() {
 
         {/* Revenue & cashflow chart */}
         <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-          <h3 className="font-semibold text-sm text-white mb-1">Revenue vs Expenses vs Cash Flow</h3>
-          <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>Monthly ($K) · 36-month forecast</p>
+          <h3 className="font-semibold text-sm text-white mb-1">{t("revenueBreakdown")}</h3>
+          <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>{t("monthlyInK") !== "monthlyInK" ? t("monthlyInK") : "Monthly ($K) · 36-month forecast"}</p>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={dynamicRevenueData}>
               <defs>
@@ -189,9 +191,9 @@ export default function FinancialsPage() {
               <Tooltip contentStyle={{ background: "#1a1a1a", border: "1px solid #2a2a2a", borderRadius: 8, fontSize: 11 }}
                 formatter={(v: number, n: string) => [`$${v}K`, n]} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="revenue" name="Revenue" stroke={ACC} strokeWidth={2} fill="url(#rg)" />
-              <Area type="monotone" dataKey="cashflow" name="Cash Flow" stroke="#818cf8" strokeWidth={2} fill="url(#cg)" />
-              <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
+              <Area type="monotone" dataKey="revenue" name={t("revenue") !== "revenue" ? t("revenue") : "Revenue"} stroke={ACC} strokeWidth={2} fill="url(#rg)" />
+              <Area type="monotone" dataKey="cashflow" name={t("cashflow") !== "cashflow" ? t("cashflow") : "Cash Flow"} stroke="#818cf8" strokeWidth={2} fill="url(#cg)" />
+              <Line type="monotone" dataKey="expenses" name={t("expenses") !== "expenses" ? t("expenses") : "Expenses"} stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 3" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -200,12 +202,12 @@ export default function FinancialsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Unit economics */}
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="font-semibold text-sm text-white mb-4">Unit Economics</h3>
+            <h3 className="font-semibold text-sm text-white mb-4">{t("unitEconomics")}</h3>
             <div className="grid grid-cols-2 gap-2">
               {dynamicUnitEcon.map((u: any) => (
                 <div key={u.metric} className="rounded-lg p-3"
                   style={{ background: "var(--background)", border: "1px solid var(--card-border)" }}>
-                  <p className="text-xs" style={{ color: "var(--muted-fg)" }}>{u.metric}</p>
+                  <p className="text-xs" style={{ color: "var(--muted-fg)" }}>{t(u.metric.toLowerCase()) !== u.metric.toLowerCase() ? t(u.metric.toLowerCase()) : u.metric}</p>
                   <p className="text-lg font-bold mt-0.5" style={{ color: ACC }}>{u.value}</p>
                   <p className="text-xs" style={{ color: "var(--muted-fg)" }}>{u.sub}</p>
                 </div>
@@ -215,8 +217,8 @@ export default function FinancialsPage() {
 
           {/* Funding breakdown */}
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-            <h3 className="font-semibold text-sm text-white mb-1">{seedAskValue} Capital Allocation</h3>
-            <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>Runway breakdown by operational segment</p>
+            <h3 className="font-semibold text-sm text-white mb-1">{seedAskValue} {t("allocationOfCapital")}</h3>
+            <p className="text-xs mb-4" style={{ color: "var(--muted-fg)" }}>{t("runwayBreakdown") !== "runwayBreakdown" ? t("runwayBreakdown") : "Runway breakdown by operational segment"}</p>
             <div className="space-y-3">
               {dynamicFundingBreakdown.map((f: any) => (
                 <div key={f.name}>

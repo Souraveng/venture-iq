@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
+import { useTranslation } from "@/context/TranslationContext";
 
 const competitors = [
   { name: "Ather Energy",     type: "Direct",   funding: "$380M", stage: "Series E", market: "India",         pricing: "$1,200/yr", threat: 90, strengths: ["Brand", "Hardware+SW", "Network"],     weaknesses: ["Closed ecosystem", "High price"] },
@@ -48,6 +49,7 @@ const swotColors = {
 };
 
 export default function CompetitorsPage() {
+  const { t } = useTranslation();
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
@@ -108,15 +110,15 @@ export default function CompetitorsPage() {
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg" style={{ color: "var(--accent)" }}>⬡</span>
               <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>Competitor Analysis Agent · Done</span>
+                style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>{t("competitorAnalysisAgent") !== "competitorAnalysisAgent" ? t("competitorAnalysisAgent") : "Competitor Analysis Agent"} · {t("done") !== "done" ? t("done") : "Done"}</span>
             </div>
-            <h1 className="text-2xl font-bold text-white">Competitor Intelligence</h1>
+            <h1 className="text-2xl font-bold text-white">{t("competitorAnalysis")}</h1>
             <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-              {dynamicCompetitors.length} competitors mapped · {activeProject?.name || "EV Startup Platform"}
+              {dynamicCompetitors.length} {t("competitorsMapped") !== "competitorsMapped" ? t("competitorsMapped") : "competitors mapped"} · {activeProject?.name || "EV Startup Platform"}
             </p>
           </div>
           <button className="text-xs px-3 py-2 rounded-lg font-medium"
-            style={{ background: "var(--accent)", color: "#0a0a0a" }}>↓ Export Report</button>
+            style={{ background: "var(--accent)", color: "#0a0a0a" }}>↓ {t("exportReport") !== "exportReport" ? t("exportReport") : "Export Report"}</button>
         </div>
 
         {/* Competitor cards */}
@@ -139,18 +141,18 @@ export default function CompetitorsPage() {
               </div>
 
               <div className="flex items-center justify-between text-xs mb-3">
-                <span style={{ color: "var(--muted-fg)" }}>Funding</span>
+                <span style={{ color: "var(--muted-fg)" }}>{t("funding") !== "funding" ? t("funding") : "Funding"}</span>
                 <span className="font-semibold text-white">{c.funding}</span>
               </div>
               <div className="flex items-center justify-between text-xs mb-3">
-                <span style={{ color: "var(--muted-fg)" }}>Pricing</span>
+                <span style={{ color: "var(--muted-fg)" }}>{t("pricing") !== "pricing" ? t("pricing") : "Pricing"}</span>
                 <span className="font-semibold text-white">{c.pricing}</span>
               </div>
 
               {/* Threat meter */}
               <div className="mb-3">
                 <div className="flex justify-between text-xs mb-1">
-                  <span style={{ color: "var(--muted-fg)" }}>Threat level</span>
+                  <span style={{ color: "var(--muted-fg)" }}>{t("threatLevel") !== "threatLevel" ? t("threatLevel") : "Threat level"}</span>
                   <span style={{ color: c.threat > 70 ? "#ef4444" : c.threat > 50 ? "#fbbf24" : "var(--accent)" }}>
                     {c.threat}/100
                   </span>
@@ -178,13 +180,13 @@ export default function CompetitorsPage() {
         {/* Feature matrix */}
         <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
           <div className="px-5 py-4" style={{ background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
-            <h3 className="font-semibold text-sm text-white">Feature Comparison Matrix</h3>
+            <h3 className="font-semibold text-sm text-white">{t("productFeatureMatrix")}</h3>
           </div>
           <div className="overflow-x-auto" style={{ background: "var(--background)" }}>
             <table className="w-full text-xs">
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
-                  <th className="text-left px-4 py-3 text-white font-semibold">Company</th>
+                  <th className="text-left px-4 py-3 text-white font-semibold">{t("company") !== "company" ? t("company") : "Company"}</th>
                   {dynamicFeatures.map((f: string) => (
                     <th key={f} className="px-3 py-3 text-center font-medium" style={{ color: "var(--muted-fg)", minWidth: 100, fontSize: 10 }}>
                       {f}
@@ -198,7 +200,7 @@ export default function CompetitorsPage() {
                     className={company === "Your Startup" ? "" : ""}>
                     <td className="px-4 py-3 font-semibold text-sm"
                       style={{ color: company === "Your Startup" ? "var(--accent)" : "white" }}>
-                      {company === "Your Startup" ? "★ " : ""}{company}
+                      {company === "Your Startup" ? "★ " : ""}{company === "Your Startup" ? (t("yourStartup") !== "yourStartup" ? t("yourStartup") : "Your Startup") : company}
                     </td>
                     {feats.map((has: boolean, i: number) => (
                       <td key={i} className="px-3 py-3 text-center">
@@ -216,14 +218,14 @@ export default function CompetitorsPage() {
 
         {/* SWOT */}
         <div>
-          <h3 className="font-semibold text-sm text-white mb-3">SWOT Analysis — Your Startup</h3>
+          <h3 className="font-semibold text-sm text-white mb-3">{t("swotAnalysis")} — {t("yourStartup") !== "yourStartup" ? t("yourStartup") : "Your Startup"}</h3>
           <div className="grid grid-cols-2 gap-3">
             {(Object.entries(dynamicSwot) as [keyof typeof swotColors, string[]][]).map(([category, items]) => {
               const cfg = swotColors[category];
               return (
                 <div key={category} className="rounded-xl p-4"
                   style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
-                  <p className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: cfg.label }}>{category}</p>
+                  <p className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: cfg.label }}>{t(category.toLowerCase()) !== category.toLowerCase() ? t(category.toLowerCase()) : category}</p>
                   <ul className="space-y-2">
                     {items.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-xs text-white">

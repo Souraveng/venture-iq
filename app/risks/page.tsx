@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
+import { useTranslation } from "@/context/TranslationContext";
 
 const defaultRiskIntel = {
   marketRisk: {
@@ -140,6 +141,7 @@ const severityStyles = {
 };
 
 export default function RisksPage() {
+  const { t } = useTranslation();
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
@@ -183,17 +185,17 @@ export default function RisksPage() {
                 <span className="text-lg" style={{ color: "var(--accent)" }}>⚠</span>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full"
                   style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
-                  Risk Intelligence Agent · Done
+                  {t("riskAnalysis")} Agent · {t("done") !== "done" ? t("done") : "Done"}
                 </span>
               </div>
-              <h1 className="text-2xl font-bold text-white">Risk Intelligence & Due Diligence</h1>
+              <h1 className="text-2xl font-bold text-white">{t("riskAnalysis")} & Due Diligence</h1>
               <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-                {activeProject?.name || "EV Startup Platform"} · 8 dimensions evaluated programmatically
+                {activeProject?.name || "EV Startup Platform"} · {t("dimensionsEvaluated") !== "dimensionsEvaluated" ? t("dimensionsEvaluated") : "8 dimensions evaluated programmatically"}
               </p>
             </div>
             <button className="text-xs px-3 py-2 rounded-lg font-medium"
               style={{ background: "var(--accent)", color: "#0a0a0a" }}>
-              ↓ Export Risk Assessment
+              ↓ {t("exportRiskAssessment") !== "exportRiskAssessment" ? t("exportRiskAssessment") : "Export Risk Assessment"}
             </button>
           </div>
 
@@ -213,17 +215,17 @@ export default function RisksPage() {
                   <span className="text-xs font-semibold" style={{ color: "var(--muted-fg)" }}>/ 100</span>
                 </div>
               </div>
-              <p className="text-base font-bold mt-4 text-white">Overall Risk Index</p>
+              <p className="text-base font-bold mt-4 text-white">{t("overallRiskIndex")}</p>
               <span className="text-xs font-bold px-3 py-1 rounded-full mt-2"
                 style={{ background: "rgba(0,0,0,0.2)", color: overallStyle.color, border: `1px solid ${overallStyle.border}` }}>
-                {overall.severity} SEVERITY
+                {overall.severity} {t("severity") !== "severity" ? t("severity") : "SEVERITY"}
               </span>
             </div>
 
             <div className="lg:col-span-2 rounded-2xl p-6 flex flex-col justify-between"
               style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Principal Risk Analyst Diagnostics</h3>
+                <h3 className="text-sm font-semibold text-white mb-3">{t("principalRiskAnalystDiagnostics") !== "principalRiskAnalystDiagnostics" ? t("principalRiskAnalystDiagnostics") : "Principal Risk Analyst Diagnostics"}</h3>
                 <div className="space-y-3">
                   {Array.isArray(overall?.reasoning) ? overall.reasoning.map((reason: string, idx: number) => (
                     <div key={idx} className="flex items-start gap-3 text-xs leading-relaxed text-white">
@@ -254,7 +256,7 @@ export default function RisksPage() {
           {/* Risk Heatmap/Radar + Dimension Scores */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1 rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-              <h3 className="text-sm font-semibold text-white mb-4">Risk Exposure Radar</h3>
+              <h3 className="text-sm font-semibold text-white mb-4">{t("ventureValidationRadar")}</h3>
               <div className="w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height={260}>
                   <RadarChart data={radarData}>
@@ -268,7 +270,7 @@ export default function RisksPage() {
             </div>
 
             <div className="lg:col-span-2 rounded-xl p-5 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-              <h3 className="text-sm font-semibold text-white mb-2">Risk Dimension Scores</h3>
+              <h3 className="text-sm font-semibold text-white mb-2">{t("riskCategories")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {dimensions.map((d: any) => {
                   const style = severityStyles[d.data.severity as keyof typeof severityStyles] || severityStyles.MEDIUM;
@@ -284,8 +286,8 @@ export default function RisksPage() {
                         <div className="h-full rounded-full" style={{ width: `${d.data.riskScore}%`, background: style.color }} />
                       </div>
                       <div className="flex justify-between text-[9px] mt-1" style={{ color: "var(--muted-fg)" }}>
-                        <span>Probability: {d.data.probability}%</span>
-                        <span>Impact: {d.data.impact}%</span>
+                        <span>{t("probability") !== "probability" ? t("probability") : "Probability"}: {d.data.probability}%</span>
+                        <span>{t("impact") !== "impact" ? t("impact") : "Impact"}: {d.data.impact}%</span>
                       </div>
                     </div>
                   );
@@ -296,7 +298,7 @@ export default function RisksPage() {
 
           {/* Detailed Dimensions Analysis */}
           <div>
-            <h3 className="font-semibold text-sm text-white mb-3">Grounded Risk Diagnostics</h3>
+            <h3 className="font-semibold text-sm text-white mb-3">{t("groundedRiskDiagnostics") !== "groundedRiskDiagnostics" ? t("groundedRiskDiagnostics") : "Grounded Risk Diagnostics"}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {dimensions.map((d: any) => {
                 const style = severityStyles[d.data.severity as keyof typeof severityStyles] || severityStyles.MEDIUM;
@@ -323,7 +325,7 @@ export default function RisksPage() {
                     {/* Early warning indicators */}
                     {d.data && Array.isArray(d.data.indicators) && d.data.indicators.length > 0 && (
                       <div className="mb-4">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Early Warning Indicators</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">{t("earlyWarningIndicators") !== "earlyWarningIndicators" ? t("earlyWarningIndicators") : "Early Warning Indicators"}</span>
                         <ul className="mt-1 space-y-1">
                           {d.data.indicators.map((ind: string, i: number) => (
                             <li key={i} className="text-xs flex items-center gap-2" style={{ color: "var(--muted-fg)" }}>
@@ -337,7 +339,7 @@ export default function RisksPage() {
 
                     {/* Primary Mitigation Action */}
                     <div className="p-3 rounded-lg" style={{ background: "rgba(218, 242, 100, 0.03)", border: "1px dashed rgba(218, 242, 100, 0.15)" }}>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-green-400">Primary Mitigation</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-green-400">{t("mitigationPlan")}</span>
                       <p className="text-xs mt-1 text-white leading-relaxed">
                         {d.data.mitigation}
                       </p>
@@ -352,7 +354,7 @@ export default function RisksPage() {
           {Array.isArray(mitigations) && mitigations.length > 0 && (
             <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--card-border)" }}>
               <div className="px-5 py-4" style={{ background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
-                <h3 className="font-semibold text-sm text-white">VC Mitigation & Contingency Engine</h3>
+                <h3 className="font-semibold text-sm text-white">{t("riskMitigationBlueprint")}</h3>
               </div>
               <div className="p-6 space-y-6" style={{ background: "var(--background)" }}>
                 {mitigations.map((m: any, idx: number) => {
@@ -369,7 +371,7 @@ export default function RisksPage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                         <div className="rounded-lg p-4" style={{ background: "rgba(255,255,255,0.01)", border: "1px solid var(--card-border)" }}>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-green-400">Preventive Actions</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-green-400">{t("preventiveActions") !== "preventiveActions" ? t("preventiveActions") : "Preventive Actions"}</span>
                           <ul className="mt-2 space-y-1.5">
                             {Array.isArray(m.preventiveActions) && m.preventiveActions.map((act: string, i: number) => (
                               <li key={i} className="text-xs flex items-start gap-2 text-white">
@@ -381,7 +383,7 @@ export default function RisksPage() {
                         </div>
 
                         <div className="rounded-lg p-4" style={{ background: "rgba(255,255,255,0.01)", border: "1px solid var(--card-border)" }}>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Contingency Plans</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">{t("contingencyPlans") !== "contingencyPlans" ? t("contingencyPlans") : "Contingency Plans"}</span>
                           <ul className="mt-2 space-y-1.5">
                             {Array.isArray(m.contingencyPlans) && m.contingencyPlans.map((plan: string, i: number) => (
                               <li key={i} className="text-xs flex items-start gap-2 text-white">

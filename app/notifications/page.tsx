@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useProjectStore, NotificationItem } from "@/store/useProjectStore";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/context/TranslationContext";
 
 type Severity = "warning" | "success" | "error" | "info";
 
@@ -35,6 +36,7 @@ const agentColor: Record<string, string> = {
 export default function NotificationsPage() {
   const { projects, activeId, markNotificationsRead, dismissNotification } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
+  const { t } = useTranslation();
 
   const [filter, setFilter] = useState<"all" | Severity>("all");
 
@@ -58,20 +60,20 @@ export default function NotificationsPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-white">Notifications</h1>
+              <h1 className="text-2xl font-bold text-white">{t("notifications")}</h1>
               {unread > 0 && (
                 <span className="px-2 py-0.5 rounded-full text-xs font-bold text-black"
                   style={{ background: "var(--accent)" }}>
-                  {unread} new
+                  {unread} {t("newNotifs")}
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-400 mt-1">Agent alerts, approvals, and system events.</p>
+            <p className="text-sm text-gray-400 mt-1">{t("notificationsSub")}</p>
           </div>
           <button onClick={handleMarkAllRead}
             className="text-xs px-3 py-1.5 rounded-lg transition-colors"
             style={{ color: "var(--accent)", background: "rgba(218,242,100,0.08)", border: "1px solid rgba(218,242,100,0.15)" }}>
-            Mark all read
+            {t("markAllRead")}
           </button>
         </div>
 
@@ -85,7 +87,7 @@ export default function NotificationsPage() {
                 color: filter === f ? "#818cf8" : "var(--muted-fg)",
                 border: filter === f ? "1px solid rgba(99,102,241,0.4)" : "1px solid var(--card-border)",
               }}>
-              {f}
+              {t("filter" + f.charAt(0).toUpperCase() + f.slice(1))}
               {f !== "all" && (
                 <span className="ml-1.5 opacity-60">
                   {notifs.filter((n) => n.severity === f).length}
@@ -160,7 +162,11 @@ export default function NotificationsPage() {
           {filtered.length === 0 && (
             <div className="text-center py-16 text-gray-600">
               <div className="text-4xl mb-3">◐</div>
-              <p className="text-sm">No {filter !== "all" ? filter : ""} notifications</p>
+              <p className="text-sm">
+                {filter === "all"
+                  ? t("noNotifications")
+                  : t("noFilterNotifications").replace("{filter}", t("filter" + filter.charAt(0).toUpperCase() + filter.slice(1)).toLowerCase())}
+              </p>
             </div>
           )}
         </div>

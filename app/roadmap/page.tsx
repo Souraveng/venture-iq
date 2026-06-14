@@ -8,6 +8,7 @@ import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import { MOCK_ROADMAP_REPORT } from "@/lib/graph/roadmap/examples";
 import { TimelineAlignmentEngine } from "@/lib/graph/roadmap/engines";
+import { useTranslation } from "@/context/TranslationContext";
 import { 
   Calendar, 
   Target, 
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 export default function RoadmapPage() {
+  const { t } = useTranslation();
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
@@ -33,11 +35,11 @@ export default function RoadmapPage() {
 
   // Map milestones to 5-Phase Timeline
   const TIMELINE_PHASES = [
-    { phase: "Phase 1", title: "Validation & Discovery", duration: "Months 1–3", color: "#daf264" },
-    { phase: "Phase 2", title: "MVP & Pilot Operations", duration: "Months 4–9", color: "#c8e84a" },
-    { phase: "Phase 3", title: "Commercial Growth", duration: "Months 10–18", color: "#7ab010" },
-    { phase: "Phase 4", title: "Fundraising Mobilization", duration: "Months 16–20", color: "#4a7a00" },
-    { phase: "Phase 5", title: "Scaling & Expansion", duration: "Month 21+", color: "#2a5a00" }
+    { phase: t("phase1") !== "phase1" ? t("phase1") : "Phase 1", title: t("phase1Title") !== "phase1Title" ? t("phase1Title") : "Validation & Discovery", duration: t("phase1Duration") !== "phase1Duration" ? t("phase1Duration") : "Months 1–3", color: "#daf264" },
+    { phase: t("phase2") !== "phase2" ? t("phase2") : "Phase 2", title: t("phase2Title") !== "phase2Title" ? t("phase2Title") : "MVP & Pilot Operations", duration: t("phase2Duration") !== "phase2Duration" ? t("phase2Duration") : "Months 4–9", color: "#c8e84a" },
+    { phase: t("phase3") !== "phase3" ? t("phase3") : "Phase 3", title: t("phase3Title") !== "phase3Title" ? t("phase3Title") : "Commercial Growth", duration: t("phase3Duration") !== "phase3Duration" ? t("phase3Duration") : "Months 10–18", color: "#7ab010" },
+    { phase: t("phase4") !== "phase4" ? t("phase4") : "Phase 4", title: t("phase4Title") !== "phase4Title" ? t("phase4Title") : "Fundraising Mobilization", duration: t("phase4Duration") !== "phase4Duration" ? t("phase4Duration") : "Months 16–20", color: "#4a7a00" },
+    { phase: t("phase5") !== "phase5" ? t("phase5" ) : "Phase 5", title: t("phase5Title") !== "phase5Title" ? t("phase5Title") : "Scaling & Expansion", duration: t("phase5Duration") !== "phase5Duration" ? t("phase5Duration") : "Month 21+", color: "#2a5a00" }
   ];
 
   const mappedPhases = TIMELINE_PHASES.map((ph, idx) => {
@@ -51,15 +53,15 @@ export default function RoadmapPage() {
     let kpis: string[] = [];
     if (idx === 0) {
       kpis = (Array.isArray(roadmap?.validationRoadmap) ? roadmap.validationRoadmap : []).slice(0, 3).map((v: any) => v?.successMetric || "").filter(Boolean);
-      if (kpis.length === 0) kpis = ["30 Interviews Completed", "Willingness to Pay verified"];
+      if (kpis.length === 0) kpis = [t("kpi30Interviews") !== "kpi30Interviews" ? t("kpi30Interviews") : "30 Interviews Completed", t("kpiWtpVerified") !== "kpiWtpVerified" ? t("kpiWtpVerified") : "Willingness to Pay verified"];
     } else if (idx === 1) {
-      kpis = ["MVP Dashboard Live", "5 Pilot Projects Running", "Peak Load Decreased >20%"];
+      kpis = [t("kpiMvpLive") !== "kpiMvpLive" ? t("kpiMvpLive") : "MVP Dashboard Live", t("kpi5PilotRunning") !== "kpi5PilotRunning" ? t("kpi5PilotRunning") : "5 Pilot Projects Running", t("kpiPeakLoadDec") !== "kpiPeakLoadDec" ? t("kpiPeakLoadDec") : "Peak Load Decreased >20%"];
     } else if (idx === 2) {
-      kpis = ["50 Paid B2B SaaS Accounts", "OCPP Network Integrations", "₹3 Lakhs MRR Achieved"];
+      kpis = [t("kpi50PaidAccounts") !== "kpi50PaidAccounts" ? t("kpi50PaidAccounts") : "50 Paid B2B SaaS Accounts", t("kpiOcppIntegrations") !== "kpiOcppIntegrations" ? t("kpiOcppIntegrations") : "OCPP Network Integrations", t("kpiAchievedMrr") !== "kpiAchievedMrr" ? t("kpiAchievedMrr") : "₹3 Lakhs MRR Achieved"];
     } else if (idx === 3) {
-      kpis = ["Investor Pitch Deck Verified", "SISFS Grant Secured", "Seed Capital In Bank"];
+      kpis = [t("kpiPitchDeckVerified") !== "kpiPitchDeckVerified" ? t("kpiPitchDeckVerified") : "Investor Pitch Deck Verified", t("kpiSisfsSecured") !== "kpiSisfsSecured" ? t("kpiSisfsSecured") : "SISFS Grant Secured", t("kpiSeedCapitalInBank") !== "kpiSeedCapitalInBank" ? t("kpiSeedCapitalInBank") : "Seed Capital In Bank"];
     } else {
-      kpis = ["Multi-City Onboarding", "National SaaS Marketplace", "International Expansion Study"];
+      kpis = [t("kpiMultiCityOnboarding") !== "kpiMultiCityOnboarding" ? t("kpiMultiCityOnboarding") : "Multi-City Onboarding", t("kpiNationalMarketplace") !== "kpiNationalMarketplace" ? t("kpiNationalMarketplace") : "National SaaS Marketplace", t("kpiInternationalExpansion") !== "kpiInternationalExpansion" ? t("kpiInternationalExpansion") : "International Expansion Study"];
     }
 
     return {
@@ -89,16 +91,16 @@ export default function RoadmapPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-300 to-gray-500 bg-clip-text text-transparent">
-                Founder Roadmap & Execution Intelligence
+                {t("founderRoadmapTitle") !== "founderRoadmapTitle" ? t("founderRoadmapTitle") : "Founder Roadmap & Execution Intelligence"}
               </h1>
               <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-                Tactical execution sequences derived from VentureIQ intelligence
+                {t("founderRoadmapSub") !== "founderRoadmapSub" ? t("founderRoadmapSub") : "Tactical execution sequences derived from VentureIQ intelligence"}
               </p>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--card-border)] bg-[rgba(218,242,100,0.02)]">
               <Activity className="w-4 h-4 text-[var(--accent)] animate-pulse" />
               <span className="text-xs font-semibold text-gray-300">
-                Active Project: {activeProject?.name || "Pune EV Charging"}
+                {t("activeProject") !== "activeProject" ? t("activeProject") : "Active Project"}: {activeProject?.name || "Pune EV Charging"}
               </span>
             </div>
           </div>
@@ -107,40 +109,40 @@ export default function RoadmapPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="rounded-2xl p-5 border border-[var(--card-border)] bg-[var(--card-bg)] hover:border-[rgba(218,242,100,0.2)] transition-all">
               <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Milestones</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t("totalMilestones") !== "totalMilestones" ? t("totalMilestones") : "Total Milestones"}</span>
                 <Layers className="w-5 h-5 text-[var(--accent)]" />
               </div>
               <p className="text-2xl font-bold mt-2">{(roadmap.milestones || []).length}</p>
-              <p className="text-xs text-gray-500 mt-1">Programmatically linked sequences</p>
+              <p className="text-xs text-gray-500 mt-1">{t("totalMilestonesDesc") !== "totalMilestonesDesc" ? t("totalMilestonesDesc") : "Programmatically linked sequences"}</p>
             </div>
 
             <div className="rounded-2xl p-5 border border-[var(--card-border)] bg-[var(--card-bg)] hover:border-[rgba(218,242,100,0.2)] transition-all">
               <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Critical Path</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t("criticalPath") !== "criticalPath" ? t("criticalPath") : "Critical Path"}</span>
                 <Target className="w-5 h-5 text-red-400" />
               </div>
               <p className="text-2xl font-bold mt-2">
                 {(roadmap.milestones || []).filter((m: any) => m.priority === "HIGH").length}
               </p>
-              <p className="text-xs text-gray-500 mt-1">High-priority deliverables</p>
+              <p className="text-xs text-gray-500 mt-1">{t("criticalPathDesc") !== "criticalPathDesc" ? t("criticalPathDesc") : "High-priority deliverables"}</p>
             </div>
 
             <div className="rounded-2xl p-5 border border-[var(--card-border)] bg-[var(--card-bg)] hover:border-[rgba(218,242,100,0.2)] transition-all">
               <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Initial Runway</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t("initialRunway") !== "initialRunway" ? t("initialRunway") : "Initial Runway"}</span>
                 <DollarSign className="w-5 h-5 text-emerald-400" />
               </div>
               <p className="text-2xl font-bold mt-2">₹2 Lakhs</p>
-              <p className="text-xs text-emerald-500 mt-1">Validation stage budget cap</p>
+              <p className="text-xs text-emerald-500 mt-1">{t("initialRunwayDesc") !== "initialRunwayDesc" ? t("initialRunwayDesc") : "Validation stage budget cap"}</p>
             </div>
 
             <div className="rounded-2xl p-5 border border-[var(--card-border)] bg-[var(--card-bg)] hover:border-[rgba(218,242,100,0.2)] transition-all">
               <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Target Hires</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t("targetHires") !== "targetHires" ? t("targetHires") : "Target Hires"}</span>
                 <Users className="w-5 h-5 text-indigo-400" />
               </div>
               <p className="text-2xl font-bold mt-2">{(roadmap.hiringRoadmap || []).length}</p>
-              <p className="text-xs text-gray-500 mt-1">Structured priority order</p>
+              <p className="text-xs text-gray-500 mt-1">{t("targetHiresDesc") !== "targetHiresDesc" ? t("targetHiresDesc") : "Structured priority order"}</p>
             </div>
           </div>
 
@@ -148,10 +150,10 @@ export default function RoadmapPage() {
           <div className="flex border-b border-[var(--card-border)] pb-px gap-6 text-sm">
             {(
               [
-                { id: "timeline", label: "5-Phase Timeline", icon: Calendar },
-                { id: "priority", label: "Priority Matrix", icon: Zap },
-                { id: "blueprints", label: "Discovery & GTM", icon: TrendingUp },
-                { id: "resources", label: "Hiring & Funding", icon: Users },
+                { id: "timeline", label: t("fivePhaseTimeline") !== "fivePhaseTimeline" ? t("fivePhaseTimeline") : "5-Phase Timeline", icon: Calendar },
+                { id: "priority", label: t("priorityMatrix") !== "priorityMatrix" ? t("priorityMatrix") : "Priority Matrix", icon: Zap },
+                { id: "blueprints", label: t("discoveryGtm") !== "discoveryGtm" ? t("discoveryGtm") : "Discovery & GTM", icon: TrendingUp },
+                { id: "resources", label: t("hiringFunding") !== "hiringFunding" ? t("hiringFunding") : "Hiring & Funding", icon: Users },
               ] as const
             ).map((tab) => {
               const Icon = tab.icon;
@@ -196,7 +198,7 @@ export default function RoadmapPage() {
                     <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[rgba(255,255,255,0.01)]">
                       <div className="flex items-center gap-2 mb-3">
                         <Clock className="w-4 h-4 text-[var(--accent)]" />
-                        <h3 className="font-bold text-white">30-Day Validation Plan</h3>
+                        <h3 className="font-bold text-white">{t("thirtyDayPlan") !== "thirtyDayPlan" ? t("thirtyDayPlan") : "30-Day Validation Plan"}</h3>
                       </div>
                       <ul className="space-y-3">
                         {(Array.isArray(roadmap["30DayPlan"]) ? roadmap["30DayPlan"] : []).map((plan: string, i: number) => (
@@ -211,7 +213,7 @@ export default function RoadmapPage() {
                     <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[rgba(255,255,255,0.01)]">
                       <div className="flex items-center gap-2 mb-3">
                         <Clock className="w-4 h-4 text-emerald-400" />
-                        <h3 className="font-bold text-white">90-Day MVP & Pilot Plan</h3>
+                        <h3 className="font-bold text-white">{t("ninetyDayPlan") !== "ninetyDayPlan" ? t("ninetyDayPlan") : "90-Day MVP & Pilot Plan"}</h3>
                       </div>
                       <ul className="space-y-3">
                         {(Array.isArray(roadmap["90DayPlan"]) ? roadmap["90DayPlan"] : []).map((plan: string, i: number) => (
@@ -226,7 +228,7 @@ export default function RoadmapPage() {
                     <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[rgba(255,255,255,0.01)]">
                       <div className="flex items-center gap-2 mb-3">
                         <Clock className="w-4 h-4 text-indigo-400" />
-                        <h3 className="font-bold text-white">1-Year Scaling Plan</h3>
+                        <h3 className="font-bold text-white">{t("oneYearPlan") !== "oneYearPlan" ? t("oneYearPlan") : "1-Year Scaling Plan"}</h3>
                       </div>
                       <ul className="space-y-3">
                         {(Array.isArray(roadmap["1YearPlan"]) ? roadmap["1YearPlan"] : []).map((plan: string, i: number) => (
@@ -273,7 +275,7 @@ export default function RoadmapPage() {
                                   <span className="text-xs font-bold uppercase tracking-widest" style={{ color: p.color }}>{p.phase}</span>
                                   {p.status === "active" && (
                                     <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[rgba(218,242,100,0.1)] text-[var(--accent)] border border-[rgba(218,242,100,0.2)]">
-                                      ACTIVE TASK AREA
+                                      {t("activeTaskArea") !== "activeTaskArea" ? t("activeTaskArea") : "ACTIVE TASK AREA"}
                                     </span>
                                   )}
                                 </div>
@@ -287,9 +289,9 @@ export default function RoadmapPage() {
                             {/* Milestones & Success Criteria */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Milestone Deliverables</h4>
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">{t("milestoneDeliverables") !== "milestoneDeliverables" ? t("milestoneDeliverables") : "Milestone Deliverables"}</h4>
                                 {p.milestones.length === 0 ? (
-                                  <p className="text-xs text-gray-500 italic">No milestones currently computed for this phase.</p>
+                                  <p className="text-xs text-gray-500 italic">{t("noMilestonesComputed") !== "noMilestonesComputed" ? t("noMilestonesComputed") : "No milestones currently computed for this phase."}</p>
                                 ) : (
                                   <ul className="space-y-3">
                                     {p.milestones.map((m: any, mIdx: number) => (
@@ -312,7 +314,7 @@ export default function RoadmapPage() {
                                             </p>
                                             {m.dependencies.length > 0 && (
                                               <p className="text-[9px] text-amber-500 mt-1 flex items-center gap-1">
-                                                <span>Prerequisites:</span>
+                                                <span>{t("prerequisites") !== "prerequisites" ? t("prerequisites") : "Prerequisites:"}</span>
                                                 {m.dependencies.map((d: string) => (
                                                   <span key={d} className="px-1.5 py-0.5 rounded bg-amber-955/40 border border-amber-900/30 text-amber-400">{d}</span>
                                                 ))}
@@ -328,7 +330,7 @@ export default function RoadmapPage() {
 
                               {/* KPIs */}
                               <div>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Success KPIs</h4>
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">{t("successKpis") !== "successKpis" ? t("successKpis") : "Success KPIs"}</h4>
                                 <div className="flex flex-wrap gap-2">
                                   {p.kpis.map((kpi, kIdx) => (
                                     <span key={kIdx} className="text-xs px-3 py-1.5 rounded-xl border font-medium flex items-center gap-1.5"
@@ -362,10 +364,10 @@ export default function RoadmapPage() {
                   <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)]">
                     <h2 className="text-xl font-bold flex items-center gap-2">
                       <Zap className="w-5 h-5 text-[var(--accent)]" />
-                      Programmatic Task Priority Matrix
+                      {t("programmaticPriorityMatrix") !== "programmaticPriorityMatrix" ? t("programmaticPriorityMatrix") : "Programmatic Task Priority Matrix"}
                     </h2>
                     <p className="text-xs text-gray-400 mt-1">
-                      Action items classified programmatically into Impact vs Effort quadrants
+                      {t("priorityMatrixSub") !== "priorityMatrixSub" ? t("priorityMatrixSub") : "Action items classified programmatically into Impact vs Effort quadrants"}
                     </p>
                   </div>
 
@@ -375,8 +377,8 @@ export default function RoadmapPage() {
                     {/* Quadrant 1: High Impact, Low Effort */}
                     <div className="rounded-2xl p-6 border border-emerald-900/40 bg-emerald-950/10 space-y-4 hover:border-emerald-500/30 transition-all">
                       <div className="flex justify-between items-center pb-2 border-b border-emerald-900/30">
-                        <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Quick Wins</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">HIGH IMPACT · LOW EFFORT</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-emerald-400">{t("quickWins") !== "quickWins" ? t("quickWins") : "Quick Wins"}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">{t("highImpactLowEffortLabel") !== "highImpactLowEffortLabel" ? t("highImpactLowEffortLabel") : "HIGH IMPACT · LOW EFFORT"}</span>
                       </div>
                       <ul className="space-y-2.5">
                         {(Array.isArray(roadmap.priorityMatrix?.highImpactLowEffort) ? roadmap.priorityMatrix.highImpactLowEffort : []).map((task: string, i: number) => (
@@ -391,8 +393,8 @@ export default function RoadmapPage() {
                     {/* Quadrant 2: High Impact, High Effort */}
                     <div className="rounded-2xl p-6 border border-cyan-900/40 bg-cyan-950/10 space-y-4 hover:border-cyan-500/30 transition-all">
                       <div className="flex justify-between items-center pb-2 border-b border-cyan-900/30">
-                        <span className="text-xs font-black uppercase tracking-widest text-cyan-400">Strategic Projects</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">HIGH IMPACT · HIGH EFFORT</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-cyan-400">{t("strategicProjects") !== "strategicProjects" ? t("strategicProjects") : "Strategic Projects"}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">{t("highImpactHighEffortLabel") !== "highImpactHighEffortLabel" ? t("highImpactHighEffortLabel") : "HIGH IMPACT · HIGH EFFORT"}</span>
                       </div>
                       <ul className="space-y-2.5">
                         {(Array.isArray(roadmap.priorityMatrix?.highImpactHighEffort) ? roadmap.priorityMatrix.highImpactHighEffort : []).map((task: string, i: number) => (
@@ -407,8 +409,8 @@ export default function RoadmapPage() {
                     {/* Quadrant 3: Low Impact, Low Effort */}
                     <div className="rounded-2xl p-6 border border-gray-800 bg-gray-900/10 space-y-4 hover:border-gray-700 transition-all">
                       <div className="flex justify-between items-center pb-2 border-b border-gray-800">
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">Fill-ins</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-bold">LOW IMPACT · LOW EFFORT</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">{t("fillIns") !== "fillIns" ? t("fillIns") : "Fill-ins"}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-bold">{t("lowImpactLowEffortLabel") !== "lowImpactLowEffortLabel" ? t("lowImpactLowEffortLabel") : "LOW IMPACT · LOW EFFORT"}</span>
                       </div>
                       <ul className="space-y-2.5">
                         {(Array.isArray(roadmap.priorityMatrix?.lowImpactLowEffort) ? roadmap.priorityMatrix.lowImpactLowEffort : []).map((task: string, i: number) => (
@@ -423,8 +425,8 @@ export default function RoadmapPage() {
                     {/* Quadrant 4: Low Impact, High Effort */}
                     <div className="rounded-2xl p-6 border border-amber-900/40 bg-amber-950/10 space-y-4 hover:border-amber-500/30 transition-all">
                       <div className="flex justify-between items-center pb-2 border-b border-amber-900/30">
-                        <span className="text-xs font-black uppercase tracking-widest text-amber-400">Major Time Sinks</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">LOW IMPACT · HIGH EFFORT</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-amber-400">{t("majorTimeSinks") !== "majorTimeSinks" ? t("majorTimeSinks") : "Major Time Sinks"}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">{t("lowImpactHighEffortLabel") !== "lowImpactHighEffortLabel" ? t("lowImpactHighEffortLabel") : "LOW IMPACT · HIGH EFFORT"}</span>
                       </div>
                       <ul className="space-y-2.5">
                         {(Array.isArray(roadmap.priorityMatrix?.lowImpactHighEffort) ? roadmap.priorityMatrix.lowImpactHighEffort : []).map((task: string, i: number) => (
@@ -450,10 +452,10 @@ export default function RoadmapPage() {
                     <div>
                       <h3 className="text-lg font-bold flex items-center gap-2">
                         <CheckCircle className="w-5 h-5 text-[var(--accent)]" />
-                        Customer Validation Experiments
+                        {t("customerValidationExperiments") !== "customerValidationExperiments" ? t("customerValidationExperiments") : "Customer Validation Experiments"}
                       </h3>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Testing core riskiest assumptions prior to engineering sprint
+                        {t("validationExperimentsSub") !== "validationExperimentsSub" ? t("validationExperimentsSub") : "Testing core riskiest assumptions prior to engineering sprint"}
                       </p>
                     </div>
 
@@ -471,11 +473,11 @@ export default function RoadmapPage() {
                           </p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-[var(--card-border)] text-[10px]">
                             <div>
-                              <span className="font-bold text-emerald-400 block mb-0.5">✓ Success Metric</span>
+                              <span className="font-bold text-emerald-400 block mb-0.5">✓ {t("successMetric") !== "successMetric" ? t("successMetric") : "Success Metric"}</span>
                               <p className="text-gray-400 leading-normal">{test.successMetric}</p>
                             </div>
                             <div>
-                              <span className="font-bold text-red-400 block mb-0.5">✕ Failure Criteria</span>
+                              <span className="font-bold text-red-400 block mb-0.5">✕ {t("failureCriteria") !== "failureCriteria" ? t("failureCriteria") : "Failure Criteria"}</span>
                               <p className="text-gray-400 leading-normal">{test.failureCriteria}</p>
                             </div>
                           </div>
@@ -492,16 +494,16 @@ export default function RoadmapPage() {
                       <div>
                         <h3 className="text-lg font-bold flex items-center gap-2">
                           <TrendingUp className="w-5 h-5 text-[var(--accent)]" />
-                          Go-To-Market & Distribution
+                          {t("goToMarketDistribution") !== "goToMarketDistribution" ? t("goToMarketDistribution") : "Go-To-Market & Distribution"}
                         </h3>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          How the startup builds initial pipeline and lands clients
+                          {t("goToMarketSub") !== "goToMarketSub" ? t("goToMarketSub") : "How the startup builds initial pipeline and lands clients"}
                         </p>
                       </div>
 
                       <div className="space-y-3">
                         <div>
-                          <span className="text-xs font-bold text-gray-400 block">Acquisition Strategy</span>
+                          <span className="text-xs font-bold text-gray-400 block">{t("acquisitionStrategy") !== "acquisitionStrategy" ? t("acquisitionStrategy") : "Acquisition Strategy"}</span>
                           <p className="text-xs text-gray-300 leading-relaxed mt-1">
                             {roadmap.goToMarketPlan?.customerAcquisitionStrategy}
                           </p>
@@ -509,7 +511,7 @@ export default function RoadmapPage() {
 
                         <div className="grid grid-cols-2 gap-4 pt-2">
                           <div>
-                            <span className="text-xs font-bold text-gray-400 block">Channels</span>
+                            <span className="text-xs font-bold text-gray-400 block">{t("channels") !== "channels" ? t("channels") : "Channels"}</span>
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                               {(roadmap.goToMarketPlan?.channels || []).map((ch: string) => (
                                 <span key={ch} className="text-[10px] px-2 py-0.5 rounded bg-gray-900 border border-[var(--card-border)] text-gray-300">
@@ -519,7 +521,7 @@ export default function RoadmapPage() {
                             </div>
                           </div>
                           <div>
-                            <span className="text-xs font-bold text-gray-400 block">Partnerships</span>
+                            <span className="text-xs font-bold text-gray-400 block">{t("partnerships") !== "partnerships" ? t("partnerships") : "Partnerships"}</span>
                             <div className="flex flex-wrap gap-1.5 mt-1.5">
                               {(roadmap.goToMarketPlan?.partnerships || []).map((pt: string) => (
                                 <span key={pt} className="text-[10px] px-2 py-0.5 rounded bg-gray-900 border border-[var(--card-border)] text-gray-300">
@@ -535,7 +537,7 @@ export default function RoadmapPage() {
                     {/* Key Success Factors */}
                     <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
                       <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">
-                        Venture Critical Success Factors
+                        {t("criticalSuccessFactors") !== "criticalSuccessFactors" ? t("criticalSuccessFactors") : "Venture Critical Success Factors"}
                       </h3>
                       <ul className="space-y-2">
                         {(roadmap.keySuccessFactors || []).map((factor: string, i: number) => (
@@ -563,10 +565,10 @@ export default function RoadmapPage() {
                     <div>
                       <h3 className="text-lg font-bold flex items-center gap-2">
                         <Briefcase className="w-5 h-5 text-[var(--accent)]" />
-                        Hiring Roadmap & Sequence
+                        {t("hiringRoadmapSequence") !== "hiringRoadmapSequence" ? t("hiringRoadmapSequence") : "Hiring Roadmap & Sequence"}
                       </h3>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Roles sorted programmatically by chronological priority and department
+                        {t("hiringRoadmapSub") !== "hiringRoadmapSub" ? t("hiringRoadmapSub") : "Roles sorted programmatically by chronological priority and department"}
                       </p>
                     </div>
 
@@ -586,7 +588,7 @@ export default function RoadmapPage() {
                             <p className="text-xs text-gray-400 leading-relaxed">{role.justification}</p>
                             <p className="text-[10px] text-indigo-400 font-mono mt-1.5 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              Target Onboarding: {role.timeline}
+                              {t("targetOnboarding") !== "targetOnboarding" ? t("targetOnboarding") : "Target Onboarding"}: {role.timeline}
                             </p>
                           </div>
                         </div>
@@ -599,10 +601,10 @@ export default function RoadmapPage() {
                     <div>
                       <h3 className="text-lg font-bold flex items-center gap-2">
                         <DollarSign className="w-5 h-5 text-[var(--accent)]" />
-                        Fundraising Milestones
+                        {t("fundraisingMilestones") !== "fundraisingMilestones" ? t("fundraisingMilestones") : "Fundraising Milestones"}
                       </h3>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Capital requirements mapped across progression stages
+                        {t("fundraisingMilestonesSub") !== "fundraisingMilestonesSub" ? t("fundraisingMilestonesSub") : "Capital requirements mapped across progression stages"}
                       </p>
                     </div>
 
@@ -611,7 +613,7 @@ export default function RoadmapPage() {
                       {/* Stage 1: Bootstrap */}
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-gray-400 block border-b border-[var(--card-border)] pb-1">
-                          1. Bootstrap Stage
+                          {t("bootstrapStage") !== "bootstrapStage" ? t("bootstrapStage") : "1. Bootstrap Stage"}
                         </span>
                         <ul className="space-y-1">
                           {(roadmap.fundraisingRoadmap?.bootstrapStage || []).map((item: string, i: number) => (
@@ -626,7 +628,7 @@ export default function RoadmapPage() {
                       {/* Stage 2: Grants */}
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-emerald-400 block border-b border-[var(--card-border)] pb-1">
-                          2. Grant Options (Non-Dilutive)
+                          {t("grantStage") !== "grantStage" ? t("grantStage") : "2. Grant Options (Non-Dilutive)"}
                         </span>
                         <ul className="space-y-1">
                           {(roadmap.fundraisingRoadmap?.grantStage || []).map((item: string, i: number) => (
@@ -641,7 +643,7 @@ export default function RoadmapPage() {
                       {/* Stage 3: Angel */}
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-cyan-400 block border-b border-[var(--card-border)] pb-1">
-                          3. Angel Stage
+                          {t("angelStage") !== "angelStage" ? t("angelStage") : "3. Angel Stage"}
                         </span>
                         <ul className="space-y-1">
                           {(roadmap.fundraisingRoadmap?.angelStage || []).map((item: string, i: number) => (
@@ -656,7 +658,7 @@ export default function RoadmapPage() {
                       {/* Stage 4: Seed */}
                       <div className="space-y-2">
                         <span className="text-xs font-bold text-indigo-400 block border-b border-[var(--card-border)] pb-1">
-                          4. Venture Seed Capital
+                          {t("seedStage") !== "seedStage" ? t("seedStage") : "4. Venture Seed Capital"}
                         </span>
                         <ul className="space-y-1">
                           {(roadmap.fundraisingRoadmap?.seedStage || []).map((item: string, i: number) => (

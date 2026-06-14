@@ -7,31 +7,34 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "./SidebarContext";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useSession, signOut } from "next-auth/react";
+import { useTranslation } from "@/context/TranslationContext";
 
 interface NavItem {
   href: string;
-  label: string;
+  key: string;
+  defaultLabel: string;
   icon: string;
   badge?: number;
 }
 
 const topNavItems: NavItem[] = [
-  { href: "/dashboard",     label: "Overview",        icon: "⊞" },
+  { href: "/dashboard",     key: "dashboard",   defaultLabel: "Overview",        icon: "⊞" },
 ];
 
 const agentItems: NavItem[] = [
-  { href: "/research",    label: "Market Research", icon: "◎" },
-  { href: "/competitors", label: "Competitors",     icon: "⬡" },
-  { href: "/risks",       label: "Risk Analysis",   icon: "⚠" },
-  { href: "/financials",  label: "Financials",      icon: "◆" },
-  { href: "/pitch",       label: "Pitch Deck",      icon: "✦" },
-  { href: "/roadmap",     label: "Roadmap",         icon: "⟳" },
-  { href: "/validation",  label: "Validation",      icon: "◉" },
+  { href: "/research",    key: "research",    defaultLabel: "Market Research", icon: "◎" },
+  { href: "/competitors", key: "competitors", defaultLabel: "Competitors",     icon: "⬡" },
+  { href: "/risks",       key: "risks",       defaultLabel: "Risk Analysis",   icon: "⚠" },
+  { href: "/financials",  key: "financials",  defaultLabel: "Financials",      icon: "◆" },
+  { href: "/pitch",       key: "pitch",       defaultLabel: "Pitch Deck",      icon: "✦" },
+  { href: "/roadmap",     key: "roadmap",     defaultLabel: "Roadmap",         icon: "⟳" },
+  { href: "/validation",  key: "validation",  defaultLabel: "Validation",      icon: "◉" },
 ];
 
-const settingsItem = { href: "/settings", label: "Settings", icon: "⚙" };
+const settingsItem = { href: "/settings", key: "settings", defaultLabel: "Settings", icon: "⚙" };
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const { expanded, setExpanded } = useSidebar();
@@ -175,7 +178,7 @@ export default function Sidebar() {
           return (
             <Link key={item.href} href={item.href}>
               <motion.div whileHover={{ x: expanded ? 2 : 0 }}
-                title={!expanded ? item.label : undefined}
+                title={!expanded ? (t(item.key) !== item.key ? t(item.key) : item.defaultLabel) : undefined}
                 className={cn(
                   "flex items-center gap-3 mx-2 my-0.5 rounded-lg cursor-pointer transition-colors relative",
                   expanded ? "px-3 py-2" : "justify-center px-0 py-2"
@@ -191,7 +194,7 @@ export default function Sidebar() {
                     <motion.span initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -6 }} transition={{ duration: 0.12 }}
                       className="text-sm font-semibold whitespace-nowrap flex-1">
-                      {item.label}
+                      {t(item.key) !== item.key ? t(item.key) : item.defaultLabel}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -223,13 +226,13 @@ export default function Sidebar() {
               expanded ? "px-3 py-2" : "justify-center px-0 py-2"
             )}
             style={{ color: "var(--foreground)", opacity: 0.7 }}
-            title={!expanded ? "Agents" : undefined}
+            title={!expanded ? t("activeAgents") : undefined}
           >
             <div className="flex items-center gap-3 min-w-0">
               <span className="text-base flex-shrink-0 w-4 text-center">◈</span>
               {expanded && (
                 <span className="text-sm font-semibold whitespace-nowrap flex-1">
-                  Agents
+                  {t("activeAgents")}
                 </span>
               )}
             </div>
@@ -251,11 +254,12 @@ export default function Sidebar() {
               >
                 {agentItems.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                  const label = t(item.key) !== item.key ? t(item.key) : item.defaultLabel;
 
                   if (locked) {
                     return (
                       <div key={item.href}
-                        title={!expanded ? `${item.label} — complete briefing first` : undefined}
+                        title={!expanded ? `${label} — complete briefing first` : undefined}
                         className={cn(
                           "flex items-center gap-3 mx-1 my-0.5 rounded-lg select-none",
                           expanded ? "px-5 py-1.5" : "justify-center px-0 py-1.5"
@@ -266,7 +270,7 @@ export default function Sidebar() {
                         </span>
                         {expanded && (
                           <span className="text-xs font-medium whitespace-nowrap flex-1" style={{ color: "#444" }}>
-                            {item.label}
+                            {label}
                           </span>
                         )}
                       </div>
@@ -289,7 +293,7 @@ export default function Sidebar() {
                         </span>
                         {expanded && (
                           <span className="text-xs font-medium whitespace-nowrap flex-1">
-                            {item.label}
+                            {label}
                           </span>
                         )}
                       </div>
@@ -397,7 +401,7 @@ export default function Sidebar() {
         <div className="mx-2 mt-2 pt-2 border-t" style={{ borderColor: "var(--card-border)" }}>
           <Link href={settingsItem.href}>
             <motion.div whileHover={{ x: expanded ? 2 : 0 }}
-              title={!expanded ? settingsItem.label : undefined}
+              title={!expanded ? (t(settingsItem.key) !== settingsItem.key ? t(settingsItem.key) : settingsItem.defaultLabel) : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg cursor-pointer transition-colors",
                 expanded ? "px-3 py-2" : "justify-center px-0 py-2"
@@ -413,7 +417,7 @@ export default function Sidebar() {
                   <motion.span initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -6 }} transition={{ duration: 0.12 }}
                     className="text-sm font-semibold whitespace-nowrap">
-                    {settingsItem.label}
+                    {t(settingsItem.key) !== settingsItem.key ? t(settingsItem.key) : settingsItem.defaultLabel}
                   </motion.span>
                 )}
               </AnimatePresence>
