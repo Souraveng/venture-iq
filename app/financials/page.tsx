@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import { useTranslation } from "@/context/TranslationContext";
+import { ExportService } from "@/lib/graph/report/engines";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid,
@@ -116,6 +117,47 @@ export default function FinancialsPage() {
       ]
     : fundingBreakdown;
 
+  const handleExportCSV = () => {
+    let csvContent = "Category,Metric/Period,Value/Revenue,Notes/Expenses,Cashflow\n";
+    
+    // Add Key Metrics
+    csvContent += "Key Metrics,Seed Ask," + seedAskValue + "," + (fi?.fundingRequirements?.fundingTimeline || "18-month runway") + "\n";
+    csvContent += "Key Metrics,Break-even," + breakEvenValue + ",MRR crossover\n";
+    csvContent += "Key Metrics,ARR at Year 3," + arrY3Value + ",Expected case\n";
+    csvContent += "Key Metrics,Target Valuation," + valuationValue + ",Post-seed (10x ARR)\n\n";
+
+    // Add Projections Header
+    csvContent += "Projections,Period,Revenue ($K),Expenses ($K),Cashflow ($K)\n";
+    dynamicRevenueData.forEach((row: any) => {
+      csvContent += `Projections,${row.month},${row.revenue},${row.expenses},${row.cashflow}\n`;
+    });
+    csvContent += "\n";
+
+    // Add Unit Economics Header
+    csvContent += "Unit Economics,Metric,Value,Description\n";
+    dynamicUnitEcon.forEach((row: any) => {
+      csvContent += `Unit Economics,${row.metric},${row.value.replace(/,/g, "")},${row.sub}\n`;
+    });
+    csvContent += "\n";
+
+    // Add Allocation Header
+    csvContent += "Capital Allocation,Category,Percentage\n";
+    dynamicFundingBreakdown.forEach((row: any) => {
+      csvContent += `Capital Allocation,${row.name},${row.pct}%\n`;
+    });
+
+    ExportService.downloadTextFile(
+      `${activeProject?.name || "venture"}_financial_projections.csv`,
+      csvContent
+    );
+  };
+
+  const handlePrintPdf = () => {
+    if (typeof window !== "undefined") {
+      window.print();
+    }
+  };
+
   return (
     <ProjectGuard>
     <DashboardLayout>
@@ -138,8 +180,8 @@ export default function FinancialsPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>↓ {t("excel") !== "excel" ? t("excel") : "Excel"}</button>
-            <button className="text-xs px-3 py-2 rounded-lg font-medium" style={{ background: ACC, color: "#0a0a0a" }}>↓ {t("pdfReport") !== "pdfReport" ? t("pdfReport") : "PDF Report"}</button>
+            <button onClick={handleExportCSV} className="text-xs px-3 py-2 rounded-lg" style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>↓ {t("excel") !== "excel" ? t("excel") : "Excel"}</button>
+            <button onClick={handlePrintPdf} className="text-xs px-3 py-2 rounded-lg font-medium" style={{ background: ACC, color: "#0a0a0a" }}>↓ {t("pdfReport") !== "pdfReport" ? t("pdfReport") : "PDF Report"}</button>
           </div>
         </div>
 

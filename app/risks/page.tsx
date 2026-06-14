@@ -193,7 +193,7 @@ export default function RisksPage() {
                 {activeProject?.name || "EV Startup Platform"} · {t("dimensionsEvaluated") !== "dimensionsEvaluated" ? t("dimensionsEvaluated") : "8 dimensions evaluated programmatically"}
               </p>
             </div>
-            <button className="text-xs px-3 py-2 rounded-lg font-medium"
+            <button onClick={() => { if (typeof window !== "undefined") window.print(); }} className="text-xs px-3 py-2 rounded-lg font-medium"
               style={{ background: "var(--accent)", color: "#0a0a0a" }}>
               ↓ {t("exportRiskAssessment") !== "exportRiskAssessment" ? t("exportRiskAssessment") : "Export Risk Assessment"}
             </button>

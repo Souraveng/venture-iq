@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 
 import { useProjectStore } from "@/store/useProjectStore";
+import { ExportService } from "@/lib/graph/report/engines";
 
 const severityStyle: Record<string, { color: string; bg: string }> = {
   high:   { color: "#f87171", bg: "rgba(239,68,68,0.1)"    },
@@ -58,6 +59,17 @@ export default function AuditPage() {
     return matchSearch && matchSev;
   });
 
+  const handleExportCSV = () => {
+    const headers = "Timestamp,User,Action,Target,IP Address,Severity\n";
+    const rows = filtered.map(e => 
+      `"${e.ts}","${e.user}","${e.action}","${e.target}","${e.ip}","${e.severity}"`
+    ).join("\n");
+    ExportService.downloadTextFile(
+      `${activeProject?.name || "venture"}_audit_logs.csv`,
+      headers + rows
+    );
+  };
+
   return (
     <ProjectGuard>
     <DashboardLayout>
@@ -89,7 +101,7 @@ export default function AuditPage() {
               </button>
             ))}
           </div>
-          <button className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+          <button onClick={handleExportCSV} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
             style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>
             ↓ Export CSV
           </button>

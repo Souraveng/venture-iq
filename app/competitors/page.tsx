@@ -117,7 +117,7 @@ export default function CompetitorsPage() {
               {dynamicCompetitors.length} {t("competitorsMapped") !== "competitorsMapped" ? t("competitorsMapped") : "competitors mapped"} · {activeProject?.name || "EV Startup Platform"}
             </p>
           </div>
-          <button className="text-xs px-3 py-2 rounded-lg font-medium"
+          <button onClick={() => { if (typeof window !== "undefined") window.print(); }} className="text-xs px-3 py-2 rounded-lg font-medium"
             style={{ background: "var(--accent)", color: "#0a0a0a" }}>↓ {t("exportReport") !== "exportReport" ? t("exportReport") : "Export Report"}</button>
         </div>
 

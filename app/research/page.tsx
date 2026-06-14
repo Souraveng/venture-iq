@@ -91,7 +91,7 @@ export default function ResearchPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="text-xs px-3 py-2 rounded-lg font-medium"
+            <button onClick={() => { if (typeof window !== "undefined") window.print(); }} className="text-xs px-3 py-2 rounded-lg font-medium"
               style={{ background: "var(--card-bg)", color: "var(--muted-fg)", border: "1px solid var(--card-border)" }}>
               ↓ {t("exportPdf")}
             </button>

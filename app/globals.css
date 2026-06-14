@@ -139,3 +139,37 @@ html.font-hindi textarea,
 html.font-hindi button {
   font-family: 'Noto Sans Devanagari', system-ui, sans-serif !important;
 }
+
+/* Print Media Styles for clean report exports */
+@media print {
+  /* Hide sidebar, header, control buttons, and helper widgets */
+  header, 
+  nav, 
+  aside, 
+  button, 
+  .no-print,
+  .flex-shrink-0 {
+    display: none !important;
+  }
+
+  /* Collapse sidebar margins/paddings and occupy full page width */
+  main,
+  .flex-1 {
+    margin-left: 0 !important;
+    padding: 2rem !important;
+    width: 100% !important;
+  }
+
+  /* Force background graphics and charts to render correctly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Keep dark theme to preserve Recharts chart label visibility */
+  body, html {
+    background: #0a0a0a !important;
+    color: #f0f0f0 !important;
+  }
+}
+
