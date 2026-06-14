@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 
 const checks = [
   { category: "Market Validation",  items: [
@@ -70,16 +71,25 @@ export default function ValidationPage() {
     }
   };
 
-  const analystData = (activeProject?.finalReport?.investmentRecommendation
-    ? activeProject.finalReport
+  const rawFinalReport = activeProject?.finalReport;
+  const translatedFinalReport = useTranslatedReport(activeId, rawFinalReport || null);
+
+  const rawConflicts = activeProject?.conflicts;
+  const translatedConflicts = useTranslatedReport(activeId, rawConflicts || null);
+
+  const rawReliability = activeProject?.reliability;
+  const translatedReliability = useTranslatedReport(activeId, rawReliability || null);
+
+  const analystData = (translatedFinalReport?.investmentRecommendation
+    ? translatedFinalReport
     : fallbackAnalystReport) as any;
 
-  const marketSize = activeProject?.finalReport?.marketAttractiveness?.overallScore ?? Math.min(100, Math.round(baseReadiness * 1.15));
-  const competition = activeProject?.finalReport?.moatAnalysis?.moatStrengthScore ?? Math.min(100, Math.round(baseReadiness * 0.95));
-  const teamReadiness = activeProject?.finalReport?.ventureReadiness?.executionReadinessScore ?? Math.min(100, Math.round(baseReadiness * 1.05));
-  const financialViability = activeProject?.finalReport?.ventureReadiness?.financialReadinessScore ?? Math.min(100, Math.round(baseReadiness * 1.02));
-  const legalCompliance = activeProject?.finalReport?.ventureReadiness?.fundraisingReadinessScore ?? Math.max(0, Math.round(baseReadiness * 0.85));
-  const executionRisk = activeProject?.finalReport?.ventureReadiness?.customerValidationScore ?? Math.max(0, Math.round(100 - baseReadiness * 0.8));
+  const marketSize = translatedFinalReport?.marketAttractiveness?.overallScore ?? Math.min(100, Math.round(baseReadiness * 1.15));
+  const competition = translatedFinalReport?.moatAnalysis?.moatStrengthScore ?? Math.min(100, Math.round(baseReadiness * 0.95));
+  const teamReadiness = translatedFinalReport?.ventureReadiness?.executionReadinessScore ?? Math.min(100, Math.round(baseReadiness * 1.05));
+  const financialViability = translatedFinalReport?.ventureReadiness?.financialReadinessScore ?? Math.min(100, Math.round(baseReadiness * 1.02));
+  const legalCompliance = translatedFinalReport?.ventureReadiness?.fundraisingReadinessScore ?? Math.max(0, Math.round(baseReadiness * 0.85));
+  const executionRisk = translatedFinalReport?.ventureReadiness?.customerValidationScore ?? Math.max(0, Math.round(100 - baseReadiness * 0.8));
 
   const scores = [
     { dimension: "Market Size",       score: marketSize, max: 100, color: "#daf264", insight: "Evaluated from live market size and growth analysis" },
@@ -291,13 +301,13 @@ export default function ValidationPage() {
         </div>
 
         {/* Data Conflicts */}
-        {activeProject?.conflicts && Array.isArray(activeProject.conflicts) && activeProject.conflicts.length > 0 && (
+        {translatedConflicts && Array.isArray(translatedConflicts) && translatedConflicts.length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "rgba(245,158,11,0.03)", border: "1px solid rgba(245,158,11,0.15)" }}>
             <h3 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <span>⚡</span> Data Conflicts ({activeProject.conflicts.length})
+              <span>⚡</span> Data Conflicts ({translatedConflicts.length})
             </h3>
             <ul className="space-y-2">
-              {activeProject.conflicts.map((c: any, i: number) => (
+              {translatedConflicts.map((c: any, i: number) => (
                 <li key={i} className="text-xs text-white leading-relaxed flex items-start gap-2">
                   <span className="text-yellow-400 mt-0.5 flex-shrink-0">•</span>
                   <span>{c && typeof c === 'object' ? (c.description || c.claim || JSON.stringify(c)) : String(c)}</span>
@@ -308,11 +318,11 @@ export default function ValidationPage() {
         )}
 
         {/* Source Reliability */}
-        {activeProject?.reliability && typeof activeProject.reliability === "object" && !Array.isArray(activeProject.reliability) && Object.keys(activeProject.reliability).length > 0 && (
+        {translatedReliability && typeof translatedReliability === "object" && !Array.isArray(translatedReliability) && Object.keys(translatedReliability).length > 0 && (
           <div className="rounded-xl p-5" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
             <h3 className="text-sm font-semibold text-white mb-3">Source Reliability</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {Object.entries(activeProject.reliability).map(([key, val]: [string, any]) => (
+              {Object.entries(translatedReliability).map(([key, val]: [string, any]) => (
                 <div key={key} className="text-center p-3 rounded-lg" style={{ background: "var(--background)", border: "1px solid var(--card-border)" }}>
                   <p className="text-lg font-bold" style={{ color: typeof val === 'number' && val >= 0.8 ? "#daf264" : typeof val === 'number' && val >= 0.6 ? "#fbbf24" : "#f87171" }}>
                     {typeof val === 'number' ? `${Math.round(val * 100)}%` : String(val)}

@@ -3,6 +3,7 @@ import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell,
@@ -32,7 +33,27 @@ const ACC = "#daf264";
 
 export default function ResearchPage() {
   const { projects, activeId } = useProjectStore();
-  const activeProject = projects.find((p) => p.id === activeId);
+  const rawActiveProject = projects.find((p) => p.id === activeId);
+  
+  const rawMarketIntel = rawActiveProject?.marketIntel;
+  const translatedMarketIntel = useTranslatedReport(activeId, rawMarketIntel || null);
+  
+  const rawFinalReport = rawActiveProject?.finalReport;
+  const translatedFinalReport = useTranslatedReport(activeId, rawFinalReport || null);
+  
+  const rawResearchPlan = rawActiveProject?.researchPlan;
+  const translatedResearchPlan = useTranslatedReport(activeId, rawResearchPlan || null);
+  
+  const rawEvidence = rawActiveProject?.evidence;
+  const translatedEvidence = useTranslatedReport(activeId, rawEvidence || null);
+
+  const activeProject = rawActiveProject ? {
+    ...rawActiveProject,
+    marketIntel: translatedMarketIntel || rawActiveProject.marketIntel,
+    finalReport: translatedFinalReport || rawActiveProject.finalReport,
+    researchPlan: translatedResearchPlan || rawActiveProject.researchPlan,
+    evidence: translatedEvidence || rawActiveProject.evidence
+  } : undefined;
 
   const formatMarketValue = (val: any): string => {
     if (!val) return "";

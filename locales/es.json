@@ -1,0 +1,16 @@
+{
+  "dashboard": "Panel de Control",
+  "financials": "Análisis Financiero",
+  "roadmap": "Ruta de Ejecución",
+  "settings": "Configuración",
+  "competitors": "Competidores",
+  "validation": "Validación de Mercado",
+  "risks": "Matriz de Riesgos",
+  "research": "Investigación",
+  "pitch": "Pitch Deck",
+  "activeAgents": "Agentes de Inteligencia Activos",
+  "score": "Puntuación de Proyecto",
+  "generate": "Generar Reporte",
+  "confidence": "Nivel de Confianza",
+  "logout": "Cerrar sesión"
+}

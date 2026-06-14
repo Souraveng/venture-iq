@@ -4,14 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const languages = [
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "ja", label: "日本語", flag: "🇯🇵" },
-];
+import { useTranslation, languages } from "@/context/TranslationContext";
 
 export default function Header() {
   const router = useRouter();
@@ -21,8 +14,8 @@ export default function Header() {
   // Theme state
   const [theme, setTheme] = useState("dark");
 
-  // Language state
-  const [lang, setLang] = useState("en");
+  // Language state from global context
+  const { lang, setLang, t } = useTranslation();
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const langDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -60,9 +53,8 @@ export default function Header() {
               localStorage.setItem("theme", p.theme);
               document.documentElement.setAttribute("data-theme", p.theme);
             }
-            if (p.language) {
+            if (p.language && p.language !== lang) {
               setLang(p.language);
-              localStorage.setItem("lang", p.language);
             }
           }
         }
@@ -73,15 +65,13 @@ export default function Header() {
     fetchUser();
     window.addEventListener("focus", fetchUser);
     return () => window.removeEventListener("focus", fetchUser);
-  }, [session]);
+  }, [session, lang, setLang]);
 
-  // Load theme + lang from localStorage on mount
+  // Load theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
     document.documentElement.setAttribute("data-theme", savedTheme);
-    const savedLang = localStorage.getItem("lang") || "en";
-    setLang(savedLang);
   }, []);
 
   // Close dropdowns on outside click
@@ -108,9 +98,7 @@ export default function Header() {
 
   const selectLanguage = (code: string) => {
     setLang(code);
-    localStorage.setItem("lang", code);
     setShowLangDropdown(false);
-    syncPreferenceToDb({ language: code });
   };
 
   const handleSignOut = async () => {
@@ -308,9 +296,9 @@ export default function Header() {
                 {/* Navigation links */}
                 <div className="p-1.5 space-y-0.5">
                   {[
-                    { href: "/dashboard",     icon: "⊞",  label: "Dashboard"          },
-                    { href: "/settings",      icon: "⚙",  label: "Settings & Profile"  },
-                    { href: "/notifications", icon: "🔔", label: "Notifications"       },
+                    { href: "/dashboard",     icon: "⊞",  key: "dashboard",     defaultLabel: "Dashboard"          },
+                    { href: "/settings",      icon: "⚙",  key: "settings",      defaultLabel: "Settings & Profile"  },
+                    { href: "/notifications", icon: "🔔", key: "notifications", defaultLabel: "Notifications"       },
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -320,7 +308,7 @@ export default function Header() {
                       style={{ color: "var(--foreground)" }}
                     >
                       <span className="w-5 text-center text-base" style={{ opacity: 0.7 }}>{item.icon}</span>
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-medium">{t(item.key) !== item.key ? t(item.key) : item.defaultLabel}</span>
                     </Link>
                   ))}
                 </div>
@@ -351,7 +339,7 @@ export default function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round"
                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
-                        <span>Sign out</span>
+                        <span>{t("logout")}</span>
                       </>
                     )}
                   </button>

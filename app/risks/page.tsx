@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 
 const defaultRiskIntel = {
   marketRisk: {
@@ -142,8 +143,11 @@ export default function RisksPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
-  const report = activeProject?.riskIntel && Object.keys(activeProject.riskIntel).length > 0
-    ? activeProject.riskIntel
+  const rawRiskIntel = activeProject?.riskIntel;
+  const translatedRiskIntel = useTranslatedReport(activeId, rawRiskIntel || null);
+
+  const report = translatedRiskIntel && Object.keys(translatedRiskIntel).length > 0
+    ? translatedRiskIntel
     : defaultRiskIntel;
 
   const overall = report.overallRiskIndex || defaultRiskIntel.overallRiskIndex;

@@ -3,6 +3,7 @@ import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid,
@@ -47,7 +48,8 @@ export default function FinancialsPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
-  const fi = activeProject?.financialIntel;
+  const rawFi = activeProject?.financialIntel;
+  const fi = useTranslatedReport(activeId, rawFi || null);
   const hasFinanceData = !!fi?.projection;
 
   // Formatting helpers

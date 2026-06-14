@@ -1,0 +1,16 @@
+{
+  "dashboard": "Dashboard",
+  "financials": "Financial analysis",
+  "roadmap": "Roadmap",
+  "settings": "Settings",
+  "competitors": "Competitors",
+  "validation": "Market validation",
+  "risks": "Risks analysis",
+  "research": "Research",
+  "pitch": "Pitch deck",
+  "activeAgents": "Active intelligence agents",
+  "score": "Venture score",
+  "generate": "Report generate karein",
+  "confidence": "Confidence level",
+  "logout": "Logout"
+}

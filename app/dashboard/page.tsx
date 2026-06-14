@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 
 const suggestions = [
   "An AI-powered hiring platform for remote teams",
@@ -105,7 +106,26 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 
 export default function DashboardPage() {
   const { projects, activeId, updateProject, addNotification, addAuditEntry, addProject } = useProjectStore();
-  const activeProject = projects.find((p) => p.id === activeId);
+  const rawActiveProject = projects.find((p) => p.id === activeId);
+
+  const translatedSwotIntel = useTranslatedReport(activeId, rawActiveProject?.swotIntel || null);
+  const translatedCompetitorIntel = useTranslatedReport(activeId, rawActiveProject?.competitorIntel || null);
+  const translatedFinancialIntel = useTranslatedReport(activeId, rawActiveProject?.financialIntel || null);
+  const translatedRiskIntel = useTranslatedReport(activeId, rawActiveProject?.riskIntel || null);
+  const translatedRoadmapIntel = useTranslatedReport(activeId, rawActiveProject?.roadmapIntel || null);
+  const translatedReportIntel = useTranslatedReport(activeId, rawActiveProject?.reportIntel || null);
+  const translatedFinalReport = useTranslatedReport(activeId, rawActiveProject?.finalReport || null);
+
+  const activeProject = rawActiveProject ? {
+    ...rawActiveProject,
+    swotIntel: translatedSwotIntel || rawActiveProject.swotIntel,
+    competitorIntel: translatedCompetitorIntel || rawActiveProject.competitorIntel,
+    financialIntel: translatedFinancialIntel || rawActiveProject.financialIntel,
+    riskIntel: translatedRiskIntel || rawActiveProject.riskIntel,
+    roadmapIntel: translatedRoadmapIntel || rawActiveProject.roadmapIntel,
+    reportIntel: translatedReportIntel || rawActiveProject.reportIntel,
+    finalReport: translatedFinalReport || rawActiveProject.finalReport
+  } : undefined;
 
   const formatMarketValue = (val: any): string => {
     if (!val) return "";

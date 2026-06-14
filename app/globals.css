@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@600;800&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -127,3 +127,15 @@ html, body {
 .animate-float    { animation: float 3s ease-in-out infinite; }
 .animate-spin-slow{ animation: spin-slow 8s linear infinite; }
 .flow-line        { animation: flow-line 1.2s linear infinite; }
+
+/* Custom Font classes for multilingual support */
+html.font-hindi body {
+  font-family: 'Noto Sans Devanagari', 'Inter', system-ui, sans-serif !important;
+  line-height: 1.62 !important; /* Slightly increased line height prevents vowel clipping (matras) */
+}
+
+html.font-hindi input, 
+html.font-hindi textarea, 
+html.font-hindi button {
+  font-family: 'Noto Sans Devanagari', system-ui, sans-serif !important;
+}

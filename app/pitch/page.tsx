@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import { MOCK_REPORTS_CONTAINER } from "@/lib/graph/report/examples";
 import { ExportService, TemplateEngine } from "@/lib/graph/report/engines";
 
@@ -81,8 +82,11 @@ export default function PitchPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
+  const rawReportIntel = activeProject?.reportIntel;
+  const translatedReportIntel = useTranslatedReport(activeId, rawReportIntel || null);
+  
   // Fallback to MOCK_REPORTS_CONTAINER if reportIntel is missing
-  const reports = activeProject?.reportIntel && typeof activeProject.reportIntel === 'object' ? activeProject.reportIntel : MOCK_REPORTS_CONTAINER;
+  const reports = translatedReportIntel && typeof translatedReportIntel === 'object' ? translatedReportIntel : MOCK_REPORTS_CONTAINER;
   const dynamicSlides = Array.isArray(reports?.pitchDeck) ? reports.pitchDeck : MOCK_REPORTS_CONTAINER.pitchDeck;
 
   const [activeTab, setActiveTab] = useState<"deck" | "reports">("deck");

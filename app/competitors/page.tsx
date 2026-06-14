@@ -3,6 +3,7 @@ import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 
 const competitors = [
   { name: "Ather Energy",     type: "Direct",   funding: "$380M", stage: "Series E", market: "India",         pricing: "$1,200/yr", threat: 90, strengths: ["Brand", "Hardware+SW", "Network"],     weaknesses: ["Closed ecosystem", "High price"] },
@@ -50,9 +51,15 @@ export default function CompetitorsPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
+  const rawSwotIntel = activeProject?.swotIntel;
+  const translatedSwotIntel = useTranslatedReport(activeId, rawSwotIntel || null);
+  
+  const rawCompetitorIntel = activeProject?.competitorIntel;
+  const translatedCompetitorIntel = useTranslatedReport(activeId, rawCompetitorIntel || null);
+
   // Prefer swotIntel from dedicated SWOT agent → marketIntel.swot fallback → static
-  const swotSource = activeProject?.swotIntel && typeof activeProject.swotIntel === "object" && !Array.isArray(activeProject.swotIntel) && Object.keys(activeProject.swotIntel).length > 0
-    ? activeProject.swotIntel
+  const swotSource = translatedSwotIntel && typeof translatedSwotIntel === "object" && !Array.isArray(translatedSwotIntel) && Object.keys(translatedSwotIntel).length > 0
+    ? translatedSwotIntel
     : (activeProject?.marketIntel?.swot && typeof activeProject.marketIntel.swot === "object" && !Array.isArray(activeProject.marketIntel.swot) ? activeProject.marketIntel.swot : null);
 
   const dynamicSwot = swotSource ? {
@@ -62,8 +69,8 @@ export default function CompetitorsPage() {
     Threats: Array.isArray(swotSource.threats) ? swotSource.threats : [],
   } : swotData;
 
-  const dynamicCompetitors = Array.isArray(activeProject?.competitorIntel?.competitorProfiles)
-    ? activeProject.competitorIntel.competitorProfiles.map((c: any) => {
+  const dynamicCompetitors = Array.isArray(translatedCompetitorIntel?.competitorProfiles)
+    ? translatedCompetitorIntel.competitorProfiles.map((c: any) => {
         if (!c || typeof c !== "object") return null;
         return {
           name: c.name || "Unknown Competitor",

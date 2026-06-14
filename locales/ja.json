@@ -1,0 +1,16 @@
+{
+  "dashboard": "ダッシュボード",
+  "financials": "財務分析",
+  "roadmap": "ロードマップ",
+  "settings": "設定",
+  "competitors": "競合分析",
+  "validation": "市場検証",
+  "risks": "リスク管理",
+  "research": "リサーチ",
+  "pitch": "ピッチデック",
+  "activeAgents": "アクティブインテリジェンスエージェント",
+  "score": "事業スコア",
+  "generate": "レポート生成",
+  "confidence": "信頼水準",
+  "logout": "ログアウト"
+}

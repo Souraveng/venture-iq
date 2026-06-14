@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import StoreSync from "@/components/StoreSync";
 import AuthProvider from "@/components/AuthProvider";
+import { TranslationProvider } from "@/context/TranslationContext";
 
 export const metadata: Metadata = {
   title: "VentureIQ — AI Venture Intelligence & Validation",
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AuthProvider>
-          <StoreSync />
-          {children}
+          <TranslationProvider>
+            <StoreSync />
+            {children}
+          </TranslationProvider>
         </AuthProvider>
       </body>
     </html>

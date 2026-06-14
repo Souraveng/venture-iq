@@ -1,0 +1,16 @@
+{
+  "dashboard": "Übersicht",
+  "financials": "Finanzanalyse",
+  "roadmap": "Fahrplan",
+  "settings": "Einstellungen",
+  "competitors": "Wettbewerber",
+  "validation": "Marktvalidierung",
+  "risks": "Risikoanalyse",
+  "research": "Recherche",
+  "pitch": "Pitch Deck",
+  "activeAgents": "Aktive KI-Agenten",
+  "score": "Venture Score",
+  "generate": "Bericht erstellen",
+  "confidence": "Vertrauensniveau",
+  "logout": "Abmelden"
+}

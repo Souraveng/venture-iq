@@ -1,0 +1,16 @@
+{
+  "dashboard": "Tableau de Bord",
+  "financials": "Données Financières",
+  "roadmap": "Plan d'Exécution",
+  "settings": "Paramètres",
+  "competitors": "Concurrents",
+  "validation": "Validation de Marché",
+  "risks": "Gestion des Risques",
+  "research": "Recherche",
+  "pitch": "Présentation Pitch",
+  "activeAgents": "Agents d'Intelligence Actifs",
+  "score": "Score de l'Entreprise",
+  "generate": "Générer le Rapport",
+  "confidence": "Niveau de Confianza",
+  "logout": "Se déconnecter"
+}

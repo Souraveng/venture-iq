@@ -1,0 +1,16 @@
+{
+  "dashboard": "Dashboard",
+  "financials": "Financials",
+  "roadmap": "Roadmap",
+  "settings": "Settings",
+  "competitors": "Competitors",
+  "validation": "Validation",
+  "risks": "Risks",
+  "research": "Research",
+  "pitch": "Pitch",
+  "activeAgents": "Active Intelligence Agents",
+  "score": "Venture Score",
+  "generate": "Generate Report",
+  "confidence": "Confidence Level",
+  "logout": "Logout"
+}

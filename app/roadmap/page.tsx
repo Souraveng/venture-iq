@@ -5,6 +5,7 @@ import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
+import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import { MOCK_ROADMAP_REPORT } from "@/lib/graph/roadmap/examples";
 import { TimelineAlignmentEngine } from "@/lib/graph/roadmap/engines";
 import { 
@@ -25,7 +26,9 @@ export default function RoadmapPage() {
   const { projects, activeId } = useProjectStore();
   const activeProject = projects.find((p) => p.id === activeId);
 
-  const roadmap = activeProject?.roadmapIntel || MOCK_ROADMAP_REPORT;
+  const rawRoadmap = activeProject?.roadmapIntel;
+  const translatedRoadmap = useTranslatedReport(activeId, rawRoadmap || null);
+  const roadmap = translatedRoadmap || MOCK_ROADMAP_REPORT;
   const [activeTab, setActiveTab] = useState<"timeline" | "priority" | "blueprints" | "resources">("timeline");
 
   // Map milestones to 5-Phase Timeline

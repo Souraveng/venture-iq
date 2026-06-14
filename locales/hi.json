@@ -1,0 +1,16 @@
+{
+  "dashboard": "डैशबोर्ड",
+  "financials": "वित्तीय विश्लेषण",
+  "roadmap": "रोडमैप",
+  "settings": "सेटिंग्स",
+  "competitors": "प्रतिद्वंदी",
+  "validation": "बाज़ार सत्यापन",
+  "risks": "जोखिम प्रबंधन",
+  "research": "अनुसंधान",
+  "pitch": "पिच डेक",
+  "activeAgents": "सक्रिय खुफिया एजेंट",
+  "score": "उद्यम स्कोर",
+  "generate": "रिपोर्ट तैयार करें",
+  "confidence": "विश्वास का स्तर",
+  "logout": "लॉग आउट"
+}
