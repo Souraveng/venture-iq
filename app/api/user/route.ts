@@ -16,6 +16,7 @@ export async function GET() {
         email: session.user.email,
         name: session.user.name || "",
         image: session.user.image || "",
+        tier: "free",
       });
     }
 
@@ -33,13 +34,13 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, image, preferences } = await req.json();
+    const { name, image, preferences, tier } = await req.json();
     
     const dbUser = await getUser(session.user.email);
     const finalName = name !== undefined ? name : (dbUser?.name || session.user.name || "Founder");
     const finalImage = image !== undefined ? image : (dbUser?.image || session.user.image || "");
 
-    await updateUser(session.user.email, finalName, finalImage, preferences);
+    await updateUser(session.user.email, finalName, finalImage, preferences, tier);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("PUT user profile error:", error);

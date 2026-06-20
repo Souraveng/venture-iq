@@ -1,6 +1,7 @@
 "use client";
 import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
+import PremiumGate from "@/components/PremiumGate";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
@@ -97,7 +98,19 @@ export default function PitchPage() {
   const [activeReportKey, setActiveReportKey] = useState<string>("executiveSummary");
 
   const activeTheme = styleMap[styleMode];
-  const slide = dynamicSlides[activeSlideIdx] || dynamicSlides[0];
+  const activeSlide = ((dynamicSlides && dynamicSlides.length > 0)
+    ? (dynamicSlides[activeSlideIdx] || dynamicSlides[0])
+    : null) || {};
+
+  const slide = {
+    slideNumber: activeSlide.slideNumber ?? (activeSlideIdx + 1),
+    title: activeSlide.title ?? `Slide ${activeSlideIdx + 1}`,
+    headline: activeSlide.headline ?? "Project Deck Loading...",
+    points: Array.isArray(activeSlide.points) ? activeSlide.points : ["No slide content available"],
+    stats: Array.isArray(activeSlide.stats) ? activeSlide.stats : [],
+    models: Array.isArray(activeSlide.models) ? activeSlide.models : [],
+    members: Array.isArray(activeSlide.members) ? activeSlide.members : []
+  };
 
   // Map of accessible reports for display
   const reportsMeta = [
@@ -172,7 +185,8 @@ export default function PitchPage() {
   return (
     <ProjectGuard>
       <DashboardLayout>
-        {/* Style injection for browser printing */}
+        <PremiumGate>
+          {/* Style injection for browser printing */}
         <style jsx global>{`
           @media print {
             body {
@@ -275,17 +289,17 @@ export default function PitchPage() {
                 {/* Thumbnails Sidebar */}
                 <div className="space-y-1.5 overflow-y-auto pr-2" style={{ maxHeight: 580 }}>
                   {dynamicSlides.map((s: any, i: number) => (
-                    <button key={s.slideNumber} onClick={() => setActiveSlideIdx(i)}
+                    <button key={s?.slideNumber || i} onClick={() => setActiveSlideIdx(i)}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all"
                       style={{
                         background: activeSlideIdx === i ? "rgba(218, 242, 100, 0.08)" : "var(--card-bg)",
                         border: activeSlideIdx === i ? "1px solid rgba(218, 242, 100, 0.3)" : "1px solid var(--card-border)",
                       }}>
                       <span className="text-base w-5 flex-shrink-0" style={{ color: activeSlideIdx === i ? "var(--accent)" : "#555" }}>
-                        {getIcon(s.slideNumber, s.title)}
+                        {getIcon(s?.slideNumber || (i + 1), s?.title || "")}
                       </span>
                       <span className="text-xs font-medium" style={{ color: activeSlideIdx === i ? "white" : "#888" }}>
-                        {s.slideNumber}. {s.title}
+                        {s?.slideNumber || (i + 1)}. {s?.title || `Slide ${i + 1}`}
                       </span>
                     </button>
                   ))}
@@ -640,6 +654,7 @@ export default function PitchPage() {
             </div>
           ))}
         </div>
+        </PremiumGate>
       </DashboardLayout>
     </ProjectGuard>
   );

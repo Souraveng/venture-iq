@@ -36,10 +36,14 @@ async function queryCloudflareEmbedding(text: string, apiToken: string, accountI
 
 export class EmbeddingService {
   private cache: Map<string, number[]>;
+  private static cloudflareExhausted = false;
   
-  // Explicit embedding model and version to handle model updates
-  public readonly modelName = "gemini-embedding-2";
-  public readonly version = "gemini-embedding-2-v1";
+  // BUG-16 FIX: "gemini-embedding-2" is not a valid Google API model name.
+  // "text-embedding-004" is the correct current model and outputs 768 dims by default,
+  // matching the Cloudflare bge-base-en-v1.5 output dimension.
+  public readonly modelName = "text-embedding-004";
+  // BUG-9 FIX: Target dimension for all embeddings. Both Cloudflare bge-base-en-v1.5
+  // and Google text-embedding-004 default to 768. Any mismatch is normalized below.
   public readonly dimensions = 768;
 
   constructor() {
@@ -60,12 +64,12 @@ export class EmbeddingService {
     // 2. Resolve API key dynamically from request storage or env
     const keys = apiKeyStorage.getStore();
     const userKey = typeof keys === "object" ? keys?.geminiApiKey : keys;
-    const apiKey = userKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "";
+    const apiKey = (userKey || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "").trim();
 
     const userCfToken = typeof keys === "object" ? keys?.cloudflareApiToken : undefined;
     const userCfAccount = typeof keys === "object" ? keys?.cloudflareAccountId : undefined;
-    const cfToken = userCfToken || process.env.CLOUDFLARE_API || "";
-    const cfAccount = userCfAccount || process.env.CLOUDFLARE_ACCOUNT_ID || "";
+    const cfToken = (userCfToken || process.env.CLOUDFLARE_API || "").trim();
+    const cfAccount = (userCfAccount || process.env.CLOUDFLARE_ACCOUNT_ID || "").trim();
 
     // 3. Fallback mock vector if API Key is placeholder (e.g., during Next.js build time)
     if (!cfToken && !apiKey) {
@@ -83,10 +87,23 @@ export class EmbeddingService {
       try {
         let embeddings: number[] | null = null;
         
-        if (cfToken && cfAccount) {
+        if (cfToken && cfAccount && !EmbeddingService.cloudflareExhausted) {
           console.log(`[Embedding] Querying Cloudflare Workers AI embedding for "${text.substring(0, 40)}..."`);
-          embeddings = await queryCloudflareEmbedding(normalizedText, cfToken, cfAccount);
-        } else if (apiKey && apiKey !== "placeholder-key-for-build") {
+          try {
+            embeddings = await queryCloudflareEmbedding(normalizedText, cfToken, cfAccount);
+          } catch (cfErr: any) {
+            const errLower = (cfErr.message || "").toLowerCase();
+            if (errLower.includes("429") || errLower.includes("neurons") || errLower.includes("allocation") || errLower.includes("limit")) {
+              console.warn("[Embedding] Cloudflare quota exhausted. Permanently switching to Google Embeddings for this session.");
+              EmbeddingService.cloudflareExhausted = true;
+              // Do NOT re-throw on quota errors — fall through to Google embedding block on same attempt
+            } else {
+              throw cfErr; // Re-throw non-quota errors (auth, network, etc.)
+            }
+          }
+        }
+        
+        if (!embeddings && apiKey && apiKey !== "placeholder-key-for-build") {
           console.log(`[Embedding] Querying Google Generative AI embedding for "${text.substring(0, 40)}..."`);
           const dynamicClient = new GoogleGenerativeAIEmbeddings({
             modelName: this.modelName,
@@ -96,14 +113,27 @@ export class EmbeddingService {
         }
 
         if (embeddings && embeddings.length > 0) {
-          // Verify dimension correctness
-          if (embeddings.length === this.dimensions) {
-            this.cache.set(normalizedText, embeddings);
-            return embeddings;
+          // BUG-9 FIX: Previously, any dimension mismatch caused the code to fall through
+          // to `throw new Error("Empty embedding...")` which triggered retries and ultimately
+          // the Math.sin() fallback, making RAG completely useless.
+          // Now: if the vector is valid but wrong size, normalize it rather than discarding it.
+          let finalEmbedding = embeddings;
+          if (embeddings.length !== this.dimensions) {
+            console.warn(
+              `[Embedding] Dimension mismatch: got ${embeddings.length}, expected ${this.dimensions}. Normalizing vector.`
+            );
+            if (embeddings.length > this.dimensions) {
+              // Truncate to target dimensions
+              finalEmbedding = embeddings.slice(0, this.dimensions);
+            } else {
+              // Pad with zeros to reach target dimensions
+              finalEmbedding = [...embeddings, ...new Array(this.dimensions - embeddings.length).fill(0)];
+            }
           }
-          console.warn(`Embedding returned incorrect dimension: ${embeddings.length}. Expected ${this.dimensions}.`);
+          this.cache.set(normalizedText, finalEmbedding);
+          return finalEmbedding;
         }
-        throw new Error("Empty embedding returned from provider");
+        throw new Error("Empty or null embedding returned from provider");
       } catch (err: any) {
         const errMsg = err.message || "";
         const lowerMsg = errMsg.toLowerCase();

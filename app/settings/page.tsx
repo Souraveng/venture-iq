@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [profileName, setProfileName] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
+  const [userTier, setUserTier] = useState<"free" | "premium">("free");
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileUpdating, setProfileUpdating] = useState(false);
   const [profileUpdateStatus, setProfileUpdateStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -51,6 +52,14 @@ export default function SettingsPage() {
   const [geminiKey, setGeminiKey] = useState("");
   const [cloudflareToken, setCloudflareToken] = useState("");
   const [cloudflareAccount, setCloudflareAccount] = useState("");
+  const [cloudflareToken1, setCloudflareToken1] = useState("");
+  const [cloudflareAccount1, setCloudflareAccount1] = useState("");
+  const [cloudflareToken2, setCloudflareToken2] = useState("");
+  const [cloudflareAccount2, setCloudflareAccount2] = useState("");
+  const [cloudflareToken3, setCloudflareToken3] = useState("");
+  const [cloudflareAccount3, setCloudflareAccount3] = useState("");
+  const [cloudflareToken4, setCloudflareToken4] = useState("");
+  const [cloudflareAccount4, setCloudflareAccount4] = useState("");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   // Load profile data
@@ -63,6 +72,7 @@ export default function SettingsPage() {
           setProfileName(data.name || "");
           setProfileImage(data.image || "");
           setProfileEmail(data.email || "");
+          setUserTier(data.tier || "free");
         }
       } catch (err) {
         console.error("Error loading profile:", err);
@@ -72,6 +82,21 @@ export default function SettingsPage() {
     }
     loadProfile();
   }, []);
+
+  async function handleUpdateTier(newTier: "free" | "premium") {
+    try {
+      const res = await fetch("/api/user", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier: newTier }),
+      });
+      if (res.ok) {
+        setUserTier(newTier);
+      }
+    } catch (e) {
+      console.error("Failed to update user tier:", e);
+    }
+  }
 
   async function handleSaveProfile() {
     setProfileUpdating(true);
@@ -121,6 +146,14 @@ export default function SettingsPage() {
       setGeminiKey(localStorage.getItem("gemini_api_key") || "");
       setCloudflareToken(localStorage.getItem("cloudflare_api_token") || "");
       setCloudflareAccount(localStorage.getItem("cloudflare_account_id") || "");
+      setCloudflareToken1(localStorage.getItem("cloudflare_api_token_1") || "");
+      setCloudflareAccount1(localStorage.getItem("cloudflare_account_id_1") || "");
+      setCloudflareToken2(localStorage.getItem("cloudflare_api_token_2") || "");
+      setCloudflareAccount2(localStorage.getItem("cloudflare_account_id_2") || "");
+      setCloudflareToken3(localStorage.getItem("cloudflare_api_token_3") || "");
+      setCloudflareAccount3(localStorage.getItem("cloudflare_account_id_3") || "");
+      setCloudflareToken4(localStorage.getItem("cloudflare_api_token_4") || "");
+      setCloudflareAccount4(localStorage.getItem("cloudflare_account_id_4") || "");
     }
   }, []);
 
@@ -133,7 +166,15 @@ export default function SettingsPage() {
         body: JSON.stringify({ 
           geminiApiKey: geminiKey,
           cloudflareApiToken: cloudflareToken,
-          cloudflareAccountId: cloudflareAccount
+          cloudflareAccountId: cloudflareAccount,
+          cloudflareApiToken1: cloudflareToken1,
+          cloudflareAccountId1: cloudflareAccount1,
+          cloudflareApiToken2: cloudflareToken2,
+          cloudflareAccountId2: cloudflareAccount2,
+          cloudflareApiToken3: cloudflareToken3,
+          cloudflareAccountId3: cloudflareAccount3,
+          cloudflareApiToken4: cloudflareToken4,
+          cloudflareAccountId4: cloudflareAccount4,
         }),
       });
 
@@ -142,6 +183,14 @@ export default function SettingsPage() {
       localStorage.setItem("gemini_api_key", geminiKey);
       localStorage.setItem("cloudflare_api_token", cloudflareToken);
       localStorage.setItem("cloudflare_account_id", cloudflareAccount);
+      localStorage.setItem("cloudflare_api_token_1", cloudflareToken1);
+      localStorage.setItem("cloudflare_account_id_1", cloudflareAccount1);
+      localStorage.setItem("cloudflare_api_token_2", cloudflareToken2);
+      localStorage.setItem("cloudflare_account_id_2", cloudflareAccount2);
+      localStorage.setItem("cloudflare_api_token_3", cloudflareToken3);
+      localStorage.setItem("cloudflare_account_id_3", cloudflareAccount3);
+      localStorage.setItem("cloudflare_api_token_4", cloudflareToken4);
+      localStorage.setItem("cloudflare_account_id_4", cloudflareAccount4);
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
@@ -387,25 +436,32 @@ export default function SettingsPage() {
               <div className="rounded-xl p-5 space-y-4" style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold">{t("proPlan")}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{t("proPlanDesc")}</p>
+                    <p className="font-semibold text-white">
+                      {userTier === "premium" ? "Premium Tier (Tier 2)" : "Free Tier (Tier 1)"}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {userTier === "premium" 
+                        ? "You have access to all 15 agents, vector retrieve loops, and advanced due diligence report pages."
+                        : "You have access to the basic 11-agent pipeline. Upgrade to unlock all features."}
+                    </p>
                   </div>
-                  <span className="text-xs px-2.5 py-1 rounded-full font-medium"
-                    style={{ background: "rgba(16,185,129,0.1)", color: "#34d399" }}>{t("active")}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0"
+                    style={{
+                      background: userTier === "premium" ? "rgba(218,242,100,0.1)" : "rgba(255,255,255,0.05)",
+                      color: userTier === "premium" ? "var(--accent)" : "var(--muted-fg)"
+                    }}>
+                    Active
+                  </span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-gray-400">{t("creditUsage")}</span>
-                    <span>8,420 / 10,000</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--background)" }}>
-                    <div className="h-full rounded-full" style={{ width: "84.2%", background: "linear-gradient(90deg,#6366f1,#8b5cf6)" }} />
-                  </div>
+                
+                <div className="pt-2">
+                  <button 
+                    onClick={() => handleUpdateTier(userTier === "premium" ? "free" : "premium")}
+                    className="w-full py-2.5 rounded-lg text-xs font-semibold text-black transition-all hover:brightness-110 active:scale-95"
+                    style={{ background: "var(--accent)" }}>
+                    {userTier === "premium" ? "Downgrade to Free Tier (Tier 1)" : "Upgrade to Premium Tier (Tier 2)"}
+                  </button>
                 </div>
-                <button className="w-full py-2 rounded-lg text-sm font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
-                  {t("upgradeEnterprise")}
-                </button>
               </div>
             </motion.div>
           )}
@@ -463,6 +519,118 @@ export default function SettingsPage() {
                       className="w-full bg-[#161616] text-xs outline-none px-3 py-2 rounded-lg font-mono border border-white/5 text-white" 
                     />
                     <p className="text-[10px] text-gray-500 mt-1">{t("cloudflareAccountIdDesc")}</p>
+                  </div>
+
+                  {/* Advanced Cloudflare keys */}
+                  <div className="pt-4 border-t border-white/5 space-y-4">
+                    <div>
+                      <h4 className="text-xs font-semibold text-[#daf264]">Advanced: Sequential Report Sub-Call Routing</h4>
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Optionally provide 4 distinct Cloudflare API tokens and Account IDs to distribute the 4 Report Generation sub-calls. This increases the total available rate-limits ("neurons availability"). If empty, each call will fallback to the primary key above.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Call 1 */}
+                      <div className="space-y-3 p-4 rounded-xl bg-black/40 border border-white/5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Call 1: Summaries & Briefs</span>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">API Token 1</label>
+                          <input 
+                            type="password"
+                            value={cloudflareToken1}
+                            onChange={(e) => setCloudflareToken1(e.target.value)}
+                            placeholder="Defaults to primary token..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">Account ID 1</label>
+                          <input 
+                            type="text"
+                            value={cloudflareAccount1}
+                            onChange={(e) => setCloudflareAccount1(e.target.value)}
+                            placeholder="Defaults to primary account ID..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Call 2 */}
+                      <div className="space-y-3 p-4 rounded-xl bg-black/40 border border-white/5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Call 2: Business Plan & Roadmap</span>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">API Token 2</label>
+                          <input 
+                            type="password"
+                            value={cloudflareToken2}
+                            onChange={(e) => setCloudflareToken2(e.target.value)}
+                            placeholder="Defaults to primary token..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">Account ID 2</label>
+                          <input 
+                            type="text"
+                            value={cloudflareAccount2}
+                            onChange={(e) => setCloudflareAccount2(e.target.value)}
+                            placeholder="Defaults to primary account ID..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Call 3 */}
+                      <div className="space-y-3 p-4 rounded-xl bg-black/40 border border-white/5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Call 3: Due Diligence & Charts</span>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">API Token 3</label>
+                          <input 
+                            type="password"
+                            value={cloudflareToken3}
+                            onChange={(e) => setCloudflareToken3(e.target.value)}
+                            placeholder="Defaults to primary token..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">Account ID 3</label>
+                          <input 
+                            type="text"
+                            value={cloudflareAccount3}
+                            onChange={(e) => setCloudflareAccount3(e.target.value)}
+                            placeholder="Defaults to primary account ID..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                      </div>
+
+                      {/* Call 4 */}
+                      <div className="space-y-3 p-4 rounded-xl bg-black/40 border border-white/5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Call 4: 12-Slide Pitch Deck</span>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">API Token 4</label>
+                          <input 
+                            type="password"
+                            value={cloudflareToken4}
+                            onChange={(e) => setCloudflareToken4(e.target.value)}
+                            placeholder="Defaults to primary token..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-300 block mb-1">Account ID 4</label>
+                          <input 
+                            type="text"
+                            value={cloudflareAccount4}
+                            onChange={(e) => setCloudflareAccount4(e.target.value)}
+                            placeholder="Defaults to primary account ID..."
+                            className="w-full bg-[#161616] text-[10px] outline-none px-3 py-1.5 rounded-lg font-mono border border-white/5 text-white" 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

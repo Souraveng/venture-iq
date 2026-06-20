@@ -44,16 +44,23 @@ export async function evidenceResearchAgent(state: VentureStateType) {
   }
 
   // 2. Scraping & Metadata Extraction Phase
-  // Limit to top 3 URLs to optimize performance, token cost, and speed
+  // Limit to top 3 URLs, scrape them in PARALLEL to minimize wait time (BUG-K FIX)
   const targetResults = uniqueSearchResults.slice(0, 3);
+
+  // Scrape all URLs simultaneously — each is an independent HTTP call
+  const rawContents = await Promise.all(
+    targetResults.map((result) => scrapeService.scrape(result.url))
+  );
+
   const evidenceList: Evidence[] = [];
 
-  for (const result of targetResults) {
+  for (let i = 0; i < targetResults.length; i++) {
+    const result = targetResults[i];
+    const rawContent = rawContents[i];
+
     console.log(`Processing evidence source: ${result.url}`);
 
     try {
-      // Scrape content
-      const rawContent = await scrapeService.scrape(result.url);
       if (!rawContent || rawContent.trim() === "") {
         console.warn(`Scraped empty content for: ${result.url}. Using search snippet fallback.`);
       }
@@ -83,7 +90,10 @@ Perform the following:
 
       const extraction = (await structuredLlm.invoke(extractionPrompt)) as EvidenceExtraction;
 
-      console.log(`Scored Source: ${extraction.metadata.source} | Document Type: ${extraction.metadata.documentType}`);
+      // Safely access metadata with optional chaining to avoid crashes when metadata is undefined
+      const source = extraction?.metadata?.source ?? "unknown";
+      const docType = extraction?.metadata?.documentType ?? "Unknown";
+      console.log(`Scored Source: ${source} | Document Type: ${docType}`);
       console.log(`Scores: Authority=${extraction.scores.authority}, Overall=${extraction.scores.overallScore}`);
 
       evidenceList.push({

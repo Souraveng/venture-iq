@@ -8,8 +8,8 @@ import { activeAnalyzeRuns } from "@/lib/activeRuns";
 const defaultProjects: Project[] = [
   {
     id: "proj-1",
-    name: "EV Startup Platform",
-    description: "Electric vehicle charging infrastructure + fleet management SaaS for India market",
+    name: "Enterprise B2B SaaS",
+    description: "Enterprise B2B SaaS platform for intelligent automation and data flows",
     createdAt: "Jun 8, 2026",
     progress: 100,
     agentsDone: 15,
@@ -22,8 +22,8 @@ const defaultProjects: Project[] = [
       { id: 2, title: "Decision Engine complete", body: "Investment verdict PROCEED compiled with 82% confidence.", time: "2h ago", severity: "success", agent: "Decision Engine", read: false }
     ],
     auditLogs: [
-      { ts: "11/06/2026, 23:45:12", user: "system", avatar: "SY", action: "completed.pipeline", target: "EV Startup Platform", ip: "system", severity: "info" },
-      { ts: "11/06/2026, 23:40:02", user: "Founder", avatar: "FO", action: "executed.pipeline", target: "EV Startup Platform", ip: "127.0.0.1", severity: "low" }
+      { ts: "11/06/2026, 23:45:12", user: "system", avatar: "SY", action: "completed.pipeline", target: "Enterprise B2B SaaS", ip: "system", severity: "info" },
+      { ts: "11/06/2026, 23:40:02", user: "Founder", avatar: "FO", action: "executed.pipeline", target: "Enterprise B2B SaaS", ip: "127.0.0.1", severity: "low" }
     ]
   },
   {

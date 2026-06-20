@@ -14,13 +14,16 @@ const pool = new Pool({
 
 let dbInitialized = false;
 let isDbHealthy = true; // State flag to track DB status and fallback to memoryDb if unhealthy
+// BUG-I FIX: Track when the DB went unhealthy so we can periodically retry.
+let lastDbFailureTime = 0;
+const DB_RETRY_INTERVAL_MS = 30_000; // Probe for recovery every 30 seconds
 
 // Default mock projects to seed the memory database (and Postgres if empty)
 const defaultProjects: Project[] = [
   {
     id: "proj-1",
-    name: "EV Startup Platform",
-    description: "Electric vehicle charging infrastructure + fleet management SaaS for India market",
+    name: "Enterprise B2B SaaS",
+    description: "Enterprise B2B SaaS platform for intelligent automation and data flows",
     createdAt: "Jun 8, 2026",
     progress: 100,
     agentsDone: 15,
@@ -33,8 +36,8 @@ const defaultProjects: Project[] = [
       { id: 2, title: "Decision Engine complete", body: "Investment verdict PROCEED compiled with 82% confidence.", time: "2h ago", severity: "success", agent: "Decision Engine", read: false }
     ],
     auditLogs: [
-      { ts: "11/06/2026, 23:45:12", user: "system", avatar: "SY", action: "completed.pipeline", target: "EV Startup Platform", ip: "system", severity: "info" },
-      { ts: "11/06/2026, 23:40:02", user: "Founder", avatar: "FO", action: "executed.pipeline", target: "EV Startup Platform", ip: "127.0.0.1", severity: "low" }
+      { ts: "11/06/2026, 23:45:12", user: "system", avatar: "SY", action: "completed.pipeline", target: "Enterprise B2B SaaS", ip: "system", severity: "info" },
+      { ts: "11/06/2026, 23:40:02", user: "Founder", avatar: "FO", action: "executed.pipeline", target: "Enterprise B2B SaaS", ip: "127.0.0.1", severity: "low" }
     ]
   },
   {
@@ -64,14 +67,34 @@ async function runWithDbFallback<T>(
   pgOperation: () => Promise<T>,
   memoryOperation: () => Promise<T>
 ): Promise<T> {
+  // BUG-I FIX: If the DB is unhealthy but the cooldown has elapsed, attempt a reconnect probe.
   if (!isDbHealthy) {
-    return memoryOperation();
+    const now = Date.now();
+    if (now - lastDbFailureTime >= DB_RETRY_INTERVAL_MS) {
+      try {
+        const probeClient = await pool.connect();
+        await probeClient.query("SELECT 1");
+        probeClient.release();
+        // Probe succeeded — DB is back online
+        isDbHealthy = true;
+        dbInitialized = false; // Re-run initDb on next real request to re-verify schema
+        console.log("[Database Recovery] Postgres connection restored. Resuming database operations.");
+      } catch {
+        // Still down — reset the cooldown timer and stay in fallback
+        lastDbFailureTime = Date.now();
+        return memoryOperation();
+      }
+    } else {
+      return memoryOperation();
+    }
   }
+
   try {
     return await pgOperation();
   } catch (error: any) {
     console.warn(`[Database Fallback] Postgres error encountered. Falling back to Server In-Memory Cache. Error: ${error.message}`);
     isDbHealthy = false;
+    lastDbFailureTime = Date.now();
     return memoryOperation();
   }
 }
@@ -93,13 +116,17 @@ export async function initDb() {
           name VARCHAR(255),
           image TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          preferences JSONB DEFAULT '{}'::jsonb
+          preferences JSONB DEFAULT '{}'::jsonb,
+          tier VARCHAR(20) DEFAULT 'free'
         )
       `);
 
-      // Migration safety: Add preferences column if users table was created previously
+      // Migration safety: Add columns if users table was created previously
       await client.query(`
         ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;
+      `);
+      await client.query(`
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS tier VARCHAR(20) DEFAULT 'free';
       `);
 
       // 2. Projects Table
@@ -196,6 +223,26 @@ export async function initDb() {
     } finally {
       client.release();
     }
+
+    // BUG-1 FIX: On every server startup, clear stale isAnalyzing flags.
+    // Any project still marked is_analyzing=true from a previous process is now orphaned
+    // (the process that was running it has been killed). Reset them all immediately.
+    // This runs AFTER the DDL transaction so a failure here doesn't break schema init.
+    try {
+      const resetClient = await pool.connect();
+      try {
+        const resetResult = await resetClient.query(
+          `UPDATE projects SET is_analyzing = false, active_agent_node = '' WHERE is_analyzing = true`
+        );
+        if (resetResult.rowCount && resetResult.rowCount > 0) {
+          console.log(`[Startup Cleanup] Reset ${resetResult.rowCount} stale isAnalyzing project(s) to false.`);
+        }
+      } finally {
+        resetClient.release();
+      }
+    } catch (resetErr: any) {
+      console.warn(`[Startup Cleanup] Could not reset stale isAnalyzing flags: ${resetErr.message}`);
+    }
   } catch (error: any) {
     console.warn(`[Database Fallback] Failed to initialize PostgreSQL. Falling back to Server In-Memory Cache. Error: ${error.message}`);
     isDbHealthy = false;
@@ -224,7 +271,7 @@ export async function upsertUser(email: string, name: string, image: string, pre
   );
 }
 
-export async function updateUser(email: string, name: string, image: string, preferences?: Record<string, any>) {
+export async function updateUser(email: string, name: string, image: string, preferences?: Record<string, any>, tier?: string) {
   const normalizedEmail = email.toLowerCase().trim();
   return runWithDbFallback(
     async () => {
@@ -232,7 +279,19 @@ export async function updateUser(email: string, name: string, image: string, pre
       if (!isDbHealthy) return;
       const client = await pool.connect();
       try {
-        if (preferences) {
+        if (tier) {
+          if (preferences) {
+            await client.query(
+              `UPDATE users SET name = $1, image = $2, tier = $3, preferences = COALESCE(preferences, '{}'::jsonb) || $4::jsonb WHERE email = $5`,
+              [name, image, tier, JSON.stringify(preferences), normalizedEmail]
+            );
+          } else {
+            await client.query(
+              `UPDATE users SET name = $1, image = $2, tier = $3 WHERE email = $4`,
+              [name, image, tier, normalizedEmail]
+            );
+          }
+        } else if (preferences) {
           // Merge preferences using jsonb_concat operator (||)
           await client.query(
             `UPDATE users SET name = $1, image = $2, preferences = COALESCE(preferences, '{}'::jsonb) || $3::jsonb WHERE email = $4`,
@@ -260,7 +319,7 @@ export async function getUser(email: string) {
       if (!isDbHealthy) return null;
       const client = await pool.connect();
       try {
-        const res = await client.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
+        const res = await client.query("SELECT * FROM users WHERE LOWER(email) = $1", [normalizedEmail]);
         if (res.rows.length === 0) return null;
         return res.rows[0];
       } finally {
@@ -554,7 +613,10 @@ export async function listProjects(userEmail: string = "founder@ventureiq.io"): 
     async () => {
       await initDb();
       if (!isDbHealthy) {
-        return Object.values(memoryDb).reverse();
+        // BUG-11 FIX: filter by user in memory fallback too
+        return Object.values(memoryDb)
+          .filter(p => (p as any).userEmail === normalizedEmail)
+          .reverse();
       }
       const client = await pool.connect();
       try {
@@ -562,18 +624,22 @@ export async function listProjects(userEmail: string = "founder@ventureiq.io"): 
           "SELECT id FROM projects WHERE user_email = $1 ORDER BY created_at DESC",
           [normalizedEmail]
         );
-        const projects: Project[] = [];
-        for (const row of result.rows) {
-          const proj = await getProject(row.id);
-          if (proj) projects.push(proj);
-        }
-        return projects;
+        // BUG-3 FIX: Run all getProject() calls in parallel instead of sequentially.
+        // Previously this was an N+1 loop where each project made 4 sequential DB queries,
+        // causing 48–58 second response times. Promise.all cuts this to ~1 round-trip time.
+        const projects = await Promise.all(
+          result.rows.map((row: any) => getProject(row.id))
+        );
+        return projects.filter(Boolean) as Project[];
       } finally {
         client.release();
       }
     },
     async () => {
-      return Object.values(memoryDb).reverse();
+      // BUG-11 FIX: filter by user in memory fallback too
+      return Object.values(memoryDb)
+        .filter(p => (p as any).userEmail === normalizedEmail)
+        .reverse();
     }
   );
 }

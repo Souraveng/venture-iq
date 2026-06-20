@@ -1,5 +1,5 @@
 // lib/graph/vectorstore/retrieval.ts
-import { llm, apiKeyStorage } from "../llm";
+import { llmInvokeFast, apiKeyStorage } from "../llm";
 import { RetrievedKnowledge, RetrievalQueryInput, CollectionName } from "./types";
 import { VectorStoreClient } from "./client";
 import { EmbeddingService } from "./embeddings";
@@ -16,40 +16,10 @@ export class RetrievalEngine {
   /**
    * Semantically expands a query into multiple target terms to improve recall.
    */
-  public async expandQuery(query: string): Promise<string[]> {
-    const qLower = query.toLowerCase();
+   public async expandQuery(query: string): Promise<string[]> {
     const expansions = [query];
 
-    // 1. Direct Rule-based Expansion for critical venture domains
-    if (qLower.includes("ev") || qLower.includes("electric vehicle")) {
-      expansions.push(
-        "electric vehicle startup",
-        "EV market size growth",
-        "EV charging infrastructure",
-        "EV battery swapping regulation"
-      );
-      return expansions;
-    }
-    if (qLower.includes("dairy") || qLower.includes("milk") || qLower.includes("livestock")) {
-      expansions.push(
-        "dairy business expansion",
-        "milk processing plant technology",
-        "dairy farm automation cost",
-        "dairy farming regulations"
-      );
-      return expansions;
-    }
-    if (qLower.includes("farm") || qLower.includes("agriculture") || qLower.includes("crop")) {
-      expansions.push(
-        "profitable agriculture startups",
-        "farming business yields ROI",
-        "smart farming technology",
-        "precision agriculture tools"
-      );
-      return expansions;
-    }
-
-    // 2. High-speed LLM fallback expansion for arbitrary queries
+    // LLM-based semantic expansion for all domains (no hardcoded domain shortcuts)
     try {
       const prompt = `Act as a semantic query expansion engine.
 Expand the following venture concept query into 3 specific, targeted business and market search terms (comma-separated, no bullets, no numbers):
@@ -63,8 +33,10 @@ Query: "${query}"`;
         return expansions;
       }
 
-      const response = await llm.invoke(prompt);
-      const content = response.content.toString();
+      // BUG-H FIX: Use llmInvokeFast (no throttle) for this short utility call.
+      // Using the full llm.invoke() was adding 1500ms × N expansion calls of invisible overhead.
+      const rawText = await llmInvokeFast(prompt);
+      const content = rawText;
       const terms = content
         .split(",")
         .map((term) => term.trim().replace(/^"|"$/g, ""))

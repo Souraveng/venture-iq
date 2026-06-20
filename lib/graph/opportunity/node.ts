@@ -129,8 +129,12 @@ export async function opportunityAgent(state: VentureStateType) {
       researchPlan.push(`${ideaDesc} industry challenges and regulatory risks`);
     }
 
+    // NOTE: We do NOT populate researchPlan here.
+    // The researchPlannerAgent (which runs next) receives ventureContext and generates
+    // far more specific, targeted search queries. Seeding researchPlan here caused
+    // the generic seed queries to always be picked by slice(0,3) in the researcher,
+    // bypassing the planner's output entirely. (BUG-5 FIX)
     return {
-      researchPlan: researchPlan,
       ventureContext: result,
       finalReport: {
         ...state.finalReport,
@@ -192,12 +196,9 @@ export async function opportunityAgent(state: VentureStateType) {
       reasoning: `An error occurred during LLM processing: ${error.message || error}. Using fallback parser.`,
     };
 
+    // NOTE: Same as the success path — we do NOT write to researchPlan here.
+    // Only the planner node should own researchPlan. (BUG-5 FIX)
     return {
-      researchPlan: [
-        `${userQuery.substring(0, 40)} feasibility`,
-        `${userQuery.substring(0, 40)} competitors`,
-        `${userQuery.substring(0, 40)} market size`
-      ],
       ventureContext: fallbackContext,
       finalReport: {
         ...state.finalReport,

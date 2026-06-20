@@ -129,3 +129,24 @@ export const VentureReportsContainerSchema = z.object({
   onePageBrief: OnePageBriefSchema,
   charts: ChartCollectionSchema,
 });
+
+export const Group1Schema = z.object({
+  executiveSummary: ExecutiveSummaryReportSchema,
+  onePageBrief: OnePageBriefSchema,
+  opportunityAnalysis: OpportunityAnalysisReportSchema,
+});
+
+export const Group2Schema = z.object({
+  businessPlan: BusinessPlanReportSchema,
+  founderRoadmap: FounderRoadmapReportDocSchema,
+});
+
+export const Group3Schema = z.object({
+  investorReport: InvestorDueDiligenceReportSchema,
+  charts: ChartCollectionSchema,
+});
+
+export const Group4Schema = z.object({
+  pitchDeck: z.array(PitchDeckSlideSchema).min(12).max(12),
+});
+

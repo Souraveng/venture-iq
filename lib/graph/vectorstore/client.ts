@@ -28,8 +28,11 @@ interface LocalDoc {
 export class VectorStoreClient {
   private chroma: ChromaClient | null = null;
   private isUsingFallback = false;
-  // Local in-memory collections fallback
-  private static localDb: Map<string, LocalDoc[]> = new Map();
+  // BUG-G FIX: Was `static` — a single shared Map for ALL users and concurrent runs.
+  // Since knowledgeStoreAgent passes its own client instance directly to retrievalEngine.retrieve(),
+  // upsert and query already share the same VectorStoreClient per request.
+  // Making it instance-level gives each analysis run its own isolated in-memory store.
+  private localDb: Map<string, LocalDoc[]> = new Map();
 
   constructor() {
     const chromaUrl = process.env.CHROMADB_URL || "http://localhost:8000";
@@ -84,15 +87,15 @@ export class VectorStoreClient {
     embedding: number[]
   ): Promise<void> {
     if (this.isUsingFallback) {
-      if (!VectorStoreClient.localDb.has(collectionName)) {
-        VectorStoreClient.localDb.set(collectionName, []);
+      if (!this.localDb.has(collectionName)) {
+        this.localDb.set(collectionName, []);
       }
       
-      const list = VectorStoreClient.localDb.get(collectionName)!;
+      const list = this.localDb.get(collectionName)!;
       // Remove if duplicate ID exists (acts as upsert)
       const filtered = list.filter(d => d.id !== id);
       filtered.push({ id, content, metadata, embedding });
-      VectorStoreClient.localDb.set(collectionName, filtered);
+      this.localDb.set(collectionName, filtered);
       return;
     }
 
@@ -116,10 +119,10 @@ export class VectorStoreClient {
    */
   public async delete(collectionName: string, id: string): Promise<void> {
     if (this.isUsingFallback) {
-      if (VectorStoreClient.localDb.has(collectionName)) {
-        const list = VectorStoreClient.localDb.get(collectionName)!;
+      if (this.localDb.has(collectionName)) {
+        const list = this.localDb.get(collectionName)!;
         const filtered = list.filter(d => d.id !== id);
-        VectorStoreClient.localDb.set(collectionName, filtered);
+        this.localDb.set(collectionName, filtered);
       }
       return;
     }
@@ -139,7 +142,7 @@ export class VectorStoreClient {
    */
   public async dropCollection(collectionName: string): Promise<void> {
     if (this.isUsingFallback) {
-      VectorStoreClient.localDb.delete(collectionName);
+      this.localDb.delete(collectionName);
       return;
     }
 
@@ -162,7 +165,7 @@ export class VectorStoreClient {
     filters?: Partial<VectorMetadata>
   ): Promise<RetrievedKnowledge[]> {
     if (this.isUsingFallback) {
-      const docs = VectorStoreClient.localDb.get(collectionName) || [];
+      const docs = this.localDb.get(collectionName) || [];
       
       // 1. Filter by metadata if applicable
       let filteredDocs = docs;

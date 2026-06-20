@@ -3,96 +3,96 @@ import { VentureReportsContainer } from "./types";
 
 export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
   executiveSummary: {
-    title: "Executive Summary: Smart EV Fleet Electrification",
+    title: "Executive Summary: SaaS Flow OS",
     sections: {
       opportunity: [
-        "Developing an asset-light, software-only OCPP charging grid load balancing aggregator in Pune, India.",
-        "Addresses critical operational grid overloads and fleet queue times while remaining within a ₹2 Lakhs initial budget."
+        "Developing an asset-light, software-only B2B workflow orchestration and resource load-balancing aggregator.",
+        "Addresses critical operational efficiency and queue management bottlenecks for mid-market logistics and service businesses."
       ],
       market: [
-        "Hyper-growth commercial EV logistics sector in Maharashtra industrial hubs (Chakan, Bhosari).",
+        "Hyper-growth commercial enterprise B2B software sector.",
         "TAM estimated at ₹1,500 Crore, SAM at ₹180 Crore, and SOM at ₹4.2 Crore."
       ],
       competition: [
-        "Ather Grid and Tata Power command dominant prime real estate positions for charging infrastructure.",
-        "Our platform plays an aggregative software-only brokerage role rather than deploying expensive physical chargers."
+        "Established legacy providers command dominant market share but suffer from slow technology adoption and high support costs.",
+        "Our platform plays an aggregative software-only overlay role, integrating natively via open developer APIs."
       ],
       risk: [
-        "High dependency on local electricity distributor (MSEDCL) smart grid policies and substation capacity limits.",
-        "Operator friction: cost-conscious Pune e-rickshaw fleets may resist recurring subscription billing models."
+        "High dependency on customer onboarding speed and willingness to transition away from legacy habits.",
+        "Operational friction: price-sensitive tier-2 market operators may resist recurring SaaS billing models."
       ],
       financials: [
         "Projected Year 1 ARR of $142,000, scaling to $1.42M by Year 3.",
-        "Operational break-even achieved by Month 11 with 50 paid fleet contracts."
+        "Operational break-even achieved by Month 11 with 50 paid client accounts."
       ],
       verdict: [
         "Overall decision is PROCEED WITH CAUTION, conditional on immediate pilot validation.",
-        "Recommended next step is onboarding 5 logistics partners for a 2-week peak load optimization trial."
+        "Recommended next step is onboarding 5 logistics partners for a 2-week workflow optimization trial."
       ]
     }
   },
   businessPlan: {
-    title: "Business Plan: EV Fleet OS",
+    title: "Business Plan: SaaS Flow OS",
     sections: {
       problem: [
-        "Pune fleet operators lose up to 18% daily utilization to charging station queues.",
-        "Simultaneous fast charging exceeds utility transformer limits, causing grid blackouts."
+        "Mid-market service operators lose up to 18% daily utilization to scheduling queue delays.",
+        "Inefficient resource distribution creates bottlenecks, reducing operating margins."
       ],
       solution: [
-        "Dynamic charging scheduling and OCPP-based electrical load balancing.",
-        "Unified fleet management software dashboard showing real-time charger statuses."
+        "Dynamic workflow scheduling and automated load-balancing algorithms.",
+        "Unified operational control panel dashboard showing real-time resource availability."
       ],
       market: [
-        "Targeting 5,000 commercial e-rickshaws and last-mile delivery fleets in Pune.",
-        "Maharashtra state mandates 100% last-mile delivery electrification by 2030."
+        "Targeting 5,000 service logistics providers and last-mile operations in regional hubs.",
+        "Rapid digital adoption mandates automated enterprise resource planning."
       ],
       businessModel: [
-        "SaaS Subscription: ₹1,500/vehicle/month for fleet load optimization.",
-        "Transaction fee: 2.5% processing fee on charging utility bills processed via the platform."
+        "B2B SaaS Subscription: ₹1,500/seat/month for platform workflow optimization.",
+        "Transaction fee: 2.5% processing fee on transactions processed via the platform."
       ],
       competition: [
-        "Hardware-first charging networks (Tata Power, Ather Grid) operate closed, capital-heavy loops.",
-        "Our platform is hardware-agnostic, asset-light, and integrates with any OCPP 1.6/2.0 charger."
+        "Hardware-bound or legacy closed-ecosystem platforms operate high-cost, inflexible loops.",
+        "Our platform is hardware-agnostic, asset-light, and integrates with any third-party legacy database."
       ],
       financials: [
         "Low startup overhead (₹1.6 Lakhs expected) yields 84% gross margins.",
         "LTV:CAC ratio of 20x ensures rapid customer payback."
       ],
       roadmap: [
-        "Month 1–3: Pune fleet operator discovery and landing page willingness-to-pay tests.",
-        "Month 4–9: 5-vehicle validation pilot and OCPP simulator firmware release.",
-        "Month 10–18: Commercial B2B SaaS launch targeting 50 fleet customer accounts."
+        "Month 1–3: Target operator discovery and landing page willingness-to-pay tests.",
+        "Month 4–9: 5-client validation pilot and telemetry data analysis release.",
+        "Month 10–18: Commercial B2B SaaS launch targeting 50 paid enterprise customer accounts."
       ],
       risk: [
-        "Maharashtra DISCOM (MSEDCL) regulatory constraints on smart load shifting.",
-        "Embedded OCPP engineering co-founder recruitment bottleneck."
+        "Adoption friction from traditional dispatch operators.",
+        "Embedded software engineering co-founder recruitment bottleneck."
       ],
       funding: [
         "Bootstrap validation using ₹2 Lakhs founder savings.",
         "Apply for Startup India Seed Fund Scheme (SISFS) for ₹20 Lakhs non-dilutive validation grants.",
-        "Raise ₹50 Lakhs angel round for West India geographical expansion."
+        "Raise ₹50 Lakhs angel round for regional geographical expansion."
       ]
     }
   },
   investorReport: {
-    title: "Investor Due Diligence Report: Pune Charging Orchestration",
+    title: "Investor Due Diligence Report: SaaS Flow OS",
     sections: {
       marketAnalysis: [
-        "Pune commercial EV fleet counts are scaling at 32% CAGR.",
-        "Substation grid limits are the primary operational bottleneck for fleet depot scaling."
+        "Commercial workflow software counts are scaling at 32% CAGR.",
+        "Operational capacity limits are the primary bottleneck for logistics and service scaling."
       ],
       tamSamSom: [
-        "TAM: ₹1,500 Crore (National EV fleet management software addressable market).",
-        "SAM: ₹180 Crore (Maharashtra clean-tech fleet logistics software slice).",
-        "SOM: ₹4.2 Crore (Initial 50 Pune B2B fleet logistics accounts)."
+        "TAM: ₹1,500 Crore (National service management software addressable market).",
+        "SAM: ₹180 Crore (Regional clean-tech logistics software slice).",
+        "SOM: ₹4.2 Crore (Initial 50 B2B client accounts)."
       ],
       competition: [
-        "Ather Grid owns prime public spots but focuses on proprietary 2-wheeler charging.",
-        "Tata Power has large physical footprints but lacks B2B fleet scheduling and load optimizations."
+        "Competitor Alpha owns prime public spots but focuses on closed proprietary services.",
+        "Competitor Beta has large physical footprints but lacks B2B scheduling and load optimizations."
       ],
       moat: [
-        "Proprietary load balancing algorithms optimizing electricity costs at the depot level.",
-        "Unified OCPP firmware middleware enabling integrations with cheap local chargers."
+        "Proprietary resource-allocation algorithms optimizing operations at the depot level.",
+        "Unified developer API middleware enabling integrations with cheap local databases."
       ],
       financialViability: [
         "High gross margins (84%) typical of pure B2B SaaS aggregators.",
@@ -100,11 +100,11 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
       ],
       investmentRecommendation: [
         "Decision: PROCEED WITH CAUTION. The software value proposition is strong but capital-constrained.",
-        "Release angel funding only after pilot validation data confirms a >20% reduction in peak depot load."
+        "Release angel funding only after pilot validation data confirms a >20% reduction in queue wait times."
       ],
       redFlags: [
         "Strict ₹2 Lakhs initial budget restricts early marketing and testing hardware purchases.",
-        "High developer salary demands for embedded systems specialists in Pune hubs."
+        "High developer salary demands for specialized systems engineers in regional hubs."
       ]
     }
   },
@@ -112,29 +112,29 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
     title: "Tactical Founder Roadmap",
     sections: {
       plan30Day: [
-        "Interview 30 local Pune fleet operators to catalog charging schedule pain points.",
-        "Launch simple landing page with electricity cost saving calculator to track lead generation."
+        "Interview 30 local operators to catalog operational workflow pain points.",
+        "Launch simple landing page with operational cost saving calculator to track lead generation."
       ],
       plan90Day: [
         "Develop core dynamic load balancer algorithm simulator.",
-        "Deploy a 2-week live pilot with 5 commercial vehicles on third-party chargers."
+        "Deploy a 2-week live pilot with 5 commercial depots."
       ],
       plan1Year: [
         "Transition the pilot software into a multi-tenant B2B SaaS dashboard.",
-        "Secure first 20 paid B2B fleet logistics customer accounts at ₹1,500/vehicle/month."
+        "Secure first 20 paid B2B customer accounts at ₹1,500/seat/month."
       ],
       milestones: [
         "ms-1: Complete Customer Discovery (Month 3) - 30 interviews completed.",
-        "ms-2: Live Pilot Telemetry Verification (Month 6) - 5 vehicles optimized.",
+        "ms-2: Live Pilot Telemetry Verification (Month 6) - 5 depots optimized.",
         "ms-3: SaaS Commercial Rollout (Month 10) - 20 paid accounts live."
       ],
       kpis: [
-        "depot peak power draw reduction > 20% during charging cycles.",
+        "depot peak resource draw reduction > 20% during cycles.",
         "customer onboarding duration < 3 business days.",
         "net promoter score (NPS) > 40."
       ],
       riskMitigation: [
-        "Form software aggregation partnerships with charger owners to bypass land acquisition costs.",
+        "Form software aggregation partnerships with database owners to bypass land acquisition costs.",
         "Build offline telemetry caching firmware to handle cell network dropouts."
       ]
     }
@@ -143,39 +143,39 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
     {
       slideNumber: 1,
       title: "Cover",
-      headline: "EV Fleet OS Pune",
+      headline: "SaaS Flow OS",
       points: [
-        "Orchestrating Smart B2B EV Fleet Charging",
+        "Orchestrating Smart B2B Resource Operations",
         "Confidential Seed Round Pitch · 2026"
       ]
     },
     {
       slideNumber: 2,
       title: "Problem",
-      headline: "The Depot Grid Bottleneck",
+      headline: "The Operational Grid Bottleneck",
       points: [
-        "60% of fleet operators suffer daily charging queue delays in Pune industrial zones.",
-        "Simultaneous charger plug-ins overload utility transformers, causing local blackouts.",
-        "Fragmented charger networks lack unified APIs and fleet status monitoring."
+        "60% of fleet operators suffer daily dispatch queue delays in regional industrial zones.",
+        "Simultaneous resource allocation exceeds capacities, causing operational blackouts.",
+        "Fragmented database structures lack unified APIs and real-time monitoring."
       ]
     },
     {
       slideNumber: 3,
       title: "Solution",
-      headline: "Dynamic OCPP Charging Orchestration",
+      headline: "Dynamic Workflow Orchestration",
       points: [
-        "Hardware-agnostic SaaS layer aggregating OCPP 1.6/2.0.1 chargers.",
-        "Proprietary algorithms scheduling charge cycles to optimize grid loads.",
-        "Reduces peak utility electricity demand charges by up to 30%."
+        "Hardware-agnostic SaaS layer aggregating legacy system databases.",
+        "Proprietary algorithms scheduling operational cycles to optimize workloads.",
+        "Reduces peak dispatch delays and queue times by up to 30%."
       ]
     },
     {
       slideNumber: 4,
       title: "Market Context",
-      headline: "Maharashtra's Commercial EV Surge",
+      headline: "Enterprise Digital Electrification",
       points: [
-        "Last-mile delivery and e-rickshaw fleets are electrifying rapidly in Pune.",
-        "Maharashtra state policy mandates 100% last-mile delivery electrification by 2030."
+        "Last-mile delivery and dispatch operations are electrifying rapidly in regional corridors.",
+        "State and corporate policies mandate 100% efficiency and resource optimization."
       ]
     },
     {
@@ -183,17 +183,17 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
       title: "TAM SAM SOM",
       headline: "Addressable Market Scale",
       stats: [
-        { label: "TAM (India Fleet Software)", value: "₹1,500 Cr" },
-        { label: "SAM (Maharashtra EV SaaS)", value: "₹180 Cr" },
-        { label: "SOM (Pune Core Aggregator)", value: "₹4.2 Cr" }
+        { label: "TAM (National SaaS Market)", value: "₹1,500 Cr" },
+        { label: "SAM (Regional Software Slice)", value: "₹180 Cr" },
+        { label: "SOM (Initial Target Accounts)", value: "₹4.2 Cr" }
       ]
     },
     {
       slideNumber: 6,
       title: "Competition",
-      headline: "SaaS Aggregation vs. Physical Networks",
+      headline: "SaaS Aggregation vs. Legacy Networks",
       points: [
-        "Ather Grid and Tata Power own prime physical charger spots but focus on hardware.",
+        "Competitor Alpha and Competitor Beta own prime physical spaces but focus on hardware.",
         "Our platform is asset-light software, playing an aggregator role to manage depots."
       ]
     },
@@ -202,9 +202,9 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
       title: "Business Model",
       headline: "SaaS Subscriptions + Transaction Cuts",
       models: [
-        { type: "Depot SaaS", price: "₹1,500/vehicle/mo", note: "B2B Subscription" },
-        { type: "Payment Cut", price: "2.5% of utility bill", note: "Transaction processing cut" },
-        { type: "Grid API", price: "₹85,000/month", note: "Enterprise utility licensing" }
+        { type: "Depot SaaS", price: "₹1,500/seat/month", note: "B2B Subscription" },
+        { type: "Payment Cut", price: "2.5% of transaction", note: "Transaction processing cut" },
+        { type: "Enterprise API", price: "₹85,000/month", note: "Enterprise utility licensing" }
       ]
     },
     {
@@ -222,9 +222,9 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
       title: "Product Roadmap",
       headline: "Tactical Milestones",
       points: [
-        "Month 1-3: Interview 30 fleet operators and deploy pricing validation landing page.",
-        "Month 4-9: Onboard 5-vehicle pilot and release embedded OCPP firmware simulator.",
-        "Month 10-18: Commercial multi-tenant SaaS release targeting Pune logistics hubs."
+        "Month 1-3: Interview 30 operators and deploy pricing validation landing page.",
+        "Month 4-9: Onboard 5-depot pilot and release embedded database integrations.",
+        "Month 10-18: Commercial multi-tenant SaaS release targeting regional logistics hubs."
       ]
     },
     {
@@ -233,26 +233,26 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
       headline: "Raising ₹1.5 Crore Seed Capital",
       points: [
         "Provides 18-month operational runway.",
-        "Core use: hiring lead embedded co-founder and West India sales managers.",
-        "Deliverable target: Onboard 50 paid B2B accounts and secure OCPP network integrations."
+        "Core use: hiring lead systems architect and regional sales managers.",
+        "Deliverable target: Onboard 50 paid B2B accounts and secure API database integrations."
       ]
     },
     {
       slideNumber: 11,
       title: "Why Now?",
-      headline: "Subsidies & Grid Capacity Demands",
+      headline: "Grid Efficiency & Scale Demands",
       points: [
-        "Maharashtra offers subsidy incentives for smart load-shifting software developers.",
-        "MSEDCL grid distribution limits restrict new physical charger permit applications."
+        "National programs offer subsidy incentives for smart resource management developers.",
+        "Severe distribution delays restrict new depot expansions without optimization software."
       ]
     },
     {
       slideNumber: 12,
       title: "Closing",
-      headline: "Decarbonizing Indian Fleet Logistics",
+      headline: "Decarbonizing Regional Logistics",
       points: [
-        "Contact: founders@evfleetos.in",
-        "Pune Office: Chakan Industrial Zone"
+        "Contact: founders@saasflowos.io",
+        "Regional Office: Startup Hub Center"
       ]
     }
   ],
@@ -269,22 +269,22 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
     },
     keyFindings: [
       "Asset-light software aggregation model maintains low setup overhead under the ₹2 Lakhs limit.",
-      "Surging local B2B EV logistics demand in Pune corridors creates direct sales pipelines.",
-      "Land acquisition and grid connection costs are avoided by focusing on software layer management."
+      "Surging local B2B logistics demand in regional corridors creates direct sales pipelines.",
+      "Database setup and grid licensing costs are avoided by focusing on software layer management."
     ]
   },
   onePageBrief: {
     title: "VentureIQ One-Page Executive Brief",
-    summary: "VentureIQ assesses the Pune EV charging network opportunity as a PROCEED WITH CAUTION investment. The dynamic OCPP load balancing software resolves grid capacity issues for B2B depots without land acquisitions. However, competitor real estate dominance from Ather and Tata Power forces the venture to win strictly on software value and efficiency rather than hardware scale.",
+    summary: "VentureIQ assesses the regional workflow opportunity as a PROCEED WITH CAUTION investment. The dynamic resource-balancing software resolves queue capacity issues for B2B depots without land acquisitions. However, competitor footprint dominance forces the venture to win strictly on software value and efficiency rather than hardware scale.",
     keyMetrics: [
       { label: "TAM", value: "₹1,500 Cr" },
       { label: "Val. Runway", value: "₹2 Lakhs Savings" },
       { label: "LTV:CAC Ratio", value: "20x SaaS Gross" }
     ],
     recommendedActions: [
-      "Onboard 5 pilot fleet operators for 2-week load reduction telemetry logs.",
+      "Onboard 5 pilot depot operators for 2-week load reduction telemetry logs.",
       "Apply for SISFS grant of ₹20 Lakhs for DPIIT entity registration.",
-      "Recruit embedded systems systems co-founder with OCPP firmware credentials."
+      "Recruit systems engineering co-founder with database integration credentials."
     ]
   },
   charts: {
@@ -300,17 +300,17 @@ export const MOCK_REPORTS_CONTAINER: VentureReportsContainer = {
       { label: "Year 3", value: 1420000 }
     ],
     costBreakdown: [
-      { label: "Embedded Dev", value: 80000 },
+      { label: "Software Dev", value: 80000 },
       { label: "Pilots", value: 50000 },
       { label: "Hosting", value: 30000 },
       { label: "Operations", value: 40000 }
     ],
     riskMatrix: [
-      { x: 30, y: 70, label: "Ather/Tata Competition", severity: "HIGH" },
-      { x: 60, y: 50, label: "MSEDCL Grid Outages", severity: "MEDIUM" }
+      { x: 30, y: 70, label: "Incumbent Competition", severity: "HIGH" },
+      { x: 60, y: 50, label: "Operator Churn", severity: "MEDIUM" }
     ],
     competitorMatrix: [
-      { name: "Tata Power", criteria: ["High foot", "Poor SaaS"], score: 65 },
+      { name: "Legacy Competitor", criteria: ["High cost", "Poor SaaS"], score: 65 },
       { name: "Our Platform", criteria: ["Smart balance", "Asset light"], score: 85 }
     ],
     roadmapTimeline: [

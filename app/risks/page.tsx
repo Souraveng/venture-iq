@@ -13,105 +13,105 @@ const defaultRiskIntel = {
     impact: 80,
     severity: "HIGH" as const,
     riskScore: 52,
-    reasoning: "Initial customer adoption might be slower than projected due to EV charging behavior education requirements in tier-2 cities.",
-    indicators: ["Low active session time", "High churn in monthly trials"],
-    mitigation: "Deploy localized product education campaigns and onboarding subsidies."
+    reasoning: "Initial customer adoption might be slower than projected due to market education and transition barriers.",
+    indicators: ["Low active usage statistics", "High churn in monthly trials"],
+    mitigation: "Implement localized onboarding flows and feedback loops to optimize activation."
   },
   competitionRisk: {
     probability: 70,
     impact: 75,
     severity: "HIGH" as const,
     riskScore: 53,
-    reasoning: "Strong incumbents like Ather Grid and Tata Power have capital advantage and pre-existing dealership charging spots.",
-    indicators: ["Price cuts from competitors", "Exclusivity agreements with prime parking areas"],
-    mitigation: "Focus on open API developer SaaS integrations and white-label fleet software."
+    reasoning: "Incumbents command substantial brand equity, larger distribution budgets, and existing customer agreements.",
+    indicators: ["Aggressive pricing adjustments by competitors", "Exclusive contracts with key partners"],
+    mitigation: "Focus on differentiated software capabilities, open integrations, and premium customer service."
   },
   financialRisk: {
     probability: 80,
     impact: 90,
     severity: "CRITICAL" as const,
     riskScore: 72,
-    reasoning: "Strict ₹2 Lakhs budget constraint severely limits runway and hardware-backed testing capacity.",
-    indicators: ["Monthly burn exceeding budget", "Failure to secure pilots in Pune"],
-    mitigation: "Operate as pure software/SaaS first; partner with third-party charge point operators (CPOs) for hardware."
+    reasoning: "Tight initial budget constraints restrict early runway and marketing/engineering development pace.",
+    indicators: ["Monthly operational burn exceeding baseline allocations", "Fewer pilot conversions than planned"],
+    mitigation: "Maintain capital-efficient remote operations, utilize freelancers where appropriate, and focus on early revenue."
   },
   regulatoryRisk: {
     probability: 45,
     impact: 85,
     severity: "MEDIUM" as const,
     riskScore: 38,
-    reasoning: "Maharashtra electricity distribution policies or tariff revisions could impact CPO margins and charging pricing model.",
-    indicators: ["Changes in DISCOM grid access charges", "Revised FAME-III subsidy conditions"],
-    mitigation: "Maintain a dynamic margin buffer and support multi-state expansion to hedge policy changes."
+    reasoning: "Evolving industry compliance standards or local data privacy laws may increase legal costs.",
+    indicators: ["Updates in regional regulatory guidelines", "Revised privacy and security compliance mandates"],
+    mitigation: "Adopt standard pre-certified frameworks and structure platform terms around flexible privacy policies."
   },
   technologyRisk: {
     probability: 40,
     impact: 70,
     severity: "MEDIUM" as const,
     riskScore: 28,
-    reasoning: "High reliance on third-party OCPP (Open Charge Point Protocol) APIs and server infrastructure reliability.",
-    indicators: ["API latency > 500ms", "Charger status sync mismatches"],
-    mitigation: "Build local caching layers and offline-tolerant charger status syncing."
+    reasoning: "Dependence on third-party cloud infrastructure, databases, and external API providers.",
+    indicators: ["API latency exceeding acceptable limits", "Database synchronization mismatches"],
+    mitigation: "Build redundant failover systems, local caching layers, and perform routine security audits."
   },
   operationalRisk: {
     probability: 50,
     impact: 60,
     severity: "MEDIUM" as const,
     riskScore: 30,
-    reasoning: "Logistics and procurement delays for charger communication modules could stall testing.",
-    indicators: ["Vendor delivery delays exceeding 14 days", "Component defect rate > 3%"],
-    mitigation: "Pre-screen multiple local vendors and keep a buffer supply of key hardware boards."
+    reasoning: "Potential delays in key team onboarding or resource bottlenecks during high-growth cycles.",
+    indicators: ["Operational execution delays", "Higher than expected churn in engineering staff"],
+    mitigation: "Maintain a standard repository of backup consultants and build detailed system documentation."
   },
   executionRisk: {
     probability: 50,
     impact: 75,
     severity: "MEDIUM" as const,
     riskScore: 38,
-    reasoning: "Core engineering team possesses strong software capability but lacks heavy electrical engineering experience.",
-    indicators: ["Integration milestone delays", "High reliance on freelance hardware consultants"],
-    mitigation: "Hire a senior advisor from the power utility sector and utilize standard pre-certified hardware."
+    reasoning: "Core engineering team possesses strong software capability but may lack deep enterprise domain sales experience.",
+    indicators: ["Longer sales conversion cycles", "Delayed pilot integrations with enterprise customers"],
+    mitigation: "Onboard senior advisors from the target industry to support the sales execution process."
   },
   fundingRisk: {
     probability: 75,
     impact: 80,
     severity: "HIGH" as const,
     riskScore: 60,
-    reasoning: "Hard fundraising environment for hardware-connected startups in seed stages.",
-    indicators: ["Low response rate from institutional investors", "No term sheet offers within 4 months"],
-    mitigation: "Establish strong software-only revenue early to demonstrate cash flow independence."
+    reasoning: "A challenging venture capital landscape raises the bar for pre-seed and seed financing.",
+    indicators: ["Low investor response rates", "No term sheet offers during the active runway window"],
+    mitigation: "Achieve product-market fit metrics quickly and build software-driven cash flows to support independence."
   },
   overallRiskIndex: {
     score: 47,
     severity: "MEDIUM" as const,
     reasoning: [
-      "Financial Risk is CRITICAL (Score: 72) - Limited starting capital constraints runway.",
-      "Funding Risk is HIGH (Score: 60) - Capital intensity vs fundraising challenges.",
-      "Competition Risk is HIGH (Score: 53) - Established giants Ather and Tata hold dealership real estate advantage."
+      "Financial Risk is CRITICAL (Score: 72) - Initial validation capital constraints require lean execution.",
+      "Funding Risk is HIGH (Score: 60) - High competition for seed stages requires strong early proof-of-concept.",
+      "Competition Risk is HIGH (Score: 53) - Market leaders hold strong distribution advantage."
     ]
   },
   mitigationStrategies: [
     {
       riskDimension: "Financial Risk",
-      description: "Severe starting capital constraints and high capital requirements",
+      description: "Severe starting capital constraints and budget limits",
       preventiveActions: [
-        "Avoid buying physical chargers; partner with existing CPOs.",
-        "Launch with a SaaS-only billing model for fleet owners first."
+        "Minimize upfront fixed expenditures; prioritize lean cloud infrastructure.",
+        "Implement a self-serve SaaS model to accelerate incoming cash flows."
       ],
       contingencyPlans: [
-        "Secure pre-paid software contract commitments from fleet companies.",
-        "Raise seed bridge capital from regional angel syndicates."
+        "Pre-sell annual subscription packages with discount incentives.",
+        "Secure bridge support from regional angel syndicates or government grants."
       ]
     },
     {
       riskDimension: "Competition Risk",
-      description: "Incumbents dominating prime physical locations",
+      description: "Legacy incumbents dominating existing distribution channels",
       preventiveActions: [
-        "Position as an aggregator software overlay rather than competing on charger stations.",
-        "Integrate with open network protocols (OCPP 1.6/2.0.1)."
+        "Position as a specialized modular overlay tool rather than a generic complete suite.",
+        "Provide open API endpoints to integrate with and enhance existing client workflows."
       ],
       contingencyPlans: [
-        "Pivot focus to long-haul logistics fleets who use dedicated private yards.",
-        "License white-label billing platform to smaller tier-3 regional chargers."
+        "Pivot focus to under-served, lower-tier market segments ignored by large players.",
+        "License white-label engines to regional partners to scale distribution rapidly."
       ]
     }
   ]
@@ -190,7 +190,7 @@ export default function RisksPage() {
               </div>
               <h1 className="text-2xl font-bold text-white">{t("riskAnalysis")} & Due Diligence</h1>
               <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-                {activeProject?.name || "EV Startup Platform"} · {t("dimensionsEvaluated") !== "dimensionsEvaluated" ? t("dimensionsEvaluated") : "8 dimensions evaluated programmatically"}
+                {activeProject?.name || "No Active Venture"} · {t("dimensionsEvaluated") !== "dimensionsEvaluated" ? t("dimensionsEvaluated") : "8 dimensions evaluated programmatically"}
               </p>
             </div>
             <button onClick={() => { if (typeof window !== "undefined") window.print(); }} className="text-xs px-3 py-2 rounded-lg font-medium"

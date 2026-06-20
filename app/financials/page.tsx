@@ -176,7 +176,7 @@ export default function FinancialsPage() {
             </div>
             <h1 className="text-2xl font-bold text-white">{t("financialAnalysis")}</h1>
             <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-              {t("financialAnalysisSub")} · {activeProject?.name || "EV Startup India"}
+              {t("financialAnalysisSub")} · {activeProject?.name || "No Active Venture"}
             </p>
           </div>
           <div className="flex gap-2">

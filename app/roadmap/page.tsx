@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import ProjectGuard from "@/components/ProjectGuard";
 import DashboardLayout from "@/components/DashboardLayout";
+import PremiumGate from "@/components/PremiumGate";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useTranslatedReport } from "@/hooks/useTranslatedReport";
@@ -57,7 +58,7 @@ export default function RoadmapPage() {
     } else if (idx === 1) {
       kpis = [t("kpiMvpLive") !== "kpiMvpLive" ? t("kpiMvpLive") : "MVP Dashboard Live", t("kpi5PilotRunning") !== "kpi5PilotRunning" ? t("kpi5PilotRunning") : "5 Pilot Projects Running", t("kpiPeakLoadDec") !== "kpiPeakLoadDec" ? t("kpiPeakLoadDec") : "Peak Load Decreased >20%"];
     } else if (idx === 2) {
-      kpis = [t("kpi50PaidAccounts") !== "kpi50PaidAccounts" ? t("kpi50PaidAccounts") : "50 Paid B2B SaaS Accounts", t("kpiOcppIntegrations") !== "kpiOcppIntegrations" ? t("kpiOcppIntegrations") : "OCPP Network Integrations", t("kpiAchievedMrr") !== "kpiAchievedMrr" ? t("kpiAchievedMrr") : "₹3 Lakhs MRR Achieved"];
+      kpis = [t("kpi50PaidAccounts") !== "kpi50PaidAccounts" ? t("kpi50PaidAccounts") : "50 Paid B2B SaaS Accounts", t("kpiApiIntegrations") !== "kpiApiIntegrations" ? t("kpiApiIntegrations") : "Enterprise API Integrations", t("kpiAchievedMrr") !== "kpiAchievedMrr" ? t("kpiAchievedMrr") : "₹3 Lakhs MRR Achieved"];
     } else if (idx === 3) {
       kpis = [t("kpiPitchDeckVerified") !== "kpiPitchDeckVerified" ? t("kpiPitchDeckVerified") : "Investor Pitch Deck Verified", t("kpiSisfsSecured") !== "kpiSisfsSecured" ? t("kpiSisfsSecured") : "SISFS Grant Secured", t("kpiSeedCapitalInBank") !== "kpiSeedCapitalInBank" ? t("kpiSeedCapitalInBank") : "Seed Capital In Bank"];
     } else {
@@ -85,7 +86,8 @@ export default function RoadmapPage() {
   return (
     <ProjectGuard>
       <DashboardLayout>
-        <div className="p-8 space-y-8 min-h-screen text-white">
+        <PremiumGate>
+          <div className="p-8 space-y-8 min-h-screen text-white">
           
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -100,7 +102,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--card-border)] bg-[rgba(218,242,100,0.02)]">
               <Activity className="w-4 h-4 text-[var(--accent)] animate-pulse" />
               <span className="text-xs font-semibold text-gray-300">
-                {t("activeProject") !== "activeProject" ? t("activeProject") : "Active Project"}: {activeProject?.name || "Pune EV Charging"}
+                {t("activeProject") !== "activeProject" ? t("activeProject") : "Active Project"}: {activeProject?.name || "No Active Venture"}
               </span>
             </div>
           </div>
@@ -679,7 +681,8 @@ export default function RoadmapPage() {
             </motion.div>
           </AnimatePresence>
 
-        </div>
+          </div>
+        </PremiumGate>
       </DashboardLayout>
     </ProjectGuard>
   );

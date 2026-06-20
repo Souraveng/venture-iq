@@ -31,7 +31,7 @@ async function runTests() {
   console.log("--- 1. Testing EmbeddingService ---");
   try {
     const embeddings = new EmbeddingService();
-    assert(embeddings.modelName === "gemini-embedding-2", "Embedding model name is gemini-embedding-2");
+    assert(embeddings.modelName === "text-embedding-004", "Embedding model name is text-embedding-004");
     assert(embeddings.dimensions === 768, "Embedding dimension is 768");
 
     const v1 = await embeddings.getEmbedding("EV startup India");

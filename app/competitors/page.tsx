@@ -7,38 +7,34 @@ import { useTranslatedReport } from "@/hooks/useTranslatedReport";
 import { useTranslation } from "@/context/TranslationContext";
 
 const competitors = [
-  { name: "Ather Energy",     type: "Direct",   funding: "$380M", stage: "Series E", market: "India",         pricing: "$1,200/yr", threat: 90, strengths: ["Brand", "Hardware+SW", "Network"],     weaknesses: ["Closed ecosystem", "High price"] },
-  { name: "Tata Motors EV",   type: "Direct",   funding: "$2.1B", stage: "Public",   market: "India",         pricing: "$900/yr",  threat: 85, strengths: ["Scale", "Govt backing", "Distribution"], weaknesses: ["Legacy org", "Slow software"] },
-  { name: "ChargePoint",      type: "Direct",   funding: "$700M", stage: "Public",   market: "Global",        pricing: "$1,500/yr", threat: 72, strengths: ["Network size", "Partnerships"],         weaknesses: ["US-centric", "No fleet SaaS"] },
-  { name: "Bolt.Earth",       type: "Direct",   funding: "$30M",  stage: "Series B", market: "India",         pricing: "$600/yr",  threat: 68, strengths: ["India-first", "B2B focus"],             weaknesses: ["Limited analytics", "No AI"] },
-  { name: "Greaves Electric", type: "Indirect", funding: "$180M", stage: "Series C", market: "India",         pricing: "$800/yr",  threat: 45, strengths: ["Last-mile", "L-category"],              weaknesses: ["Not fleet-focused"] },
-  { name: "Zeon Charging",    type: "Indirect", funding: "$8M",   stage: "Seed",     market: "India",         pricing: "$400/yr",  threat: 30, strengths: ["Low cost", "Partnerships"],             weaknesses: ["No SaaS layer", "Early stage"] },
+  { name: "Competitor Alpha", type: "Direct",   funding: "$30M", stage: "Series B", market: "Domestic", pricing: "$1,200/yr", threat: 90, strengths: ["Brand", "Comprehensive SaaS"], weaknesses: ["Closed ecosystem", "High price"] },
+  { name: "Competitor Beta",   type: "Direct",   funding: "$150M", stage: "Series D", market: "Domestic", pricing: "$900/yr",  threat: 85, strengths: ["Scale", "Market Share"],       weaknesses: ["Legacy system", "Slow release cycles"] },
+  { name: "Competitor Gamma",  type: "Direct",   funding: "$8M",   stage: "Seed",     market: "Regional", pricing: "$400/yr",  threat: 45, strengths: ["Low cost", "Regional focus"],   weaknesses: ["No SaaS layer", "Early stage"] },
 ];
 
 const features = [
-  "Fleet Management SaaS",
+  "Core Platform SaaS",
   "AI-powered Analytics",
   "Real-time Monitoring",
-  "Mobile App",
+  "Mobile Application",
   "API Integrations",
   "Multi-location Support",
-  "Carbon Reporting",
-  "White Label",
+  "Reporting & Dashboard",
+  "White Label Solutions",
 ];
 
 const featureMatrix: Record<string, boolean[]> = {
-  "Ather Energy":     [false, false, true,  true,  false, true,  false, false],
-  "Tata Motors EV":   [true,  false, true,  true,  true,  true,  false, false],
-  "ChargePoint":      [true,  false, true,  true,  true,  true,  true,  true ],
-  "Bolt.Earth":       [true,  false, true,  true,  false, true,  false, false],
+  "Competitor Alpha": [false, false, true,  true,  false, true,  false, false],
+  "Competitor Beta":  [true,  false, true,  true,  true,  true,  false, false],
+  "Competitor Gamma": [true,  false, true,  true,  false, true,  false, false],
   "Your Startup":     [true,  true,  true,  true,  true,  true,  true,  true ],
 };
 
 const swotData = {
-  Strengths:     ["AI-native platform from day one", "India-first, regulatory-aware", "Fleet + individual dual market"],
-  Weaknesses:    ["No hardware — pure software", "First-mover cost of education", "Dependent on EV adoption pace"],
-  Opportunities: ["FAME-III subsidy policy", "Fleet electrification mandates", "B2B SaaS has 0 dominant player"],
-  Threats:       ["Ather / Tata could build SaaS in-house", "Chinese OEMs entering India", "Infrastructure lag risk"],
+  Strengths:     ["Agile development cycle", "Customer-centric design", "Innovative core tech"],
+  Weaknesses:    ["Limited early brand awareness", "Funding constraints", "Small sales pipeline"],
+  Opportunities: ["Growing digital adoption", "Market gaps left by incumbents", "Strategic partnership integrations"],
+  Threats:       ["Fast-following competitors", "Changes in industry regulations", "Economic downturns"],
 };
 
 const swotColors = {
@@ -114,7 +110,7 @@ export default function CompetitorsPage() {
             </div>
             <h1 className="text-2xl font-bold text-white">{t("competitorAnalysis")}</h1>
             <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
-              {dynamicCompetitors.length} {t("competitorsMapped") !== "competitorsMapped" ? t("competitorsMapped") : "competitors mapped"} · {activeProject?.name || "EV Startup Platform"}
+              {dynamicCompetitors.length} {t("competitorsMapped") !== "competitorsMapped" ? t("competitorsMapped") : "competitors mapped"} · {activeProject?.name || "No Active Venture"}
             </p>
           </div>
           <button onClick={() => { if (typeof window !== "undefined") window.print(); }} className="text-xs px-3 py-2 rounded-lg font-medium"
@@ -166,10 +162,10 @@ export default function CompetitorsPage() {
               </div>
 
               <div className="flex flex-wrap gap-1">
-                {c.strengths.map((s: string) => (
-                  <span key={s} className="text-xs px-1.5 py-0.5 rounded"
+                {c.strengths.map((s: any, sIdx: number) => (
+                  <span key={sIdx} className="text-xs px-1.5 py-0.5 rounded"
                     style={{ background: "rgba(218, 242, 100, 0.08)", color: "var(--accent)" }}>
-                    {s}
+                    {s && typeof s === "object" ? (s.statement || s.value || JSON.stringify(s)) : String(s)}
                   </span>
                 ))}
               </div>
@@ -227,10 +223,14 @@ export default function CompetitorsPage() {
                   style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}>
                   <p className="text-xs font-bold mb-3 uppercase tracking-wider" style={{ color: cfg.label }}>{t(category.toLowerCase()) !== category.toLowerCase() ? t(category.toLowerCase()) : category}</p>
                   <ul className="space-y-2">
-                    {items.map((item) => (
-                      <li key={item} className="flex items-start gap-2 text-xs text-white">
+                    {items.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs text-white">
                         <span className="mt-0.5 flex-shrink-0" style={{ color: cfg.label }}>•</span>
-                        {item}
+                        <span>
+                          {item && typeof item === "object"
+                            ? ((item as any).statement || (item as any).value || JSON.stringify(item))
+                            : String(item)}
+                        </span>
                       </li>
                     ))}
                   </ul>

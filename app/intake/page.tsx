@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/store/useProjectStore";
 import DashboardLayout from "@/components/DashboardLayout";
+import { usePremiumTier } from "@/hooks/usePremiumTier";
 
 const suggestions = [
   "An AI-powered hiring platform for remote teams",
@@ -58,6 +59,8 @@ const AGENT_ACTIVITIES: Record<string, string> = {
 
 export default function IntakePage() {
   const router = useRouter();
+  const { isPremium } = usePremiumTier();
+  const totalAgentsCount = isPremium ? 15 : 11;
   const { projects, activeId, updateProject, addNotification, addAuditEntry } = useProjectStore();
   const active = projects.find((p) => p.id === activeId);
 
@@ -95,13 +98,20 @@ export default function IntakePage() {
 
   async function handleLaunch() {
     setLaunching(true);
-    const VENTURE_AGENTS = [
-      { nodeKey: "opportunity" }, { nodeKey: "planner" }, { nodeKey: "research" },
-      { nodeKey: "extractor" }, { nodeKey: "validator" }, { nodeKey: "retriever" },
-      { nodeKey: "market" }, { nodeKey: "competitor" }, { nodeKey: "swot" },
-      { nodeKey: "risk" }, { nodeKey: "financial" }, { nodeKey: "analyst" },
-      { nodeKey: "roadmap" }, { nodeKey: "decision" }, { nodeKey: "report" }
-    ];
+    const VENTURE_AGENTS = isPremium 
+      ? [
+          { nodeKey: "opportunity" }, { nodeKey: "planner" }, { nodeKey: "research" },
+          { nodeKey: "extractor" }, { nodeKey: "validator" }, { nodeKey: "retriever" },
+          { nodeKey: "market" }, { nodeKey: "competitor" }, { nodeKey: "swot" },
+          { nodeKey: "risk" }, { nodeKey: "financial" }, { nodeKey: "analyst" },
+          { nodeKey: "roadmap" }, { nodeKey: "decision" }, { nodeKey: "report" }
+        ]
+      : [
+          { nodeKey: "opportunity" }, { nodeKey: "planner" }, { nodeKey: "research" },
+          { nodeKey: "extractor" }, { nodeKey: "validator" }, { nodeKey: "retriever" },
+          { nodeKey: "market" }, { nodeKey: "competitor" }, { nodeKey: "swot" },
+          { nodeKey: "risk" }, { nodeKey: "financial" }
+        ];
     addAuditEntry(activeId, {
       user: "Founder",
       avatar: "FO",
@@ -113,6 +123,17 @@ export default function IntakePage() {
     try {
       let result: any = null;
       const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
+      const cloudflareApiToken = localStorage.getItem("cloudflare_api_token") || "";
+      const cloudflareAccountId = localStorage.getItem("cloudflare_account_id") || "";
+      const cloudflareApiToken1 = localStorage.getItem("cloudflare_api_token_1") || "";
+      const cloudflareAccountId1 = localStorage.getItem("cloudflare_account_id_1") || "";
+      const cloudflareApiToken2 = localStorage.getItem("cloudflare_api_token_2") || "";
+      const cloudflareAccountId2 = localStorage.getItem("cloudflare_account_id_2") || "";
+      const cloudflareApiToken3 = localStorage.getItem("cloudflare_api_token_3") || "";
+      const cloudflareAccountId3 = localStorage.getItem("cloudflare_account_id_3") || "";
+      const cloudflareApiToken4 = localStorage.getItem("cloudflare_api_token_4") || "";
+      const cloudflareAccountId4 = localStorage.getItem("cloudflare_account_id_4") || "";
+
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 
@@ -125,6 +146,16 @@ export default function IntakePage() {
           projectId: activeId,
           data: { idea: idea },
           geminiApiKey,
+          cloudflareApiToken,
+          cloudflareAccountId,
+          cloudflareApiToken1,
+          cloudflareAccountId1,
+          cloudflareApiToken2,
+          cloudflareAccountId2,
+          cloudflareApiToken3,
+          cloudflareAccountId3,
+          cloudflareApiToken4,
+          cloudflareAccountId4,
         })
       });
 
@@ -155,6 +186,7 @@ export default function IntakePage() {
               const parsed = JSON.parse(dataStr);
               if (parsed.event === "node_complete") {
                 const nodeKey = parsed.node;
+                if (nodeKey === "supervisor") continue;
                 const nodeData = parsed.data;
                 const nodeIdx = VENTURE_AGENTS.findIndex((a) => a.nodeKey === nodeKey);
                 const nextNode = VENTURE_AGENTS[nodeIdx + 1]?.nodeKey || "";
@@ -305,7 +337,7 @@ export default function IntakePage() {
                   value={idea}
                   onChange={(e) => setIdea(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-                  placeholder="e.g. I want to build an EV charging network + fleet management SaaS for Indian logistics companies..."
+                  placeholder="e.g. I want to build a B2B SaaS platform for warehouse inventory management..."
                   rows={3}
                   className="flex-1 bg-transparent text-sm resize-none outline-none text-white placeholder-gray-600 leading-relaxed"
                 />
@@ -463,7 +495,7 @@ export default function IntakePage() {
                     : "Warming up agent environments..."}
                 </p>
                 <p className="text-[10px]" style={{ color: "#555" }}>
-                  Completed {active?.agentsDone || 0} of 15 analysis steps
+                  Completed {active?.agentsDone || 0} of {totalAgentsCount} analysis steps
                 </p>
               </div>
               {/* Progress bar */}

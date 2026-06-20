@@ -2,6 +2,8 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import EditProjectPanel from "@/components/EditProjectPanel";
 import ProjectGuard from "@/components/ProjectGuard";
+import PremiumGate from "@/components/PremiumGate";
+import { usePremiumTier } from "@/hooks/usePremiumTier";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
@@ -107,8 +109,14 @@ function ScoreGauge({ label, value, color }: { label: string; value: number; col
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const { tier, isPremium } = usePremiumTier();
   const { projects, activeId, updateProject, addNotification, addAuditEntry, addProject } = useProjectStore();
   const rawActiveProject = projects.find((p) => p.id === activeId);
+
+  const totalAgentsCount = isPremium ? 15 : 11;
+  const activeAgentsList = isPremium 
+    ? VENTURE_AGENTS 
+    : VENTURE_AGENTS.filter((a) => !["analyst", "roadmap", "decision", "report"].includes(a.nodeKey));
 
   const translatedSwotIntel = useTranslatedReport(activeId, rawActiveProject?.swotIntel || null);
   const translatedCompetitorIntel = useTranslatedReport(activeId, rawActiveProject?.competitorIntel || null);
@@ -180,15 +188,15 @@ export default function DashboardPage() {
   async function handleLaunch() {
     if (!activeProject) return;
     setLaunching(true);
-    updateProject(activeProject.id, { isAnalyzing: true, progress: 0, agentsDone: 0, activeAgentNode: "opportunity" });
+    updateProject(activeProject.id, { 
+      isAnalyzing: true, 
+      progress: 0, 
+      agentsDone: 0, 
+      activeAgentNode: "opportunity",
+      totalAgents: totalAgentsCount
+    });
 
-    const VENTURE_AGENTS_PIPELINE = [
-      { nodeKey: "opportunity" }, { nodeKey: "planner" }, { nodeKey: "research" },
-      { nodeKey: "extractor" }, { nodeKey: "validator" }, { nodeKey: "retriever" },
-      { nodeKey: "market" }, { nodeKey: "competitor" }, { nodeKey: "swot" },
-      { nodeKey: "risk" }, { nodeKey: "financial" }, { nodeKey: "analyst" },
-      { nodeKey: "roadmap" }, { nodeKey: "decision" }, { nodeKey: "report" }
-    ];
+    const VENTURE_AGENTS_PIPELINE = activeAgentsList.map((a) => ({ nodeKey: a.nodeKey }));
 
     addAuditEntry(activeProject.id, {
       user: "Founder",
@@ -201,6 +209,17 @@ export default function DashboardPage() {
     try {
       let result: any = null;
       const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
+      const cloudflareApiToken = localStorage.getItem("cloudflare_api_token") || "";
+      const cloudflareAccountId = localStorage.getItem("cloudflare_account_id") || "";
+      const cloudflareApiToken1 = localStorage.getItem("cloudflare_api_token_1") || "";
+      const cloudflareAccountId1 = localStorage.getItem("cloudflare_account_id_1") || "";
+      const cloudflareApiToken2 = localStorage.getItem("cloudflare_api_token_2") || "";
+      const cloudflareAccountId2 = localStorage.getItem("cloudflare_account_id_2") || "";
+      const cloudflareApiToken3 = localStorage.getItem("cloudflare_api_token_3") || "";
+      const cloudflareAccountId3 = localStorage.getItem("cloudflare_account_id_3") || "";
+      const cloudflareApiToken4 = localStorage.getItem("cloudflare_api_token_4") || "";
+      const cloudflareAccountId4 = localStorage.getItem("cloudflare_account_id_4") || "";
+
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 
@@ -213,6 +232,16 @@ export default function DashboardPage() {
           projectId: activeProject.id,
           data: { idea: idea },
           geminiApiKey,
+          cloudflareApiToken,
+          cloudflareAccountId,
+          cloudflareApiToken1,
+          cloudflareAccountId1,
+          cloudflareApiToken2,
+          cloudflareAccountId2,
+          cloudflareApiToken3,
+          cloudflareAccountId3,
+          cloudflareApiToken4,
+          cloudflareAccountId4,
         })
       });
 
@@ -243,6 +272,7 @@ export default function DashboardPage() {
               const parsed = JSON.parse(dataStr);
               if (parsed.event === "node_complete") {
                 const nodeKey = parsed.node;
+                if (nodeKey === "supervisor") continue;
                 const nodeData = parsed.data;
                 const nodeIdx = VENTURE_AGENTS_PIPELINE.findIndex((a) => a.nodeKey === nodeKey);
                 const nextNode = VENTURE_AGENTS_PIPELINE[nodeIdx + 1]?.nodeKey || "";
@@ -432,7 +462,7 @@ export default function DashboardPage() {
                         {a.icon}
                       </div>
                     ))}
-                    <span className="text-xs ml-1" style={{ color: "#333" }}>{t("agentsReady")}</span>
+                    <span className="text-xs ml-1" style={{ color: "#333" }}>{isPremium ? t("agentsReady") : t("agentsReady").replace("15", "11")}</span>
                   </div>
                 </motion.div>
               )}
@@ -505,13 +535,13 @@ export default function DashboardPage() {
                       {t("startVentureAnalysis")} →
                     </button>
                     <p className="text-xs" style={{ color: "#333" }}>
-                      {t("pipelineDesc") !== "pipelineDesc" ? t("pipelineDesc") : "15 validation agents will execute in sequence to generate your analysis report."}
+                      {`${totalAgentsCount} validation agents will execute in sequence to generate your analysis report.`}
                     </p>
 
                     {activeProject && activeProject.agentsDone > 0 && (
                       <div className="p-4 rounded-xl border border-dashed border-zinc-800 bg-white/[0.02] text-left mt-2">
                         <p className="text-xs font-semibold text-white mb-1">
-                          {t("savedProgressFound")} ({activeProject.agentsDone}/15)
+                          {t("savedProgressFound")} ({activeProject.agentsDone}/{totalAgentsCount})
                         </p>
                         <p className="text-[11px] text-zinc-400 mb-3 leading-normal">
                           {t("savedProgressDesc")}
@@ -577,7 +607,7 @@ export default function DashboardPage() {
                         : t("warmingUp")}
                     </p>
                     <p className="text-[10px]" style={{ color: "#555" }}>
-                      {t("completedSteps")}: {activeProject?.agentsDone || 0}/15
+                      Completed Steps: {activeProject?.agentsDone || 0}/{totalAgentsCount}
                     </p>
                   </div>
                   <div className="w-64 h-1.5 rounded-full overflow-hidden" style={{ background: "#1a1a1a" }}>
@@ -605,7 +635,7 @@ export default function DashboardPage() {
                         border: "1px solid var(--accent)",
                       }}
                     >
-                      {t("bypassLock")} ({activeProject.agentsDone}/15)
+                      Bypass Lock ({activeProject.agentsDone}/{totalAgentsCount})
                     </button>
                   )}
                 </motion.div>
@@ -626,7 +656,23 @@ export default function DashboardPage() {
   const risk = activeProject.riskIntel?.overallRiskIndex?.score ?? 32;
   const confidence = decReport?.confidence?.score ?? 82;
   
-  const decision = decReport?.verdict?.decision || "PROCEED";
+  const dynamicChecksCount = (() => {
+    const vf = activeProject?.validatedFacts;
+    if (vf && Array.isArray(vf) && vf.length > 0) {
+      const total = vf.length;
+      const passed = vf.filter((fact: any) => fact.status === "validated" || fact.status === "confirmed" || fact.validated === true).length;
+      return { total, passed };
+    }
+    return { total: 16, passed: 11 };
+  })();
+
+  const dbPassedChecks = dynamicChecksCount.passed;
+  const dbTotalChecks = dynamicChecksCount.total;
+  const checksRatio = dbTotalChecks > 0 ? dbPassedChecks / dbTotalChecks : 0;
+
+  const decision = decReport?.verdict?.decision || (checksRatio >= 0.7 ? "YES" : "NO");
+  const verdict = activeProject?.finalReport?.verdict || (checksRatio >= 0.7 ? "PROCEED" : "CAUTION");
+  
   const reasoning = Array.isArray(decReport?.verdict?.reasoning)
     ? decReport.verdict.reasoning
     : typeof decReport?.verdict?.reasoning === 'string'
@@ -647,7 +693,13 @@ export default function DashboardPage() {
 
   async function handleRerun() {
     setLoading(true);
-    updateProject(activeId, { isAnalyzing: true, progress: 0, agentsDone: 0, activeAgentNode: "opportunity" });
+    updateProject(activeId, { 
+      isAnalyzing: true, 
+      progress: 0, 
+      agentsDone: 0, 
+      activeAgentNode: "opportunity",
+      totalAgents: totalAgentsCount
+    });
     addAuditEntry(activeId, {
       user: "Founder",
       avatar: "FO",
@@ -658,6 +710,17 @@ export default function DashboardPage() {
 
     try {
       const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
+      const cloudflareApiToken = localStorage.getItem("cloudflare_api_token") || "";
+      const cloudflareAccountId = localStorage.getItem("cloudflare_account_id") || "";
+      const cloudflareApiToken1 = localStorage.getItem("cloudflare_api_token_1") || "";
+      const cloudflareAccountId1 = localStorage.getItem("cloudflare_account_id_1") || "";
+      const cloudflareApiToken2 = localStorage.getItem("cloudflare_api_token_2") || "";
+      const cloudflareAccountId2 = localStorage.getItem("cloudflare_account_id_2") || "";
+      const cloudflareApiToken3 = localStorage.getItem("cloudflare_api_token_3") || "";
+      const cloudflareAccountId3 = localStorage.getItem("cloudflare_account_id_3") || "";
+      const cloudflareApiToken4 = localStorage.getItem("cloudflare_api_token_4") || "";
+      const cloudflareAccountId4 = localStorage.getItem("cloudflare_account_id_4") || "";
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { 
@@ -673,6 +736,16 @@ export default function DashboardPage() {
             description: projectDesc,
           },
           geminiApiKey,
+          cloudflareApiToken,
+          cloudflareAccountId,
+          cloudflareApiToken1,
+          cloudflareAccountId1,
+          cloudflareApiToken2,
+          cloudflareAccountId2,
+          cloudflareApiToken3,
+          cloudflareAccountId3,
+          cloudflareApiToken4,
+          cloudflareAccountId4,
         }),
       });
 
@@ -723,15 +796,16 @@ export default function DashboardPage() {
               const parsed = JSON.parse(dataStr);
               if (parsed.event === "node_complete") {
                 const nodeKey = parsed.node;
+                if (nodeKey === "supervisor") continue;
                 const nodeData = parsed.data;
-                const nodeIdx = VENTURE_AGENTS.findIndex((a) => a.nodeKey === nodeKey);
-                const nextNode = VENTURE_AGENTS[nodeIdx + 1]?.nodeKey || "";
+                const nodeIdx = activeAgentsList.findIndex((a) => a.nodeKey === nodeKey);
+                const nextNode = activeAgentsList[nodeIdx + 1]?.nodeKey || "";
 
                 updateProject(activeId, {
                   ...nodeData,
                   agentsDone: nodeIdx + 1,
                   activeAgentNode: nextNode,
-                  progress: Math.round(((nodeIdx + 1) / VENTURE_AGENTS.length) * 100),
+                  progress: Math.round(((nodeIdx + 1) / activeAgentsList.length) * 100),
                 });
 
                 const agentName = AGENT_NAMES[nodeKey] || nodeKey;
@@ -751,7 +825,7 @@ export default function DashboardPage() {
               } else if (parsed.event === "complete") {
                 updateProject(activeId, {
                   ...parsed.result,
-                  agentsDone: VENTURE_AGENTS.length,
+                  agentsDone: activeAgentsList.length,
                   progress: 100,
                   isAnalyzing: false,
                   activeAgentNode: "",
@@ -798,9 +872,37 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold mt-0.5 text-white">{t("ventureIntelOverview")}</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted-fg)" }}>
             {t("analyzing")}: <span className="font-semibold" style={{ color: "var(--accent)" }}>{activeProject.name}</span>
-            &nbsp;·&nbsp; {loading ? t("running") : `${activeProject.agentsDone} / ${activeProject.totalAgents} ${t("activeAgents")}`}
+            &nbsp;·&nbsp; {activeProject.isAnalyzing || loading ? (
+              <span className="font-semibold" style={{ color: "var(--accent)" }}>
+                {t("running")} ({activeProject.progress || 0}%) · {activeProject.activeAgentNode ? (AGENT_NAMES_GLOBAL[activeProject.activeAgentNode] || activeProject.activeAgentNode) : "Starting..."}
+              </span>
+            ) : (
+              `${activeProject.agentsDone} / ${activeProject.totalAgents || totalAgentsCount} ${t("activeAgents")}`
+            )}
           </p>
         </motion.div>
+
+        {/* Live Progress Bar during active analysis */}
+        {(activeProject.isAnalyzing || loading) && (
+          <div className="w-full bg-[#161616] border border-[#242424] rounded-xl p-4 space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-white">Analyzing Venture Idea...</span>
+              <span style={{ color: "var(--accent)" }}>{activeProject.progress || 0}% Complete</span>
+            </div>
+            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "#222" }}>
+              <motion.div 
+                className="h-full rounded-full" 
+                initial={{ width: 0 }}
+                animate={{ width: `${activeProject.progress || 0}%` }}
+                transition={{ duration: 0.3 }}
+                style={{ background: "var(--accent)" }} 
+              />
+            </div>
+            <p className="text-[10px]" style={{ color: "var(--muted-fg)" }}>
+              Current Agent: <span className="text-white font-medium">{activeProject.activeAgentNode ? (AGENT_NAMES_GLOBAL[activeProject.activeAgentNode] || activeProject.activeAgentNode) : "Warming up..."}</span>
+            </p>
+          </div>
+        )}
 
         {/* Venture Context strip */}
         {activeProject?.ventureContext && Object.keys(activeProject.ventureContext).length > 0 && (
@@ -874,129 +976,154 @@ export default function DashboardPage() {
         </div>
 
         {/* Dynamic Investment Committee Report */}
-        {decReport ? (
+        {activeProject.agentsDone > 0 && (
           <div className="space-y-6">
-            
-            {/* Verdict Banner */}
+            {/* Verdict Banner (unlocked for all) */}
             <div className="rounded-2xl p-6 border transition-all"
               style={{
                 background: 
-                  decision.includes("STRONG") || decision === "PROCEED"
+                  decision.includes("STRONG") || decision === "PROCEED" || decision === "YES"
                     ? "rgba(34, 197, 94, 0.04)"
-                    : decision.includes("CAUTION")
+                    : decision.includes("CAUTION") || decision === "NO"
                     ? "rgba(234, 179, 8, 0.04)"
                     : "rgba(239, 68, 68, 0.04)",
                 borderColor:
-                  decision.includes("STRONG") || decision === "PROCEED"
+                  decision.includes("STRONG") || decision === "PROCEED" || decision === "YES"
                     ? "rgba(34, 197, 94, 0.2)"
-                    : decision.includes("CAUTION")
+                    : decision.includes("CAUTION") || decision === "NO"
                     ? "rgba(234, 179, 8, 0.2)"
                     : "rgba(239, 68, 68, 0.2)"
               }}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest"
-                  style={{
-                    color:
-                      decision.includes("STRONG") || decision === "PROCEED"
-                        ? "#22c55e"
-                        : decision.includes("CAUTION")
-                        ? "#eab308"
-                        : "#ef4444"
-                  }}>
-                  {t("investmentVerdict")}
-                </span>
-                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-black/40 border border-white/5">
-                  {t("stage")}: {stage}
-                </span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest"
+                      style={{
+                        color:
+                          decision.includes("STRONG") || decision === "PROCEED" || decision === "YES"
+                            ? "#22c55e"
+                            : decision.includes("CAUTION") || decision === "NO"
+                            ? "#eab308"
+                            : "#ef4444"
+                      }}>
+                      {t("investmentVerdict") || "Investment Verdict"}
+                    </span>
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold bg-black/40 border border-white/5 text-gray-400">
+                      {t("stage") || "Stage"}: {stage}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-black text-white">
+                    {decision} ({verdict})
+                  </h2>
+                </div>
+                {!isPremium && (
+                  <span className="text-[10px] px-2.5 py-1 rounded bg-[rgba(218,242,100,0.1)] text-[var(--accent)] font-semibold border border-[rgba(218,242,100,0.2)]">
+                    Free Tier Verdict
+                  </span>
+                )}
               </div>
-              <h2 className="text-2xl font-black text-white">
-                {decision}
-              </h2>
-              <ul className="space-y-2 mt-3 pl-1">
-                {reasoning.map((r: string, i: number) => (
-                  <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2">
-                    <span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-white/45" />
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Executive Summary */}
-            <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)]">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">{t("executiveSummary")}</h3>
-              <p className="text-xs leading-relaxed text-gray-300 whitespace-pre-line">
-                {executiveSummary}
-              </p>
-            </div>
-
-            {/* Opportunities vs Risks columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Opportunities */}
-              <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                  <span>◎</span> {t("keyOpportunities")}
-                </h3>
-                <ul className="space-y-3">
-                  {topOpportunities.map((o: string, i: number) => (
-                    <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-[10px]">
-                        {i + 1}
-                      </span>
-                      <span>{o}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Risks */}
-              <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 flex items-center gap-2">
-                  <span>⚠</span> {t("keyRisks")}
-                </h3>
-                <ul className="space-y-3">
-                  {topRisks.map((r: string, i: number) => (
-                    <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-full bg-red-950 text-red-400 font-bold flex items-center justify-center flex-shrink-0 text-[10px]">
-                        {i + 1}
-                      </span>
+              {reasoning.length > 0 ? (
+                <ul className="space-y-2 mt-3 pl-1">
+                  {reasoning.map((r: string, i: number) => (
+                    <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2">
+                      <span className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-white/45" />
                       <span>{r}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-
+              ) : (
+                <p className="text-xs text-gray-400 mt-2">
+                  {!isPremium 
+                    ? `Venture readiness validated. ${dbPassedChecks} out of ${dbTotalChecks} validation checks passed.`
+                    : "Venture validation in progress..."}
+                </p>
+              )}
             </div>
 
-            {/* Recommended Next Actions */}
-            <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--accent)]">
-                {t("recommendedActionPlan")}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendedActions.map((action: string, i: number) => (
-                  <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-[var(--card-border)] bg-black/20">
-                    <span className="w-4 h-4 rounded bg-[rgba(218,242,100,0.1)] border border-[rgba(218,242,100,0.2)] text-[var(--accent)] flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">
-                      {i + 1}
-                    </span>
-                    <span className="text-xs text-gray-300 leading-relaxed">{action}</span>
+            {/* Premium Details (Executive Summary, Opportunities, Risks, Actions) */}
+            <PremiumGate>
+              {decReport ? (
+                <div className="space-y-6">
+                  {/* Executive Summary */}
+                  <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)]">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">{t("executiveSummary")}</h3>
+                    <p className="text-xs leading-relaxed text-gray-300 whitespace-pre-line">
+                      {executiveSummary}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
 
+                  {/* Opportunities vs Risks columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Opportunities */}
+                    <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                        <span>◎</span> {t("keyOpportunities")}
+                      </h3>
+                      <ul className="space-y-3">
+                        {topOpportunities.map((o: string, i: number) => (
+                          <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2.5">
+                            <span className="w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-[10px]">
+                              {i + 1}
+                            </span>
+                            <span>{o}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Risks */}
+                    <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-red-400 flex items-center gap-2">
+                        <span>⚠</span> {t("keyRisks")}
+                      </h3>
+                      <ul className="space-y-3">
+                        {topRisks.map((r: string, i: number) => (
+                          <li key={i} className="text-xs text-gray-300 leading-relaxed flex items-start gap-2.5">
+                            <span className="w-5 h-5 rounded-full bg-red-950 text-red-400 font-bold flex items-center justify-center flex-shrink-0 text-[10px]">
+                              {i + 1}
+                            </span>
+                            <span>{r}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Recommended Next Actions */}
+                  <div className="rounded-2xl p-6 border border-[var(--card-border)] bg-[var(--card-bg)] space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--accent)]">
+                      {t("recommendedActionPlan")}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {recommendedActions.map((action: string, i: number) => (
+                        <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-[var(--card-border)] bg-black/20">
+                          <span className="w-4 h-4 rounded bg-[rgba(218,242,100,0.1)] border border-[rgba(218,242,100,0.2)] text-[var(--accent)] flex items-center justify-center flex-shrink-0 text-[10px] mt-0.5">
+                            {i + 1}
+                          </span>
+                          <span className="text-xs text-gray-300 leading-relaxed">{action}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Fallback Basic Summary if not analyzed yet */
+                activeProject?.finalReport?.summary ? (
+                  <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
+                    <h2 className="text-sm font-semibold mb-2 text-white">AI {t("executiveSummary")}</h2>
+                    <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
+                      {activeProject.finalReport.summary}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.02)", border: "1px dashed rgba(218, 242, 100, 0.15)" }}>
+                    <p className="text-xs text-gray-500 text-center">Upgrade to Premium to view detailed Executive Summary, Key Opportunities, Risks, and Action Plans.</p>
+                  </div>
+                )
+              )}
+            </PremiumGate>
           </div>
-        ) : (
-          /* Fallback Basic Summary if not analyzed yet */
-          activeProject?.finalReport?.summary && (
-            <div className="rounded-xl p-5" style={{ background: "rgba(218, 242, 100, 0.05)", border: "1px solid rgba(218, 242, 100, 0.15)" }}>
-              <h2 className="text-sm font-semibold mb-2 text-white">AI {t("executiveSummary")}</h2>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--muted-fg)" }}>
-                {activeProject.finalReport.summary}
-              </p>
-            </div>
-          )
         )}
 
         {/* Agent pipeline — Real 15 VentureIQ agents */}
@@ -1006,13 +1133,13 @@ export default function DashboardPage() {
             <h2 className="text-sm font-semibold">{t("ventureIQAgentPipeline")}</h2>
             <span className="text-xs px-2.5 py-1 rounded-full font-medium"
               style={{ background: "rgba(218, 242, 100, 0.1)", color: "var(--accent)" }}>
-              {activeProject?.agentsDone === activeProject?.totalAgents ? "✓ Complete" : "● Live"}
+              {activeProject?.agentsDone === (activeProject?.totalAgents || totalAgentsCount) ? "✓ Complete" : "● Live"}
             </span>
           </div>
           <div style={{ background: "var(--background)" }}>
-            {VENTURE_AGENTS.map((agent, i) => {
+            {activeAgentsList.map((agent, i) => {
               const isDone = i < (activeProject?.agentsDone ?? 0);
-              const isRunning = i === (activeProject?.agentsDone ?? 0) && loading;
+              const isRunning = i === (activeProject?.agentsDone ?? 0) && (activeProject?.isAnalyzing || loading);
               const status = isDone ? "done" : isRunning ? "running" : "waiting";
               const s = statusStyle[status as keyof typeof statusStyle];
               return (

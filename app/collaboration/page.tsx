@@ -142,7 +142,7 @@ export default function CollaborationPage() {
             </span>
           </div>
           <div className="flex items-center gap-4 text-xs text-gray-400">
-            <span>Venture: <span className="text-white font-medium">{activeProject?.name || "EV Charging"}</span></span>
+            <span>Venture: <span className="text-white font-medium">{activeProject?.name || "No Active Venture"}</span></span>
             <span>Progress: <span className="text-[var(--accent)] font-bold">{progress}%</span></span>
             <span style={{ color: isAnalyzing ? "#fbbf24" : "#34d399" }}>
               ● {isAnalyzing ? "Analyzing" : "Complete"}

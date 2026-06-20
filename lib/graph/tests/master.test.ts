@@ -24,6 +24,7 @@ async function runMasterTest() {
   const initialState = {
     mode: "validate",
     userInput: { idea: "Build an asset-light OCPP EV charging grid load balancer in Pune" },
+    userTier: "premium" as const,
     researchPlan: [],
     marketIntel: {},
     competitorIntel: {},
@@ -38,7 +39,7 @@ async function runMasterTest() {
 
   try {
     console.log("Invoking Master LangGraph orchestrator...");
-    const result = await graph.invoke(initialState) as VentureStateType;
+    const result = await graph.invoke(initialState, { recursionLimit: 100 }) as VentureStateType;
     
     console.log("\nMaster LangGraph finished execution. Verifying node outputs...");
 

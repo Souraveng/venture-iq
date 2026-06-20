@@ -168,6 +168,17 @@ export default function AgentsPage() {
 
     try {
       const geminiApiKey = localStorage.getItem("gemini_api_key") || "";
+      const cloudflareApiToken = localStorage.getItem("cloudflare_api_token") || "";
+      const cloudflareAccountId = localStorage.getItem("cloudflare_account_id") || "";
+      const cloudflareApiToken1 = localStorage.getItem("cloudflare_api_token_1") || "";
+      const cloudflareAccountId1 = localStorage.getItem("cloudflare_account_id_1") || "";
+      const cloudflareApiToken2 = localStorage.getItem("cloudflare_api_token_2") || "";
+      const cloudflareAccountId2 = localStorage.getItem("cloudflare_account_id_2") || "";
+      const cloudflareApiToken3 = localStorage.getItem("cloudflare_api_token_3") || "";
+      const cloudflareAccountId3 = localStorage.getItem("cloudflare_account_id_3") || "";
+      const cloudflareApiToken4 = localStorage.getItem("cloudflare_api_token_4") || "";
+      const cloudflareAccountId4 = localStorage.getItem("cloudflare_account_id_4") || "";
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { 
@@ -183,6 +194,16 @@ export default function AgentsPage() {
             description: activeProject.description,
           },
           geminiApiKey,
+          cloudflareApiToken,
+          cloudflareAccountId,
+          cloudflareApiToken1,
+          cloudflareAccountId1,
+          cloudflareApiToken2,
+          cloudflareAccountId2,
+          cloudflareApiToken3,
+          cloudflareAccountId3,
+          cloudflareApiToken4,
+          cloudflareAccountId4,
         }),
       });
 
@@ -229,6 +250,7 @@ export default function AgentsPage() {
               const parsed = JSON.parse(dataStr);
               if (parsed.event === "node_complete") {
                 const nodeKey = parsed.node;
+                if (nodeKey === "supervisor") continue;
                 const nodeData = parsed.data;
                 const nodeIdx = agents.findIndex((a, idx) => {
                   const nodeKeys = [

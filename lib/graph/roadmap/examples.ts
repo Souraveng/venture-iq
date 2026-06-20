@@ -3,65 +3,65 @@ import { FounderRoadmapReport } from "./types";
 
 export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
   "30DayPlan": [
-    "Conduct interviews with 30 Pune e-rickshaw and logistics fleet operators to catalog local charging bottlenecks.",
-    "Set up a simple landing page explaining the load-balancing charging software and track visitor interest.",
-    "Validate willingness-to-pay models with 15 logistics managers in Pune (e.g., offering pilot pricing at ₹1,500/vehicle/month).",
-    "Contact MSEDCL (Maharashtra State Electricity Distribution Company) to map grid connection processes and fees in Pune suburbs."
+    "Conduct interviews with 30 target business operators to catalog local scheduling and workflow bottlenecks.",
+    "Set up a simple landing page explaining the optimization software and track visitor interest.",
+    "Validate willingness-to-pay models with 15 operations managers (e.g., offering pilot pricing at ₹1,500/seat/month).",
+    "Contact regulatory and industry experts to map compliance requirements and certification fees."
   ],
   "90DayPlan": [
-    "Build the core software MVP, simulating grid load balancing and presenting charger status in a web interface.",
-    "Deploy a 2-week pilot with 5 live e-rickshaws using existing Pune-based charging infrastructure.",
-    "Collect telemetry data from the pilot to verify load reduction metrics (targeting >20% reduction in peak draw).",
-    "Acquire signed Letters of Intent (LOI) from 5 local fleet operators for commercial rollout."
+    "Build the core software MVP, simulating workflow balancing and presenting task status in a web interface.",
+    "Deploy a 2-week pilot with 5 live active users using the initial beta version of the software.",
+    "Collect performance data from the pilot to verify efficiency gains (targeting >20% reduction in queue wait times).",
+    "Acquire signed Letters of Intent (LOI) from 5 local business operators for commercial rollout."
   ],
   "1YearPlan": [
-    "Commercialize the SaaS dashboard and onboard 50 paid fleet customers in Pune/Pimpri-Chinchwad.",
-    "Establish software API integrations with Ather Grid and Tata Power charging networks via OCPP protocols.",
-    "Hire a lead embedded systems engineer and a dedicated West India sales lead.",
-    "Close a ₹1.5 Crore ($180K USD) seed funding round from cleantech-focused angel networks."
+    "Commercialize the SaaS dashboard and onboard 50 paid client accounts in regional business hubs.",
+    "Establish software API integrations with major third-party databases and enterprise tools.",
+    "Hire a lead full-stack web developer and a dedicated regional sales lead.",
+    "Close a ₹1.5 Crore ($180K USD) seed funding round from technology-focused angel networks."
   ],
   "validationRoadmap": [
     {
       "type": "customer_interview",
-      "task": "Interview 30 logistics fleet owners in industrial Pune areas (Chakan, Bhosari) regarding daily charging schedules.",
-      "successMetric": "At least 20 confirm daily operations are regularly delayed by lack of available fast chargers or grid outages.",
-      "failureCriteria": "Fewer than 10 owners identify charger availability as a top-3 operational pain point."
+      "task": "Interview 30 business operations managers regarding daily scheduling bottlenecks.",
+      "successMetric": "At least 20 confirm daily operations are regularly delayed by scheduling conflicts or resource constraints.",
+      "failureCriteria": "Fewer than 10 owners identify scheduling as a top-3 operational pain point."
     },
     {
       "type": "landing_page",
-      "task": "Launch an online cost-saving calculator demonstrating SaaS ROI based on charging load balancing.",
+      "task": "Launch an online cost-saving calculator demonstrating SaaS ROI based on workload optimization.",
       "successMetric": "A landing page conversion (email signups or calculator completions) rate greater than 8%.",
       "failureCriteria": "Visitor signup conversion rate falls below 3% after 200 targeted visits."
     },
     {
       "type": "pricing_test",
-      "task": "Propose a B2B subscription model of ₹1,500 per vehicle per month to 15 pilot candidates.",
-      "successMetric": "At least 5 fleet managers sign pilot LOIs agreeing to subscription pricing upon successful proof of value.",
-      "failureCriteria": "Zero managers sign, citing preference for capital expenditure (hardware-only) models."
+      "task": "Propose a B2B subscription model of ₹1,500 per seat per month to 15 pilot candidates.",
+      "successMetric": "At least 5 operations managers sign pilot LOIs agreeing to subscription pricing upon successful proof of value.",
+      "failureCriteria": "Zero managers sign, citing preference for traditional custom software models."
     },
     {
       "type": "pilot_program",
-      "task": "Execute a live 2-week validation pilot with 5 vehicles.",
-      "successMetric": "Grid telemetry shows peak power demands drop by >20% without increasing average charging duration.",
-      "failureCriteria": "The scheduling algorithm results in delayed deliveries or grid overloads."
+      "task": "Execute a live 2-week validation pilot with 5 users.",
+      "successMetric": "Workflow telemetry shows peak demand queues drop by >20% without increasing average execution durations.",
+      "failureCriteria": "The scheduling algorithm results in delayed deliveries or system crashes."
     }
   ],
   "goToMarketPlan": {
-    "customerAcquisitionStrategy": "Direct sales outreach to local SME logistics operators and e-rickshaw cooperatives in Pune, offering free 2-week pilots to demonstrate direct electricity bill savings.",
+    "customerAcquisitionStrategy": "Direct sales outreach to local SME operators and cooperatives, offering free 2-week pilots to demonstrate direct cost savings.",
     "channels": [
       "Direct Sales Outreach",
-      "Pune SME Logistics Forums",
-      "Strategic partnerships with EV manufacturers",
-      "Clean-tech and mobility exhibitions in Maharashtra"
+      "Regional SME Business Forums",
+      "Strategic partnerships with software providers",
+      "Tech and enterprise management exhibitions"
     ],
     "partnerships": [
-      "Pune Electric Vehicle Dealers Association",
-      "Local charging hardware manufacturers looking for software integrations",
-      "Hub landlords at transport intersections"
+      "Regional Business Owners Association",
+      "Local software distributors looking for integration plugins",
+      "Consultants specializing in operational restructuring"
     ],
     "marketing": [
       "ROI cost-reduction calculator tools",
-      "Email marketing targeted at fleet logistics supervisors",
+      "Email marketing targeted at business supervisors",
       "LinkedIn thought-leadership content sharing pilot success data"
     ],
     "sales": [
@@ -70,22 +70,22 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
     ],
     "distribution": [
       "Web-based dashboard client portal",
-      "Over-the-air firmware updates via OCPP 1.6/2.0.1 integrations"
+      "Over-the-air software updates via secure cloud deployments"
     ]
   },
   "fundraisingRoadmap": {
     "bootstrapStage": [
-      "Utilize the initial ₹2 Lakhs founder savings to build the landing page, register the entity, and cover local travel/pilot costs."
+      "Utilize the initial ₹2 Lakhs founder savings to build the landing page, register the entity, and cover travel/pilot costs."
     ],
     "grantStage": [
       "Apply for the Startup India Seed Fund Scheme (SISFS) for up to ₹20 Lakhs in non-dilutive validation grants.",
-      "Apply for DST NIDHI-PRAYAS grant supporting hardware/firmware prototyping."
+      "Apply for regional innovation grants supporting technology prototyping."
     ],
     "angelStage": [
-      "Raise ₹50 Lakhs from Pune/Mumbai angel networks (e.g., Lead Angels, Venture Catalysts) based on validated pilot metrics."
+      "Raise ₹50 Lakhs from angel networks based on validated pilot metrics."
     ],
     "seedStage": [
-      "Secure a ₹1.5 Crore ($180K USD) institutional seed round to expand engineering staff and roll out services to Mumbai."
+      "Secure a ₹1.5 Crore ($180K USD) institutional seed round to expand engineering staff and roll out services to other cities."
     ],
     "requirements": {
       "bootstrap": [
@@ -103,24 +103,24 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
       ],
       "seed": [
         "₹3 Lakhs MRR achieved",
-        "Verified software integration with 2 major charging networks"
+        "Verified software integration with 2 major networks"
       ]
     }
   },
   "hiringRoadmap": [
     {
-      "role": "Technical Co-Founder / Embedded Software Engineer",
+      "role": "Technical Co-Founder / Systems Engineer",
       "priority": 1,
       "department": "Engineering",
       "timeline": "Month 1–2",
-      "justification": "Core software integration with chargers requires full-time ownership of OCPP protocol implementations."
+      "justification": "Core software integration requires full-time ownership of algorithm and protocol implementations."
     },
     {
-      "role": "B2B Sales Representative (West India)",
+      "role": "B2B Sales Representative",
       "priority": 2,
       "department": "Sales",
       "timeline": "Month 3–4",
-      "justification": "Required to execute door-to-door sales and pilot recruitment with Pune logistics fleet managers."
+      "justification": "Required to execute sales outreach and pilot recruitment with business managers."
     },
     {
       "role": "Full-Stack Web Developer",
@@ -133,8 +133,8 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
   "milestones": [
     {
       "id": "ms-1",
-      "goal": "Complete Customer Discovery in Pune",
-      "successCriteria": "30 interviews with fleet operators completed, validating grid load as a primary pain point.",
+      "goal": "Complete Customer Discovery",
+      "successCriteria": "30 interviews with operators completed, validating scheduling as a primary pain point.",
       "timeline": "Phase 1: Validation (Months 1–3)",
       "priority": "HIGH",
       "dependencies": []
@@ -149,8 +149,8 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
     },
     {
       "id": "ms-3",
-      "goal": "Deploy Software Load Balancing Pilot",
-      "successCriteria": "Telemetry validation from 5 pilot vehicles showing 20% peak demand reduction without delaying runs.",
+      "goal": "Deploy Software Optimization Pilot",
+      "successCriteria": "Telemetry validation from 5 pilot instances showing 20% queue reduction without delaying runs.",
       "timeline": "Phase 2: MVP (Months 4–9)",
       "priority": "HIGH",
       "dependencies": ["ms-2"]
@@ -158,7 +158,7 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
     {
       "id": "ms-4",
       "goal": "Commercial SaaS Launch",
-      "successCriteria": "First 20 paid B2B fleet customers onboarded at ₹1,500/vehicle/month subscription.",
+      "successCriteria": "First 20 paid B2B customers onboarded at ₹1,500/seat/month subscription.",
       "timeline": "Phase 3: Growth (Months 10–18)",
       "priority": "HIGH",
       "dependencies": ["ms-3"]
@@ -174,14 +174,14 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
   ],
   "priorityMatrix": {
     "highImpactLowEffort": [
-      "Launch a load-saving ROI calculator on the website landing page.",
-      "Conduct interviews with Pune e-rickshaw cooperatives.",
-      "Apply for Maharashtra state EV innovation grants."
+      "Launch a cost-saving ROI calculator on the website landing page.",
+      "Conduct interviews with regional business cooperatives.",
+      "Apply for state innovation grants."
     ],
     "highImpactHighEffort": [
-      "Build the grid load balancing firmware simulator dashboard.",
-      "Negotiate OCPP API access with Ather Grid and Tata Power.",
-      "Design a multi-tenant database for fleet profile security."
+      "Build the workflow balancing simulation dashboard.",
+      "Negotiate API access with major enterprise databases.",
+      "Design a multi-tenant database for client profile security."
     ],
     "lowImpactLowEffort": [
       "Incorporate the legal business entity.",
@@ -189,12 +189,12 @@ export const MOCK_ROADMAP_REPORT: FounderRoadmapReport = {
     ],
     "lowImpactHighEffort": [
       "Apply for early ISO 27001 data security compliance certifications.",
-      "Develop custom native offline-first mobile apps for fleet drivers."
+      "Develop custom native offline-first mobile apps for field staff."
     ]
   },
   "keySuccessFactors": [
-    "Stable OCPP hardware communications across diverse charging stations in Pune.",
-    "Convincing budget-tight fleet operators that load optimization delivers a clear return on subscription fees.",
-    "Navigating regulatory permissions and utility load policies with MSEDCL."
+    "Stable software database integrations across diverse platforms.",
+    "Convincing budget-tight operators that optimization delivers a clear return on subscription fees.",
+    "Navigating regulatory permissions and local licensing policies."
   ]
 };

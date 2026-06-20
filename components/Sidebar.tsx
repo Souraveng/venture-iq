@@ -8,6 +8,7 @@ import { useSidebar } from "./SidebarContext";
 import { useProjectStore } from "@/store/useProjectStore";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslation } from "@/context/TranslationContext";
+import { usePremiumTier } from "@/hooks/usePremiumTier";
 
 interface NavItem {
   href: string;
@@ -40,6 +41,7 @@ export default function Sidebar() {
   const { expanded, setExpanded } = useSidebar();
   const { projects, activeId, setActive, addProject, removeProject } = useProjectStore();
   const { data: session } = useSession();
+  const { isPremium } = usePremiumTier();
   
   // Custom sidebar states
   const [dbUser, setDbUser] = useState<any>(null);
@@ -277,16 +279,19 @@ export default function Sidebar() {
                     );
                   }
 
+                  const isPremiumItem = ["/pitch", "/roadmap"].includes(item.href);
+                  const isLocked = isPremiumItem && !isPremium;
+
                   return (
                     <Link key={item.href} href={item.href}>
                       <div
                         className={cn(
-                          "flex items-center gap-3 mx-1 my-0.5 rounded-lg cursor-pointer transition-colors",
+                          "flex items-center gap-3 mx-1 my-0.5 rounded-lg cursor-pointer transition-colors relative",
                           expanded ? "px-5 py-1.5" : "justify-center px-0 py-1.5"
                         )}
                         style={isActive
                           ? { background: "rgba(218,242,100,0.15)", color: "var(--accent)" }
-                          : { color: "var(--foreground)", opacity: 0.6 }}
+                          : { color: "var(--foreground)", opacity: isLocked ? 0.45 : 0.6 }}
                       >
                         <span className="text-sm flex-shrink-0 w-4 text-center">
                           {item.icon}
@@ -295,6 +300,12 @@ export default function Sidebar() {
                           <span className="text-xs font-medium whitespace-nowrap flex-1">
                             {label}
                           </span>
+                        )}
+                        {isLocked && expanded && (
+                          <span className="text-[10px]" title="Premium Feature">🔒</span>
+                        )}
+                        {isLocked && !expanded && (
+                          <span className="absolute top-1 right-1 text-[8px]" title="Premium Feature">🔒</span>
                         )}
                       </div>
                     </Link>

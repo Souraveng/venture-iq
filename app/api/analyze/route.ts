@@ -4,7 +4,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { graph } from "@/lib/graph/engine";
 import { apiKeyStorage } from "@/lib/graph/llm";
 import { activeAnalyzeRuns } from "@/lib/activeRuns";
-import { getProject, saveProject } from "@/lib/db";
+import { getProject, saveProject, getUser } from "@/lib/db";
+
+// Maximum time (ms) to allow the full agent pipeline to run.
+// Override via PIPELINE_TIMEOUT_MS env variable. Default: 10 minutes.
+const PIPELINE_TIMEOUT_MS = parseInt(process.env.PIPELINE_TIMEOUT_MS || "600000");
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -22,7 +26,27 @@ export async function POST(req: Request) {
   }
   const userCfToken = req.headers.get("x-cloudflare-api-token") || body.cloudflareApiToken || "";
   const userCfAccount = req.headers.get("x-cloudflare-account-id") || body.cloudflareAccountId || "";
+  const userCfToken1 = req.headers.get("x-cloudflare-api-token-1") || body.cloudflareApiToken1 || "";
+  const userCfAccount1 = req.headers.get("x-cloudflare-account-id-1") || body.cloudflareAccountId1 || "";
+  const userCfToken2 = req.headers.get("x-cloudflare-api-token-2") || body.cloudflareApiToken2 || "";
+  const userCfAccount2 = req.headers.get("x-cloudflare-account-id-2") || body.cloudflareAccountId2 || "";
+  const userCfToken3 = req.headers.get("x-cloudflare-api-token-3") || body.cloudflareApiToken3 || "";
+  const userCfAccount3 = req.headers.get("x-cloudflare-account-id-3") || body.cloudflareAccountId3 || "";
+  const userCfToken4 = req.headers.get("x-cloudflare-api-token-4") || body.cloudflareApiToken4 || "";
+  const userCfAccount4 = req.headers.get("x-cloudflare-account-id-4") || body.cloudflareAccountId4 || "";
   
+  // Look up user tier from database (defaults to 'free')
+  let userTier: "free" | "premium" = "free";
+  try {
+    const dbUser = await getUser(session.user.email!);
+    if (dbUser?.tier === "premium") {
+      userTier = "premium";
+    }
+  } catch (e) {
+    console.warn("[Analyze] Could not fetch user tier, defaulting to free:", e);
+  }
+  console.log(`[Analyze] User tier: ${userTier}`);
+
   const initialState = {
     mode: body.mode,
     userInput: body.data,
@@ -36,7 +60,12 @@ export async function POST(req: Request) {
     finalReport: {},
     roadmapIntel: {},
     decisionReport: {},
-    reportIntel: {}
+    reportIntel: {},
+    // Supervisor pattern fields
+    nextAgent: "",
+    supervisorCycleCount: 0,
+    completedAgents: [],
+    userTier,
   };
 
   const cleanup = async () => {
@@ -56,9 +85,17 @@ export async function POST(req: Request) {
     }
   };
 
+  // BUG-13 FIX: Guard against cleanup() being called twice (abort listener + finally block).
+  let cleanedUp = false;
+  const safeCleanup = async () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    await cleanup();
+  };
+
   req.signal.addEventListener("abort", () => {
     console.log(`[Analyze] Client connection aborted for project ${projectId}`);
-    cleanup();
+    safeCleanup();
   });
 
   try {
@@ -66,13 +103,40 @@ export async function POST(req: Request) {
       const encoder = new TextEncoder();
       const customReadable = new ReadableStream({
         async start(controller) {
+          // BUG-2 FIX: enforce a hard timeout on the streaming pipeline.
+          // Without this, a stalled LLM provider could keep the connection open indefinitely.
+          let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(async () => {
+            console.error(`[Analyze] Pipeline timeout after ${PIPELINE_TIMEOUT_MS}ms for project ${projectId}. Force-closing stream.`);
+            try {
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ event: "error", error: `Pipeline timeout after ${PIPELINE_TIMEOUT_MS / 1000}s` })}\n\n`)
+              );
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+            } catch (_) {}
+            await safeCleanup();
+          }, PIPELINE_TIMEOUT_MS);
+
+          const clearPipelineTimeout = () => {
+            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+          };
+
           try {
             await apiKeyStorage.run({ 
               geminiApiKey: userApiKey,
               cloudflareApiToken: userCfToken,
-              cloudflareAccountId: userCfAccount
+              cloudflareAccountId: userCfAccount,
+              cloudflareApiToken1: userCfToken1,
+              cloudflareAccountId1: userCfAccount1,
+              cloudflareApiToken2: userCfToken2,
+              cloudflareAccountId2: userCfAccount2,
+              cloudflareApiToken3: userCfToken3,
+              cloudflareAccountId3: userCfAccount3,
+              cloudflareApiToken4: userCfToken4,
+              cloudflareAccountId4: userCfAccount4,
+              userTier,
             }, async () => {
-              const stream = await graph.stream(initialState, { streamMode: "updates" });
+              const stream = await graph.stream(initialState, { streamMode: "updates", recursionLimit: 100 });
               const accumulatedState: Record<string, any> = { ...initialState };
 
               for await (const chunk of stream) {
@@ -117,7 +181,8 @@ export async function POST(req: Request) {
               );
             }
           } finally {
-            await cleanup();
+            clearPipelineTimeout();
+            await safeCleanup();
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
             controller.close();
           }
@@ -132,21 +197,38 @@ export async function POST(req: Request) {
         }
       });
     } else {
-      // Synchronous fallback
+      // Synchronous fallback — BUG-2 FIX: wrap with a timeout race so we never hang forever.
       try {
-        const result = await apiKeyStorage.run({ 
+        const pipelinePromise = apiKeyStorage.run({ 
           geminiApiKey: userApiKey,
           cloudflareApiToken: userCfToken,
-          cloudflareAccountId: userCfAccount
-        }, () => graph.invoke(initialState));
+          cloudflareAccountId: userCfAccount,
+          cloudflareApiToken1: userCfToken1,
+          cloudflareAccountId1: userCfAccount1,
+          cloudflareApiToken2: userCfToken2,
+          cloudflareAccountId2: userCfAccount2,
+          cloudflareApiToken3: userCfToken3,
+          cloudflareAccountId3: userCfAccount3,
+          cloudflareApiToken4: userCfToken4,
+          cloudflareAccountId4: userCfAccount4,
+        }, () => graph.invoke(initialState, { recursionLimit: 100 }));
+
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`Pipeline timeout after ${PIPELINE_TIMEOUT_MS / 1000}s`)),
+            PIPELINE_TIMEOUT_MS
+          )
+        );
+
+        const result = await Promise.race([pipelinePromise, timeoutPromise]);
         return NextResponse.json(result);
       } finally {
-        await cleanup();
+        await safeCleanup();
       }
     }
   } catch (error: any) {
     console.error("DEBUG ERROR:", error);
-    await cleanup();
+    await safeCleanup();
     return NextResponse.json({ 
       error: error.message,
       stack: error.stack

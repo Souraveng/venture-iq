@@ -26,13 +26,30 @@ export const VentureState = Annotation.Root({
   validatedFacts: Annotation<ValidatedFact[]>(),
   conflicts: Annotation<Conflict[]>(),
   reliability: Annotation<ReliabilityScores>(),
-  retrievedKnowledge: Annotation<RetrievedKnowledge[]>(),
+  retrievedKnowledge: Annotation<RetrievedKnowledge[]>({
+    // BUG-E FIX: Explicit reducer — replace only when the incoming value is non-empty.
+    // Without this, any node accidentally returning [] would silently wipe all RAG data.
+    reducer: (a, b) => (b && b.length > 0 ? b : a),
+  }),
+
   competitorIntel: Annotation<Record<string, any>>(),
   swotIntel: Annotation<Record<string, any>>(),
   riskIntel: Annotation<Record<string, any>>(),
   roadmapIntel: Annotation<Record<string, any>>(),
   decisionReport: Annotation<Record<string, any>>(),
   reportIntel: Annotation<Record<string, any>>(),
+
+  // === Supervisor Pattern Fields ===
+  // Routing target set by the supervisor node — determines which agent runs next
+  nextAgent: Annotation<string>(),
+  // Tracks how many times the supervisor has looped back to research (max 2)
+  supervisorCycleCount: Annotation<number>(),
+  // Set-based reducer: tracks which agents have completed, deduplicating entries
+  completedAgents: Annotation<string[]>({
+    reducer: (a, b) => [...new Set([...(a || []), ...(b || [])])],
+  }),
+  // User's subscription tier — controls which agents run and which LLM provider is used
+  userTier: Annotation<"free" | "premium">(),
 });
 
 export type VentureStateType = typeof VentureState.State;

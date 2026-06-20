@@ -11,7 +11,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { geminiApiKey, cloudflareApiToken, cloudflareAccountId } = await req.json();
+    const { 
+      geminiApiKey, 
+      cloudflareApiToken, 
+      cloudflareAccountId,
+      cloudflareApiToken1,
+      cloudflareAccountId1,
+      cloudflareApiToken2,
+      cloudflareAccountId2,
+      cloudflareApiToken3,
+      cloudflareAccountId3,
+      cloudflareApiToken4,
+      cloudflareAccountId4,
+    } = await req.json();
 
     const envPath = path.join(process.cwd(), ".env.local");
     let envContent = "";
@@ -20,44 +32,31 @@ export async function POST(req: Request) {
       envContent = fs.readFileSync(envPath, "utf-8");
     }
 
-    // Update GEMINI_API_KEY if provided
-    if (typeof geminiApiKey === "string") {
-      const keyRegex = /^GEMINI_API_KEY=.*$/m;
-      if (keyRegex.test(envContent)) {
-        envContent = envContent.replace(keyRegex, `GEMINI_API_KEY=${geminiApiKey}`);
-      } else {
-        envContent += envContent.endsWith("\n") || envContent === "" 
-          ? `GEMINI_API_KEY=${geminiApiKey}\n` 
-          : `\nGEMINI_API_KEY=${geminiApiKey}\n`;
+    const updateEnvVar = (name: string, value: string) => {
+      if (typeof value === "string") {
+        const keyRegex = new RegExp(`^${name}=.*$`, "m");
+        if (keyRegex.test(envContent)) {
+          envContent = envContent.replace(keyRegex, `${name}=${value}`);
+        } else {
+          envContent += envContent.endsWith("\n") || envContent === "" 
+            ? `${name}=${value}\n` 
+            : `\n${name}=${value}\n`;
+        }
+        process.env[name] = value;
       }
-      process.env.GEMINI_API_KEY = geminiApiKey;
-    }
+    };
 
-    // Update CLOUDFLARE_API if provided
-    if (typeof cloudflareApiToken === "string") {
-      const keyRegex = /^CLOUDFLARE_API=.*$/m;
-      if (keyRegex.test(envContent)) {
-        envContent = envContent.replace(keyRegex, `CLOUDFLARE_API=${cloudflareApiToken}`);
-      } else {
-        envContent += envContent.endsWith("\n") || envContent === "" 
-          ? `CLOUDFLARE_API=${cloudflareApiToken}\n` 
-          : `\nCLOUDFLARE_API=${cloudflareApiToken}\n`;
-      }
-      process.env.CLOUDFLARE_API = cloudflareApiToken;
-    }
-
-    // Update CLOUDFLARE_ACCOUNT_ID if provided
-    if (typeof cloudflareAccountId === "string") {
-      const keyRegex = /^CLOUDFLARE_ACCOUNT_ID=.*$/m;
-      if (keyRegex.test(envContent)) {
-        envContent = envContent.replace(keyRegex, `CLOUDFLARE_ACCOUNT_ID=${cloudflareAccountId}`);
-      } else {
-        envContent += envContent.endsWith("\n") || envContent === "" 
-          ? `CLOUDFLARE_ACCOUNT_ID=${cloudflareAccountId}\n` 
-          : `\nCLOUDFLARE_ACCOUNT_ID=${cloudflareAccountId}\n`;
-      }
-      process.env.CLOUDFLARE_ACCOUNT_ID = cloudflareAccountId;
-    }
+    updateEnvVar("GEMINI_API_KEY", geminiApiKey);
+    updateEnvVar("CLOUDFLARE_API", cloudflareApiToken);
+    updateEnvVar("CLOUDFLARE_ACCOUNT_ID", cloudflareAccountId);
+    updateEnvVar("CLOUDFLARE_API_1", cloudflareApiToken1);
+    updateEnvVar("CLOUDFLARE_ACCOUNT_ID_1", cloudflareAccountId1);
+    updateEnvVar("CLOUDFLARE_API_2", cloudflareApiToken2);
+    updateEnvVar("CLOUDFLARE_ACCOUNT_ID_2", cloudflareAccountId2);
+    updateEnvVar("CLOUDFLARE_API_3", cloudflareApiToken3);
+    updateEnvVar("CLOUDFLARE_ACCOUNT_ID_3", cloudflareAccountId3);
+    updateEnvVar("CLOUDFLARE_API_4", cloudflareApiToken4);
+    updateEnvVar("CLOUDFLARE_ACCOUNT_ID_4", cloudflareAccountId4);
 
     fs.writeFileSync(envPath, envContent, "utf-8");
 
