@@ -19,6 +19,7 @@ import {
   User,
   Sliders
 } from "lucide-react";
+import { useSessionStorage } from "@/hooks/useSessionStorage";
 
 export default function InvestorEditProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,39 +35,39 @@ export default function InvestorEditProfilePage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Profile Identity & Credentials (TAB 1)
-  const [name, setName] = useState("");
-  const [firm, setFirm] = useState("");
-  const [role, setRole] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [investorType, setInvestorType] = useState("Individual Angel");
-  const [activityStatus, setActivityStatus] = useState("Actively deploying this quarter");
-  const [location, setLocation] = useState("");
-  const [thesis, setThesis] = useState("");
-  const [currentInterestText, setCurrentInterestText] = useState("");
+  const [name, setName] = useSessionStorage('inv-name', "");
+  const [firm, setFirm] = useSessionStorage('inv-firm', "");
+  const [role, setRole] = useSessionStorage('inv-role', "");
+  const [avatarUrl, setAvatarUrl] = useSessionStorage('inv-avatarUrl', "");
+  const [investorType, setInvestorType] = useSessionStorage('inv-investorType', "Individual Angel");
+  const [activityStatus, setActivityStatus] = useSessionStorage('inv-activityStatus', "Actively deploying this quarter");
+  const [location, setLocation] = useSessionStorage('inv-location', "");
+  const [thesis, setThesis] = useSessionStorage('inv-thesis', "");
+  const [currentInterestText, setCurrentInterestText] = useSessionStorage('inv-currentInterestText', "");
 
   // Matching Parameters (TAB 2)
-  const [focusSectors, setFocusSectors] = useState<string[]>([]);
-  const [preferredStages, setPreferredStages] = useState<string[]>([]);
-  const [businessPreferences, setBusinessPreferences] = useState<string[]>([]);
-  const [preferredInstruments, setPreferredInstruments] = useState<string[]>([]);
-  const [minCheckSize, setMinCheckSize] = useState("");
-  const [maxCheckSize, setMaxCheckSize] = useState("");
-  const [geoPreferences, setGeoPreferences] = useState("");
+  const [focusSectors, setFocusSectors] = useSessionStorage('inv-focusSectors', ([] as string[]));
+  const [preferredStages, setPreferredStages] = useSessionStorage('inv-preferredStages', ([] as string[]));
+  const [businessPreferences, setBusinessPreferences] = useSessionStorage('inv-businessPreferences', ([] as string[]));
+  const [preferredInstruments, setPreferredInstruments] = useSessionStorage('inv-preferredInstruments', ([] as string[]));
+  const [minCheckSize, setMinCheckSize] = useSessionStorage('inv-minCheckSize', "");
+  const [maxCheckSize, setMaxCheckSize] = useSessionStorage('inv-maxCheckSize', "");
+  const [geoPreferences, setGeoPreferences] = useSessionStorage('inv-geoPreferences', "");
 
   // Deal Style & Value Add (TAB 3)
-  const [portfolioCompanies, setPortfolioCompanies] = useState<string[]>([]);
-  const [valueAdd, setValueAdd] = useState<string[]>([]);
-  const [investmentStyle, setInvestmentStyle] = useState("");
-  const [decisionSpeed, setDecisionSpeed] = useState("");
-  const [followOnCapacity, setFollowOnCapacity] = useState("");
-  const [riskAppetite, setRiskAppetite] = useState("Moderate");
-  const [previousExits, setPreviousExits] = useState("0");
-  const [isLeadInvestor, setIsLeadInvestor] = useState(false);
-  const [followsOn, setFollowsOn] = useState(false);
+  const [portfolioCompanies, setPortfolioCompanies] = useSessionStorage('inv-portfolioCompanies', ([] as string[]));
+  const [valueAdd, setValueAdd] = useSessionStorage('inv-valueAdd', ([] as string[]));
+  const [investmentStyle, setInvestmentStyle] = useSessionStorage('inv-investmentStyle', "");
+  const [decisionSpeed, setDecisionSpeed] = useSessionStorage('inv-decisionSpeed', "");
+  const [followOnCapacity, setFollowOnCapacity] = useSessionStorage('inv-followOnCapacity', "");
+  const [riskAppetite, setRiskAppetite] = useSessionStorage('inv-riskAppetite', "Moderate");
+  const [previousExits, setPreviousExits] = useSessionStorage('inv-previousExits', "0");
+  const [isLeadInvestor, setIsLeadInvestor] = useSessionStorage('inv-isLeadInvestor', false);
+  const [followsOn, setFollowsOn] = useSessionStorage('inv-followsOn', false);
 
   // Social Links (TAB 4)
-  const [linkedIn, setLinkedIn] = useState("");
-  const [twitter, setTwitter] = useState("");
+  const [linkedIn, setLinkedIn] = useSessionStorage('inv-linkedIn', "");
+  const [twitter, setTwitter] = useSessionStorage('inv-twitter', "");
 
   // Input helper states
   const [newSector, setNewSector] = useState("");

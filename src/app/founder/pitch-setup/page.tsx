@@ -33,6 +33,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { ShieldAlert } from "lucide-react";
 import { FileUpload } from "@/components/ui/file-upload";
+import { useSessionStorage } from "@/hooks/useSessionStorage";
 
 const parseCurrency = (str: string | undefined | null) => {
   if (!str) return "";
@@ -144,7 +145,7 @@ export default function FounderPitchRoomSetupPage() {
   });
 
   // Local temporary form state
-  const [editForm, setEditForm] = useState({ ...pitch });
+  const [editForm, setEditForm, clearEditForm] = useSessionStorage("founder-pitch-setup-data", { ...pitch });
   const [preSeedTab, setPreSeedTab] = useState<"idea" | "product" | "execution">("idea");
   const [pendingPublicField, setPendingPublicField] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -701,6 +702,7 @@ export default function FounderPitchRoomSetupPage() {
       if (json.success) {
         setPitch({ ...editForm, id: json.data.id, isPublished: isPublished });
         setIsEditing(false);
+        clearEditForm();
         setSuccessMessage(isPublished ? "🎉 Pitch successfully published & live to investors!" : "Pitch draft saved successfully!");
         setShowSuccessFlash(true);
         setTimeout(() => setShowSuccessFlash(false), 5000);

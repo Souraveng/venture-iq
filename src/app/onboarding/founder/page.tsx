@@ -4,17 +4,18 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronRight, ChevronLeft, Upload, Loader2 } from "lucide-react";
 import { gsap } from "gsap";
 import { useSession } from "next-auth/react";
+import { useSessionStorage } from "@/hooks/useSessionStorage";
 
 const STAGES = ["Idea", "MVP", "Pre-Revenue", "Revenue", "Seed", "Series A", "Series B+"];
 
 export default function FounderOnboarding() {
   const { update } = useSession();
-  const [step, setStep] = useState(1);
+  const [step, setStep, clearStep] = useSessionStorage("founder-onboarding-step", 1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useSessionStorage("founder-onboarding-data", {
     fullName: "",
     startupName: "",
     workEmail: "",
@@ -104,6 +105,8 @@ export default function FounderOnboarding() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
+        clearStep();
+        clearFormData();
         // Sync onboarded status immediately with NextAuth, then hard redirect
         await update();
         window.location.href = "/founder/home";

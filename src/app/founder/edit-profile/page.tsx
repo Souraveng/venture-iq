@@ -22,6 +22,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useSessionStorage } from "@/hooks/useSessionStorage";
 
 export default function FounderEditProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ export default function FounderEditProfilePage() {
   const [activeTab, setActiveTab] = useState<"profile" | "notifications" | "matching" | "deal" | "danger">("profile");
 
   // Tab 1: Profile & Account State
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData, clearProfileData] = useSessionStorage("founder-profile-data", {
     name: userName || "Swapn Kumar",
     email: userEmail || "swapn@gmail.com",
     roleTitle: isFounder ? "CEO & Technical Co-founder" : "Managing Partner",
@@ -53,7 +54,7 @@ export default function FounderEditProfilePage() {
   ]);
 
   // Tab 3: Granular Notifications Matrix State
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications, clearNotifications] = useSessionStorage("founder-profile-notifications", {
     matches: { email: true, push: true, inApp: true },
     outreach: { email: true, push: false, inApp: true },
     messages: { email: true, push: true, inApp: true },
@@ -63,7 +64,7 @@ export default function FounderEditProfilePage() {
   });
 
   // Tab 4: Matching Preferences (Feeds the algorithm)
-  const [matchingPreferences, setMatchingPreferences] = useState({
+  const [matchingPreferences, setMatchingPreferences, clearMatchingPreferences] = useSessionStorage("founder-profile-matching", {
     // Founder Side
     investorTypes: ["Angel", "Micro-VC", "Syndicate"],
     minCheckSize: "$50,000",
@@ -80,7 +81,7 @@ export default function FounderEditProfilePage() {
   });
 
   // Tab 5: Deal / Fundraising Settings
-  const [dealSettings, setDealSettings] = useState({
+  const [dealSettings, setDealSettings, clearDealSettings] = useSessionStorage("founder-profile-deal", {
     // Founder Side
     roundAmount: "$2,500,000",
     roundInstrument: "SAFE (Uncapped)",
@@ -99,6 +100,11 @@ export default function FounderEditProfilePage() {
   const [showSaveToast, setShowSaveToast] = useState(false);
 
   const handleSave = () => {
+    // In a real app, make API call here
+    clearProfileData();
+    clearNotifications();
+    clearMatchingPreferences();
+    clearDealSettings();
     setShowSaveToast(true);
     setTimeout(() => setShowSaveToast(false), 3000);
   };

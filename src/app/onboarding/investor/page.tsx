@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
 import { gsap } from "gsap";
+import { useSessionStorage } from "@/hooks/useSessionStorage";
 
 const STAGES = ["Idea", "Pre-Seed", "Seed", "Series A", "Series B", "Growth", "Late Stage", "Other"];
 const INDUSTRIES = ["AI", "SaaS", "Healthcare", "FinTech", "EdTech", "Climate", "Robotics", "Cybersecurity", "Consumer", "Manufacturing", "Logistics", "Deep Tech", "Other"];
@@ -14,12 +15,12 @@ const BUSINESS = ["B2B", "B2C", "SaaS", "Marketplace", "Enterprise", "D2C", "Har
 export default function InvestorOnboarding() {
   const router = useRouter();
   const { update } = useSession();
-  const [step, setStep] = useState(1);
+  const [step, setStep, clearStep] = useSessionStorage("investor-onboarding-step", 1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useSessionStorage("investor-onboarding-data", {
     name: "",
     fundName: "",
     designation: "",
@@ -136,6 +137,8 @@ export default function InvestorOnboarding() {
         body: JSON.stringify(formData),
       });
       if (res.ok) {
+        clearStep();
+        clearFormData();
         // Sync onboarded status immediately with NextAuth, then hard redirect
         await update();
         window.location.href = "/investor/connect";
