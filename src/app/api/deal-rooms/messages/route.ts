@@ -30,8 +30,10 @@ export async function GET(req: Request) {
     const startup = await prisma.startup.findFirst({ where: { founderProfile: { email: userEmail } } });
     const founder = await prisma.founder.findUnique({ where: { email: userEmail } });
 
-    const isInvestor = investor && chatRoom.investorId === investor.id;
-    const isFounder = (founder && chatRoom.founderId === founder.id) || (startup && chatRoom.founderId === startup.founderId);
+    const isInvestor = (investor && chatRoom.investorId === investor.id) || chatRoom.investorId === userEmail;
+    const isFounder = (founder && chatRoom.founderId === founder.id) || 
+                      (startup && (chatRoom.founderId === startup.founderId || chatRoom.founderId === startup.id)) || 
+                      chatRoom.founderId === userEmail;
 
     if (!isInvestor && !isFounder) {
       return NextResponse.json({ success: false, error: "Unauthorized to access this chat room." }, { status: 403 });
@@ -85,8 +87,10 @@ export async function POST(req: Request) {
     const startup = await prisma.startup.findFirst({ where: { founderProfile: { email: senderId } } });
     const founder = await prisma.founder.findUnique({ where: { email: senderId } });
 
-    const isInvestor = investor && chatRoom.investorId === investor.id;
-    const isFounder = (founder && chatRoom.founderId === founder.id) || (startup && chatRoom.founderId === startup.founderId);
+    const isInvestor = (investor && chatRoom.investorId === investor.id) || chatRoom.investorId === senderId;
+    const isFounder = (founder && chatRoom.founderId === founder.id) || 
+                      (startup && (chatRoom.founderId === startup.founderId || chatRoom.founderId === startup.id)) || 
+                      chatRoom.founderId === senderId;
 
     if (!isInvestor && !isFounder) {
       return NextResponse.json({ success: false, error: "Unauthorized: You are not a participant in this chat room." }, { status: 403 });
