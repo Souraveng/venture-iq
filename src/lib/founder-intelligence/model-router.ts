@@ -490,9 +490,65 @@ export const nimCallJSON = vertexAiCallJSON;
 export async function vertexAiEmbed(input: string[]): Promise<number[][]> {
   const rawModelId = VERTEX_MODELS.embed.replace(/^google\//, "");
   const apiKey = await getAccessToken();
-  const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${rawModelId}:predict`;
-  let lastError: Error | null = null;
+  const isGemini = rawModelId.includes("gemini");
+  
+  // Use v1beta1 and embedContent for Gemini, v1 and predict for legacy text models
+  const apiVersion = isGemini ? "v1beta1" : "v1";
+  const action = isGemini ? "embedContent" : "predict";
+  const endpoint = `https://${REGION}-aiplatform.googleapis.com/${apiVersion}/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${rawModelId}:${action}`;
+  
+  // Fallback for gemini: process all inputs concurrently
+  if (isGemini) {
+    const embeddings = await Promise.all(input.map(async (txt) => {
+      let lastError: Error | null = null;
+      for (let attempt = 0; attempt < RETRY_CONFIG.maxAttempts; attempt++) {
+        try {
+          const signal = abortContext.getStore();
+          const res = await fetch(endpoint, {
+            method: "POST",
+            signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              content: { role: "user", parts: [{ text: txt }] },
+            }),
+          });
+          
+          if (!res.ok) {
+            const errorText = await res.text().catch(() => "Unknown error");
+            const error: any = new Error(`[Vertex AI Embed] ${res.status} ${res.statusText}: ${errorText}`);
+            error.status = res.status;
+            if (RETRY_CONFIG.nonRetryableStatuses.has(res.status)) throw error;
+            throw error;
+          }
+          
+          const json = await res.json() as any;
+          if (!json.embedding || !json.embedding.values) {
+             throw new Error("[Vertex AI Embed] Invalid response format from gemini embedding API.");
+          }
+          return json.embedding.values;
+        } catch (err: any) {
+          lastError = err;
+          if (err.status && RETRY_CONFIG.nonRetryableStatuses.has(err.status)) break;
+          if (attempt < RETRY_CONFIG.maxAttempts - 1) {
+            await sleep(getBackoffDelay(attempt));
+          }
+        }
+      }
+      throw lastError || new Error("[Vertex AI Embed] All retry attempts exhausted");
+    }));
+    
+    return embeddings.map((emb: number[]) => {
+      const padded = [...emb];
+      while (padded.length < 1024) { padded.push(0); }
+      return padded;
+    });
+  }
 
+  // Legacy predict for text-embedding
+  let lastError: Error | null = null;
   for (let attempt = 0; attempt < RETRY_CONFIG.maxAttempts; attempt++) {
     try {
       const signal = abortContext.getStore();
