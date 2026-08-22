@@ -18,6 +18,48 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// Dynamically build text representation from Prisma objects
+function buildSemanticText(obj: any): string {
+  if (!obj) return "";
+  
+  const baseExclude = new Set([
+    'id', 'email', 'avatarUrl', 'embedding', 'investorEmbedding', 'preferredStartupEmbedding', 
+    'createdAt', 'updatedAt', 'verified', 'isPublished', 'matchHistory', 'lastAutonomousRun',
+    'pitchDeckUrl', 'logoUrl', 'websiteUrl', 'linkedinUrl', 'twitterUrl', 'videoFormat', 'founderId',
+    'useOfFunds', 'teamRoster', 'gatedFields', 'background', 'investorReadinessScore', 'marketScore',
+    'riskScore', 'moatScore', 'executionScore', 'fundingProbability', 'portfolioCompanies',
+    'recommendedInvestors', 'keywords', 'analysisRuns', 'analyticsEvents', 'escalations', 'collaborators', 'handoffNotes'
+  ]);
+  
+  const parts: string[] = [];
+  
+  function processObj(o: any, prefix = "") {
+    for (const [key, value] of Object.entries(o)) {
+      if (baseExclude.has(key)) continue;
+      if (value === null || value === undefined || value === "") continue;
+      
+      const displayKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (Array.isArray(value)) {
+        if (value.length > 0 && typeof value[0] !== 'object') {
+          parts.push(`${displayKey}: ${value.join(", ")}`);
+        }
+      } else if (typeof value === 'object') {
+         if (value instanceof Date) {
+           parts.push(`${displayKey}: ${value.toISOString()}`);
+         } else {
+           processObj(value, displayKey);
+         }
+      } else {
+        parts.push(`${displayKey}: ${value}`);
+      }
+    }
+  }
+  
+  processObj(obj);
+  return parts.join(" | ");
+}
+
 export async function POST(req: Request) {
   try {
     let { investorId, investorEmail } = (await req.json().catch(() => ({}))) as any;
@@ -68,14 +110,8 @@ export async function POST(req: Request) {
     }
 
     // 3. Compute Investor Query Vector via Vertex AI (text-embedding-004)
-    // STRICT FILTER REPRESENTATION: Only matching filters from investor profile
-    const investorQueryText = [
-      `Investor Sector Focus: ${(investor.focusSectors || []).join(", ")}`,
-      `Target Startup Stage: ${(investor.preferredStages || []).join(", ")}`,
-      `Preferred Investment Instruments: ${(investor.preferredInstruments || []).join(", ")}`,
-      `Check Size Capacity: ${investor.checkSize || investor.minCheckSize || "$50k - $250k"}`,
-      `Geographic Preference: ${investor.geoPreferences || "Global"}`
-    ].join(" | ");
+    // DYNAMIC FILTER REPRESENTATION: Extracted from Investor profile dynamically
+    const investorQueryText = buildSemanticText(investor);
 
     let investorVector: number[];
     try {
@@ -131,14 +167,8 @@ export async function POST(req: Request) {
         // If startup doesn't have an embedding yet, generate & cache on-the-fly
         if (!embedding || embedding.length === 0) {
           try {
-            // STRICT FILTER REPRESENTATION
-            const startupText = [
-              `Startup Sector/Category: ${s.category} ${s.industry ? `/ ${s.industry}` : ""}`,
-              `Startup Stage: ${s.stage}`,
-              `Offering Instrument / Round Type: ${s.roundType || "SAFE / Priced Equity"}`,
-              `Raising Target Amount: ${s.targetAmount || s.minTicket || "Undisclosed"}`,
-              `Startup Location: ${s.location || s.country || "Global"}`
-            ].join(" | ");
+            // DYNAMIC FILTER REPRESENTATION: Extracted from Startup profile dynamically
+            const startupText = buildSemanticText(s);
 
             const [newEmb] = await vertexAiEmbed([startupText], { taskType: "RETRIEVAL_DOCUMENT", title: s.name });
             if (newEmb) {
