@@ -5,11 +5,24 @@ import { generateEscalationHandoffNote } from "@/lib/founder-intelligence/nodes/
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { startupId, escalatedBy, escalatedToRole, analystNote, teamId, shareWithAll = true, sharedWithEmails = [] } = body;
+    const {
+      startupId,
+      escalatedBy,
+      escalatedToRole = "Investment Committee",
+      analystNote,
+      manualNote,
+      title,
+      teamId,
+      shareWithAll = true,
+      sharedWithEmails = [],
+      assignedToEmail,
+      pendingActions,
+      keyDecisions,
+    } = body;
 
-    if (!startupId || !escalatedBy || !escalatedToRole) {
+    if (!startupId || !escalatedBy) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields (startupId, escalatedBy, escalatedToRole)" },
+        { success: false, error: "Missing required fields (startupId, escalatedBy)" },
         { status: 400 }
       );
     }
@@ -23,42 +36,65 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Startup not found" }, { status: 404 });
     }
 
-    // 2. Fetch recent AI diligence findings (if any)
-    const recentRun = await prisma.analysisRun.findFirst({
-      where: { startupId, status: "COMPLETED" },
-      orderBy: { completedAt: "desc" },
-      include: { findings: true },
-    });
+    let finalHandoffNote = manualNote;
 
-    let diligenceSummary = "";
-    if (recentRun && recentRun.findings.length > 0) {
-      diligenceSummary = recentRun.findings
-        .map((f: any) => `- **${f.title}**: ${f.content.substring(0, 200)}...`)
-        .join("\n");
+    // If no manual note provided, synthesize using AI agent
+    if (!finalHandoffNote) {
+      // Fetch recent AI diligence findings (if any)
+      const recentRun = await prisma.analysisRun.findFirst({
+        where: { startupId, status: "COMPLETED" },
+        orderBy: { completedAt: "desc" },
+        include: { findings: true },
+      });
+
+      let diligenceSummary = "";
+      if (recentRun && recentRun.findings.length > 0) {
+        diligenceSummary = recentRun.findings
+          .map((f: any) => `- **${f.title}**: ${f.content.substring(0, 200)}...`)
+          .join("\n");
+      }
+
+      // Generate the Handoff Note using Gemini
+      finalHandoffNote = await generateEscalationHandoffNote({
+        startup,
+        analystNote,
+        escalatedBy,
+        diligenceSummary,
+      });
     }
 
-    // 3. Generate the Handoff Note using Gemini 3.1 Pro
-    const aiHandoffNote = await generateEscalationHandoffNote({
-      startup,
-      analystNote,
-      escalatedBy,
-      diligenceSummary,
-    });
-
-    // 4. Save to Database
+    // 4. Save Escalation to Database
     const escalation = await prisma.escalation.create({
       data: {
         startupId,
         escalatedBy,
         escalatedToRole,
-        analystNote,
-        aiHandoffNote,
+        analystNote: analystNote || null,
+        aiHandoffNote: finalHandoffNote,
         status: "PENDING",
         teamId: teamId || null,
-        shareWithAll,
-        sharedWithEmails,
+        shareWithAll: !!shareWithAll,
+        sharedWithEmails: Array.isArray(sharedWithEmails) ? sharedWithEmails : [],
       },
     });
+
+    // Also persist in HandoffNote table for team tracking
+    try {
+      await prisma.handoffNote.create({
+        data: {
+          startupId,
+          createdBy: escalatedBy,
+          assignedTo: assignedToEmail || (sharedWithEmails.length === 1 ? sharedWithEmails[0] : null),
+          title: title || `IC Handoff: ${startup.name}`,
+          context: finalHandoffNote,
+          pendingActions: pendingActions || null,
+          keyDecisions: keyDecisions || null,
+          status: "OPEN",
+        }
+      });
+    } catch (hnErr) {
+      console.warn("Could not save to HandoffNote table:", hnErr);
+    }
 
     // 5. Notify all relevant team members and shared emails
     const notifyEmails = new Set<string>();

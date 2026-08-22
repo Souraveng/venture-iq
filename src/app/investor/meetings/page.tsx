@@ -27,6 +27,7 @@ import {
   Bell
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 import {
   generateE2EEKeyPair,
   exportPublicKey,
@@ -74,7 +75,7 @@ export default function InvestorMeetingsPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { userEmail, addMeeting } = useAuth();
+  const { userEmail, addMeeting, activeInvestorTeam } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"DEALS" | "CONNECTIONS">("DEALS");
 
@@ -211,11 +212,11 @@ export default function InvestorMeetingsPage() {
   useEffect(() => {
     fetchInteractions();
     if (userEmail) fetchConnections();
-  }, [userEmail]);
+  }, [userEmail, activeInvestorTeam]);
 
   const fetchConnections = async () => {
     try {
-      const res = await fetch(`/api/connections?email=${encodeURIComponent(userEmail)}`);
+      const res = await fetch(`/api/connections?email=${encodeURIComponent(userEmail || '')}`);
       const json = (await res.json()) as any;
       if (json.success) {
         setConnections(json.requests);
@@ -226,8 +227,10 @@ export default function InvestorMeetingsPage() {
   };
 
   const fetchInteractions = async () => {
+    if (!userEmail) return;
     try {
-      const res = await fetch(`/api/interactions/investor?investorEmail=${encodeURIComponent(userEmail)}`);
+      const teamQuery = activeInvestorTeam?.id ? `&teamId=${encodeURIComponent(activeInvestorTeam.id)}` : "";
+      const res = await fetch(`/api/interactions/investor?investorEmail=${encodeURIComponent(userEmail)}${teamQuery}`);
       const json = (await res.json()) as any;
       if (json.success) {
         setInteractions(json.data);
@@ -689,7 +692,7 @@ export default function InvestorMeetingsPage() {
     <div ref={containerRef} className="max-w-[1400px] mx-auto font-sans h-[calc(100vh-80px)] flex flex-col pb-4 text-white">
       
       {/* Header Section */}
-      <div className="flex justify-between items-end gap-6 border-b border-white/10 pb-4 mb-4 shrink-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/10 pb-4 mb-4 shrink-0">
         <div className="animate-item">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="p-2 rounded-lg bg-[#ccf063]/10 border border-[#ccf063]/30 text-[#ccf063] inline-block">
@@ -700,6 +703,11 @@ export default function InvestorMeetingsPage() {
           <p className="text-[11px] text-[#c5c9b2]">
             Schedule meetings, manage connections, and communicate with founders in secure rooms.
           </p>
+        </div>
+
+        {/* Workspace Switcher */}
+        <div className="animate-item self-end sm:self-auto shrink-0">
+          <WorkspaceSwitcher />
         </div>
       </div>
 

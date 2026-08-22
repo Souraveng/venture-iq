@@ -131,6 +131,23 @@ export async function POST(req: Request) {
         }
       });
 
+      // Automatically synthesize structured Handoff Note by the AI Agent
+      try {
+        const strengthsList = (topPick.keyStrengths || []).map((s: string) => `- ${s}`).join('\n');
+        await prisma.handoffNote.create({
+          data: {
+            startupId: recommendedStartup.id,
+            createdBy: "AI Diligence Agent",
+            assignedTo: investor.email,
+            title: `AI Diligence Handoff: ${recommendedStartup.name}`,
+            context: `### Automated AI Conviction Analysis\n\n**Conviction Thesis:** ${topPick.reason || 'High conviction match evaluated against thesis criteria.'}\n\n**Key Strengths:**\n${strengthsList || '- Strong market traction and execution readiness'}\n\n**Recommended Action:** Review pitch reel and initialize founder deal room.`,
+            status: "OPEN",
+          }
+        });
+      } catch (hnErr) {
+        console.warn("Could not save automated HandoffNote:", hnErr);
+      }
+
       await prisma.investor.update({
         where: { id: investor.id },
         data: { lastAutonomousRun: new Date() }
