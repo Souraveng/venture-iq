@@ -461,8 +461,8 @@ export default function StartupDiscoveryFeedReplicatedPage() {
   return (
     <>
       <div 
-        className={`mx-auto flex flex-col justify-between h-[calc(100vh-4rem)] md:h-[calc(100vh-140px)] font-sans pb-0 md:pb-4 relative overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          showFullSpecs ? "max-w-6xl xl:max-w-7xl w-full" : "max-w-4xl w-full"
+        className={`mx-auto flex flex-col justify-between h-[calc(100vh-4rem)] md:h-[calc(100vh-140px)] font-sans pb-0 md:pb-4 relative transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          showFullSpecs ? "max-w-6xl xl:max-w-7xl w-full" : "max-w-6xl w-full"
         }`}
       >
       
@@ -470,109 +470,112 @@ export default function StartupDiscoveryFeedReplicatedPage() {
       <div className="flex-1 flex items-center justify-center relative py-0 md:py-4 h-full">
         
         {/* Main Card View */}
-        <div className="flex items-center gap-6 relative w-full h-full md:w-auto md:h-auto justify-center">
+        <div className="relative flex items-center justify-center w-full h-full md:w-auto md:h-auto">
           
-          {/* Desktop Vertical Navigation Stack (Left side of card) */}
-          <div className="hidden md:flex flex-col items-center gap-4 select-none">
-            <button
-              onClick={handlePrev}
-              className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center border border-white/10 active:scale-95 transition-all"
-              title="Previous Startup"
-            >
-              <ChevronUp className="w-5 h-5" />
-            </button>
+          {/* Left Side Controls & Details (Desktop Only - positioned to the left of the centered reel box) */}
+          <div className="hidden md:flex items-center gap-6 md:absolute md:right-[calc(100%+1.5rem)] md:top-1/2 md:-translate-y-1/2 select-none z-20">
+            {/* Desktop Vertical Navigation Stack (Left side of card) */}
+            <div className="flex flex-col items-center gap-4 select-none">
+              <button
+                onClick={handlePrev}
+                className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center border border-white/10 active:scale-95 transition-all"
+                title="Previous Startup"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
 
-            {/* Vertical Page Dots indicators */}
-            <div className="flex flex-col gap-2">
-              {startups.map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
-                    currentIndex === idx ? "bg-[#ccf063] scale-125 h-3" : "bg-white/20"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <button
-              onClick={handleNext}
-              className="w-10 h-10 rounded-xl bg-[#ccf063] text-black flex items-center justify-center shadow-md shadow-[#ccf063]/10 active:scale-95 transition-all"
-              title="Next Startup"
-            >
-              <ChevronDown className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Left Venture Details Card (Desktop Only) */}
-          <div 
-            onClick={() => setShowDetailsSheet(!showDetailsSheet)}
-            className="hidden md:flex flex-col w-[220px] bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4.5 text-left transition-all hover:border-[#ccf063]/50 cursor-pointer select-none space-y-3.5 self-center max-h-[min(660px,calc(100vh-150px))] overflow-y-auto custom-scrollbar shrink-0"
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-[#ccf063]/50 shrink-0">
-                <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" />
+              {/* Vertical Page Dots indicators */}
+              <div className="flex flex-col gap-2">
+                {startups.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      currentIndex === idx ? "bg-[#ccf063] scale-125 h-3" : "bg-white/20"
+                    }`}
+                  />
+                ))}
               </div>
-              <div className="min-w-0">
-                <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-1 font-serif truncate">
-                  {current.name} <CheckCircle2 className="w-3 h-3 text-[#ccf063] fill-black shrink-0" />
-                </h3>
-                <span className="text-[9px] text-[#c5c9b2] block truncate">{current.founder}</span>
-              </div>
+
+              <button
+                onClick={handleNext}
+                className="w-10 h-10 rounded-xl bg-[#ccf063] text-black flex items-center justify-center shadow-md shadow-[#ccf063]/10 active:scale-95 transition-all"
+                title="Next Startup"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </button>
             </div>
 
-            <p className="text-[10px] font-semibold text-white/95 leading-relaxed line-clamp-3">
-              {current.tagline}
-            </p>
-
-            <div className="flex flex-wrap gap-1">
-              {current.tags.map((tag: any) => (
-                <span
-                  key={tag}
-                  className="bg-black/60 border border-white/10 px-2 py-0.5 rounded-full text-[8px] font-bold text-white uppercase tracking-wider"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Metrics Grid showing when expanded/clicked */}
-            {showDetailsSheet && (
-              <div className="pt-3.5 border-t border-white/10 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 z-20 relative">
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
-                    <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">Revenue</span>
-                    <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.arr}</span>
-                  </div>
-                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
-                    <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">Goal</span>
-                    <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.goal}</span>
-                  </div>
-                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
-                    <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">Growth</span>
-                    <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.growth}</span>
-                  </div>
-                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
-                    <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">AI Score</span>
-                    <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.aiScore}</span>
-                  </div>
+            {/* Left Venture Details Card (Desktop Only) */}
+            <div 
+              onClick={() => setShowDetailsSheet(!showDetailsSheet)}
+              className="flex flex-col w-[220px] bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-4.5 text-left transition-all hover:border-[#ccf063]/50 cursor-pointer select-none space-y-3.5 self-center max-h-[min(660px,calc(100vh-150px))] overflow-y-auto custom-scrollbar shrink-0"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-[#ccf063]/50 shrink-0">
+                  <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" />
                 </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-1 font-serif truncate">
+                    {current.name} <CheckCircle2 className="w-3 h-3 text-[#ccf063] fill-black shrink-0" />
+                  </h3>
+                  <span className="text-[9px] text-[#c5c9b2] block truncate">{current.founder}</span>
+                </div>
+              </div>
 
-                <div className="flex justify-between items-center text-[9px] text-[#c5c9b2]/60 pt-2 border-t border-white/5">
-                  <span className="truncate">TAM: {current.tam}</span>
-                  <button 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      setShowDetailsSheet(false); 
-                      setShowFullSpecs(true); 
-                    }}
-                    className="text-[#ccf063] font-bold flex items-center gap-0.5 hover:underline cursor-pointer"
+              <p className="text-[10px] font-semibold text-white/95 leading-relaxed line-clamp-3">
+                {current.tagline}
+              </p>
+
+              <div className="flex flex-wrap gap-1">
+                {current.tags.map((tag: any) => (
+                  <span
+                    key={tag}
+                    className="bg-black/60 border border-white/10 px-2 py-0.5 rounded-full text-[8px] font-bold text-white uppercase tracking-wider"
                   >
-                    Specs <ArrowUpRight className="w-2.5 h-2.5" />
-                  </button>
-                </div>
+                    {tag}
+                  </span>
+                ))}
               </div>
-            )}
+
+              {/* Metrics Grid showing when expanded/clicked */}
+              {showDetailsSheet && (
+                <div className="pt-3.5 border-t border-white/10 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 z-20 relative">
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
+                      <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">Revenue</span>
+                      <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.arr}</span>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
+                      <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">Goal</span>
+                      <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.goal}</span>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
+                      <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">Growth</span>
+                      <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.growth}</span>
+                    </div>
+                    <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between">
+                      <span className="text-[8px] text-[#c5c9b2] uppercase tracking-wider block font-semibold mb-0.5">AI Score</span>
+                      <span className="font-extrabold text-[#ccf063] text-[10px] truncate">{current.aiScore}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[9px] text-[#c5c9b2]/60 pt-2 border-t border-white/5">
+                    <span className="truncate">TAM: {current.tam}</span>
+                    <button 
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setShowDetailsSheet(false); 
+                        setShowFullSpecs(true); 
+                      }}
+                      className="text-[#ccf063] font-bold flex items-center gap-0.5 hover:underline cursor-pointer"
+                    >
+                      Specs <ArrowUpRight className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Replicated Card */}
@@ -582,7 +585,7 @@ export default function StartupDiscoveryFeedReplicatedPage() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onClick={handleCardClick}
-            className="group w-full h-full md:h-[min(660px,calc(100vh-150px))] md:w-auto md:aspect-[9/16] bg-black md:border md:border-white/10 rounded-none md:rounded-3xl overflow-hidden shadow-2xl relative flex flex-col justify-between p-5 cursor-pointer"
+            className="group w-full h-full md:h-[min(660px,calc(100vh-150px))] md:w-auto md:aspect-[9/16] bg-black md:border md:border-white/10 rounded-none md:rounded-3xl overflow-hidden shadow-2xl relative flex flex-col justify-between p-5 cursor-pointer shrink-0"
           >
             {/* Background HTML5 Video player */}
             <div className="absolute inset-0 z-0 select-none pointer-events-none">
@@ -824,7 +827,7 @@ export default function StartupDiscoveryFeedReplicatedPage() {
 
           {/* Desktop Side Spec Box / Actions Stack */}
           {showFullSpecs ? (
-            <div className="venture-profile-box hidden md:flex flex-col w-[450px] lg:w-[500px] xl:w-[600px] h-[min(660px,calc(100vh-150px))] bg-[#121212]/95 border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
+            <div className="venture-profile-box hidden md:flex flex-col md:absolute md:left-[calc(100%+1.5rem)] md:top-1/2 md:-translate-y-1/2 w-[450px] lg:w-[500px] xl:w-[600px] h-[min(660px,calc(100vh-150px))] bg-[#121212]/95 border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-30">
               <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#121212] shrink-0 z-10 sticky top-0">
                 <h2 className="text-sm font-bold text-white font-sans uppercase tracking-wider flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-[#ccf063]" />
@@ -858,7 +861,7 @@ export default function StartupDiscoveryFeedReplicatedPage() {
             </div>
           ) : (
             /* Desktop Floating Actions Stack (Rendered outside the card on desktop) */
-            <div className="hidden md:flex flex-col gap-2.5 text-xs select-none">
+            <div className="hidden md:flex flex-col gap-2.5 text-xs select-none md:absolute md:left-[calc(100%+1.5rem)] md:top-1/2 md:-translate-y-1/2 z-20">
               {/* Pass / Not Interested */}
               <div className="flex flex-col items-center">
                 <button

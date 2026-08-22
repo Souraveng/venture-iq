@@ -1,4 +1,4 @@
-import type { Startup } from "@prisma/client";
+import type { Startup } from "@/generated/client";
 import {
   DILIGENCE_RUNTIME_VERSION,
   diligenceWorkerPlan,
