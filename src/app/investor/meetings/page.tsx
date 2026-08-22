@@ -163,19 +163,24 @@ export default function InvestorMeetingsPage() {
 
   // Helper to decrypt message payload
   const decryptChatMessage = async (encryptedPayloadStr: string, isMe: boolean) => {
-    if (!privateKeyBase64) {
-      try { return JSON.parse(encryptedPayloadStr); } 
-      catch { return { type: "TEXT", text: encryptedPayloadStr }; }
-    }
+    if (!encryptedPayloadStr) return { type: "TEXT", text: "" };
     try {
       const data = JSON.parse(encryptedPayloadStr);
-      if (data.senderEncrypted && data.receiverEncrypted) {
-        const encryptedData = isMe ? data.senderEncrypted : data.receiverEncrypted;
-        const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
-        return JSON.parse(decryptedStr);
+      if (data && (data.senderEncrypted || data.receiverEncrypted)) {
+        if (!privateKeyBase64) {
+          return { type: "TEXT", text: "🔒 [Encrypted Message]" };
+        }
+        try {
+          const encryptedData = isMe ? (data.senderEncrypted || data.receiverEncrypted) : (data.receiverEncrypted || data.senderEncrypted);
+          const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
+          return JSON.parse(decryptedStr);
+        } catch (decErr) {
+          console.warn("Failed to decrypt payload:", decErr);
+          return { type: "TEXT", text: "🔒 [Encrypted Message]" };
+        }
       }
       return data;
-    } catch (err) {
+    } catch {
       return { type: "TEXT", text: encryptedPayloadStr };
     }
   };

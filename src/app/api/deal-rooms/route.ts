@@ -13,13 +13,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // Try to find an existing room
-    let chatRoom = await prisma.chatRoom.findUnique({
+    // Try to find an existing room matching either participant direction
+    let chatRoom = await prisma.chatRoom.findFirst({
       where: {
-        founderId_investorId: {
-          founderId,
-          investorId,
-        },
+        OR: [
+          { founderId, investorId },
+          { founderId: investorId, investorId: founderId },
+        ],
       },
     });
 
@@ -37,10 +37,10 @@ export async function POST(req: Request) {
       success: true,
       data: chatRoom,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to get/create chat room:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to initialize deal room." },
+      { success: false, error: error.message || "Failed to initialize deal room." },
       { status: 500 }
     );
   }
