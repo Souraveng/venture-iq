@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "next-themes";
@@ -139,9 +140,13 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
         </button>
         
         <Link href="/" className="flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-[#ccf063] text-black font-extrabold text-xl flex items-center justify-center shadow-lg shadow-[#ccf063]/20 shrink-0">
-            V
-          </div>
+          <Image 
+            src="/logo.png" 
+            alt="VentureIQ Logo" 
+            width={36} 
+            height={36} 
+            className="rounded-xl shrink-0 shadow-lg shadow-white/10" 
+          />
           <div className="overflow-hidden hidden sm:block">
             <h1 className="text-xl font-bold tracking-tight text-white leading-tight font-serif whitespace-nowrap">VentureIQ</h1>
             <p className="text-[10px] text-[#ccf063] uppercase tracking-widest font-mono whitespace-nowrap">
