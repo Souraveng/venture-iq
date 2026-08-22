@@ -1,6 +1,6 @@
 import { generateText } from "ai";
 import { vertexAiCall } from "../model-router";
-import { type Startup } from "@/generated/client";
+import { type Startup } from "@prisma/client";
 
 export async function generateEscalationHandoffNote({
   startup,

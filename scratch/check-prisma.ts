@@ -1,7 +1,7 @@
 import { prisma } from "../src/lib/prisma";
-import { PrismaClient } from "../src/generated/client";
+import { PrismaClient } from "@prisma/client";
 
-console.log("Resolved path of generated client in script:", require.resolve("../src/generated/client"));
+console.log("Resolved path of generated client in script:", require.resolve("@prisma/client"));
 console.log("Prisma keys from imported instance:", Object.keys(prisma));
 
 const localPrisma = new PrismaClient();
