@@ -6,6 +6,7 @@
 import { StateGraph, Annotation } from "@langchain/langgraph";
 import type {
   PipelineInput, PipelineNodeId, PlaybookConfig, OpportunityPlan,
+  InputValidationResult, RuleValidationResult,
   ExtractedFact, ValidatedFact, MarketCompetitorAnalysis,
   RiskSwotAnalysis, FinancialAnalysis, DecisionScorecard,
   VentureSynthesis, RoadmapReport, DashboardTab, NodeError,
@@ -36,11 +37,14 @@ export const PipelineState = Annotation.Root({
   input: Annotation<PipelineInput>(),
   pipeline: Annotation<{
     playbook?: PlaybookConfig;
+    inputValidation?: InputValidationResult;
     opportunity?: OpportunityPlan;
     extractedFacts?: ExtractedFact[];
     cachedFacts?: ExtractedFact[];
     missingQueries?: string[];
     cacheSufficient?: boolean;
+    forceContinueResearch?: boolean;
+    ruleValidationResult?: RuleValidationResult;
     validatedFacts?: ValidatedFact[];
     marketAnalysis?: MarketCompetitorAnalysis;
     riskAnalysis?: RiskSwotAnalysis;
@@ -55,11 +59,14 @@ export const PipelineState = Annotation.Root({
   }>({
     reducer: (curr, next) => ({
       playbook: next?.playbook || curr?.playbook,
+      inputValidation: next?.inputValidation || curr?.inputValidation,
       opportunity: next?.opportunity || curr?.opportunity,
       extractedFacts: next?.extractedFacts || curr?.extractedFacts,
       cachedFacts: next?.cachedFacts || curr?.cachedFacts,
       missingQueries: next?.missingQueries || curr?.missingQueries,
       cacheSufficient: next?.cacheSufficient ?? curr?.cacheSufficient,
+      forceContinueResearch: next?.forceContinueResearch ?? curr?.forceContinueResearch,
+      ruleValidationResult: next?.ruleValidationResult || curr?.ruleValidationResult,
       validatedFacts: next?.validatedFacts || curr?.validatedFacts,
       marketAnalysis: next?.marketAnalysis || curr?.marketAnalysis,
       riskAnalysis: next?.riskAnalysis || curr?.riskAnalysis,
@@ -171,7 +178,10 @@ function getNodePreview(nodeId: string, result: any): string | undefined {
 
   switch (nodeId) {
     case "input-validation":
-      return `Sector: ${p.playbook?.sector || "detected"}, Geo: ${p.playbook?.geography || "global"}`;
+      if (p.inputValidation?.isValid === false) {
+        return `Idea validation failed: ${p.inputValidation.summary.slice(0, 60)}...`;
+      }
+      return `Sector: ${p.inputValidation?.sector || p.playbook?.sector || "detected"}, Geo: ${p.inputValidation?.geography || p.playbook?.geography || "global"}`;
     case "opportunity-planning":
       return p.opportunity?.valueProposition?.slice(0, 60) || "Plan generated";
     case "cache-evaluator":
@@ -179,9 +189,12 @@ function getNodePreview(nodeId: string, result: any): string | undefined {
     case "research-extraction":
       return `${p.extractedFacts?.length || 0} facts extracted`;
     case "vector-store":
-      return `${(p.cachedFacts?.length || 0)} facts cached`;
+      return `Embeddings indexed: ${p.extractedFacts?.length || 0}`;
     case "rule-validation":
-      return `${p.validatedFacts?.filter((f: any) => f.validationStatus === "confirmed").length || 0} facts confirmed`;
+      if (p.ruleValidationResult?.isResearchComplete === false) {
+        return `PAUSED: Research Incomplete - ${p.ruleValidationResult.lackingDetails.slice(0, 50)}...`;
+      }
+      return `Confirmed: ${p.validatedFacts?.filter((f: any) => f.validationStatus === "confirmed").length || 0}`;
     case "market-competitor":
       return `Market score: ${p.marketAnalysis?.marketScore || "N/A"}/100`;
     case "risk-swot":
@@ -323,9 +336,22 @@ function buildExecutionGraph(logger: PipelineLogger, emitter: PipelineEmitter) {
     }, { "rule-validation": "rule-validation", "research-extraction": "research-extraction" })
     .addEdge("research-extraction", "vector-store")
     .addEdge("vector-store", "rule-validation")
-    .addEdge("rule-validation", "market-competitor")
-    .addEdge("rule-validation", "risk-swot")
-    .addEdge("rule-validation", "financial-engine")
+    .addNode("rule-validation-check", () => ({}))
+    .addNode("rule-validation-fan-out", () => ({}))
+    .addEdge("rule-validation", "rule-validation-check")
+    .addConditionalEdges("rule-validation-check", (state) => {
+      const p = state.pipeline;
+      if (p?.ruleValidationResult?.isResearchComplete === false && !p?.forceContinueResearch) {
+        return "pause";
+      }
+      return "continue";
+    }, {
+      "pause": "__end__",
+      "continue": "rule-validation-fan-out"
+    })
+    .addEdge("rule-validation-fan-out", "market-competitor")
+    .addEdge("rule-validation-fan-out", "risk-swot")
+    .addEdge("rule-validation-fan-out", "financial-engine")
     .addEdge("market-competitor", "phase4-aggregator")
     .addEdge("risk-swot", "phase4-aggregator")
     .addEdge("financial-engine", "phase4-aggregator")
@@ -437,6 +463,84 @@ export async function invokeExecutionFromPlan(
         playbook: confirmedPlan.playbook,
         opportunity: confirmedPlan.opportunity,
         completedNodes: ["input-validation", "opportunity-planning"] as PipelineNodeId[],
+      },
+    });
+
+    const trace = logger.finalize(
+      (finalState.pipeline?.failedNodes?.length || 0) > 0 ? "partial" : "completed"
+    );
+
+    return { state: finalState, trace };
+  };
+
+  if (options?.signal) {
+    return abortContext.run(options.signal, execute);
+  }
+  return execute();
+}
+
+/**
+ * HITL Step 3: Resume pipeline from Phase 4 despite incomplete research.
+ */
+export async function resumeWithForcedResearch(
+  input: PipelineInput,
+  currentState: any,
+  options?: InvokeOptions,
+) {
+  const logger = createPipelineLogger();
+  const emitter = options?.onNodeEvent
+    ? new PipelineEmitter(options.onNodeEvent)
+    : createNoopEmitter();
+
+  const graph = buildExecutionGraph(logger, emitter);
+
+  const execute = async () => {
+    const finalState = await graph.invoke({
+      input,
+      pipeline: {
+        ...currentState,
+        forceContinueResearch: true,
+      },
+    });
+
+    const trace = logger.finalize(
+      (finalState.pipeline?.failedNodes?.length || 0) > 0 ? "partial" : "completed"
+    );
+
+    return { state: finalState, trace };
+  };
+
+  if (options?.signal) {
+    return abortContext.run(options.signal, execute);
+  }
+  return execute();
+}
+
+/**
+ * HITL Step 3: Re-run the research agent from Phase 2 to fix incomplete research.
+ */
+export async function rerunResearchPhase(
+  input: PipelineInput,
+  currentState: any,
+  options?: InvokeOptions,
+) {
+  const logger = createPipelineLogger();
+  const emitter = options?.onNodeEvent
+    ? new PipelineEmitter(options.onNodeEvent)
+    : createNoopEmitter();
+
+  const graph = buildExecutionGraph(logger, emitter);
+
+  const execute = async () => {
+    // Clear out extracted facts and rule validation results so it re-runs fresh
+    const finalState = await graph.invoke({
+      input,
+      pipeline: {
+        ...currentState,
+        extractedFacts: [],
+        ruleValidationResult: undefined,
+        cacheSufficient: false, // force research to run again
+        completedNodes: ["input-validation", "opportunity-planning"] as PipelineNodeId[], // roll back nodes
       },
     });
 

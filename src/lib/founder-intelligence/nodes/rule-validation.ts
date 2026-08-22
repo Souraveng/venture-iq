@@ -1,14 +1,16 @@
 // ──────────────────────────────────────────────────────────────────────────────
-// Phase 3 — Rule-Based Validation
-// Type: 🟢 Deterministic (LLM only on genuine conflicts)
-// Cross-source consensus, outlier detection, numeric plausibility
+// Phase 3 — Rule-Based Validation (HITL enabled)
+// Type: AI Agent (Grounded)
+// Validates facts via Google Grounding and checks if research is complete.
 // ──────────────────────────────────────────────────────────────────────────────
 
-import { validateFacts } from "../utils/plausibility-rules";
-import type { ExtractedFact, PipelineNodeId } from "../contracts";
+import fs from "fs";
+import path from "path";
+import { vertexAiCallGroundingJSON } from "../model-router";
+import type { ExtractedFact, PipelineNodeId, RuleValidationResult } from "../contracts";
 
-export function runRuleValidation(state: any) {
-  const playbook = state.pipeline?.playbook;
+export async function runRuleValidation(state: any) {
+  const opportunity = state.pipeline?.opportunity;
   const extractedFacts: ExtractedFact[] = state.pipeline?.extractedFacts || [];
   const cachedFacts: ExtractedFact[] = state.pipeline?.cachedFacts || [];
 
@@ -21,24 +23,66 @@ export function runRuleValidation(state: any) {
     }
   }
 
-  // Apply deterministic validation rules
-  const sectorBounds = playbook?.tamBenchmarks
-    ? { tamMinB: playbook.tamBenchmarks.minB, tamMaxB: playbook.tamBenchmarks.maxB }
-    : undefined;
+  // Read the separate markdown prompt for this agent
+  const promptPath = path.resolve(process.cwd(), "src/lib/founder-intelligence/prompts/rule-validation-prompt.md");
+  let systemInstruction = "";
+  try {
+    systemInstruction = fs.readFileSync(promptPath, "utf-8");
+  } catch (err) {
+    console.warn("[Rule Validation] Warning: could not read rule-validation-prompt.md.");
+    systemInstruction = "You are a validation agent. Validate the research completeness.";
+  }
 
-  const validatedFacts = validateFacts(allFacts, sectorBounds);
+  const payload = {
+    opportunityPlan: opportunity,
+    extractedFacts: allFacts
+  };
 
-  const confirmed = validatedFacts.filter(f => f.validationStatus === "confirmed").length;
-  const flagged = validatedFacts.filter(f => f.validationStatus === "flagged").length;
-  const rejected = validatedFacts.filter(f => f.validationStatus === "rejected").length;
+  const validationResult = await vertexAiCallGroundingJSON<RuleValidationResult>({
+    model: "researcher",
+    prompt: `Analyze the following opportunity plan and the extracted facts:\n\n${JSON.stringify(payload, null, 2)}`,
+    systemInstruction,
+    guidedJson: {
+      type: "object",
+      properties: {
+        isResearchComplete: { type: "boolean" },
+        lackingDetails: { type: "string" },
+        validatedFacts: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              claim: { type: "string" },
+              value: { type: "number" },
+              unit: { type: "string" },
+              sourceUrl: { type: "string" },
+              confidence: { type: "string", enum: ["high", "medium", "low"] },
+              validationStatus: { type: "string", enum: ["confirmed", "flagged", "rejected"] },
+              flagReason: { type: "string" }
+            },
+            required: ["claim", "sourceUrl", "confidence", "validationStatus"]
+          }
+        }
+      },
+      required: ["isResearchComplete", "lackingDetails", "validatedFacts"]
+    }
+  });
+
+  const confirmed = validationResult.validatedFacts.filter(f => f.validationStatus === "confirmed").length;
+  const flagged = validationResult.validatedFacts.filter(f => f.validationStatus === "flagged").length;
+  const rejected = validationResult.validatedFacts.filter(f => f.validationStatus === "rejected").length;
 
   console.log(
-    `[RuleValidation] ${allFacts.length} facts → ${confirmed} confirmed, ${flagged} flagged, ${rejected} rejected`
+    `[RuleValidation] ${allFacts.length} input facts → ${confirmed} confirmed, ${flagged} flagged, ${rejected} rejected`
   );
+  if (!validationResult.isResearchComplete) {
+    console.log(`[RuleValidation] RESEARCH INCOMPLETE: ${validationResult.lackingDetails}`);
+  }
 
   return {
     pipeline: {
-      validatedFacts,
+      ruleValidationResult: validationResult,
+      validatedFacts: validationResult.validatedFacts,
       completedNodes: ["rule-validation"] as PipelineNodeId[],
     },
   };

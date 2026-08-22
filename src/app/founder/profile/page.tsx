@@ -3,7 +3,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { Suspense } from "react";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -27,9 +29,23 @@ import {
 } from "lucide-react";
 
 
-export default function FounderProfilePage() {
+export default function FounderProfilePageWrapper() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-[#c5c9b2]">Loading...</div>}>
+      <FounderProfilePage />
+    </Suspense>
+  );
+}
+
+function FounderProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryEmail = searchParams?.get("email");
   const { userEmail, userName, userImage } = useAuth();
+  
+  const isOwnProfile = !queryEmail || queryEmail === userEmail;
+  const targetEmail = queryEmail || userEmail;
   
   // Toggle between viewing and editing
   const [isEditing, setIsEditing] = useState(false);
@@ -51,7 +67,7 @@ export default function FounderProfilePage() {
       const res = await fetch("/api/posts");
       const json = (await res.json()) as any;
       if (json.success) {
-        setUserPosts(json.posts.filter((p: any) => p.authorEmail === userEmail));
+        setUserPosts(json.posts.filter((p: any) => p.authorEmail === targetEmail));
       }
     } catch (e) {
       console.error(e);
@@ -123,10 +139,10 @@ export default function FounderProfilePage() {
   // Fetch Profile from Azure PostgreSQL Database on Load
   useEffect(() => {
     async function fetchProfile() {
-      if (!userEmail) return;
+      if (!targetEmail) return;
       setLoading(true);
       try {
-        const res = await fetch(`/api/founder/profile?email=${encodeURIComponent(userEmail)}`);
+        const res = await fetch(`/api/founder/profile?email=${encodeURIComponent(targetEmail)}`);
         const result = (await res.json()) as any;
 
         if (result.success && result.data) {
@@ -160,7 +176,7 @@ export default function FounderProfilePage() {
     }
 
     fetchProfile();
-  }, [userEmail, userName, userImage]);
+  }, [targetEmail, userName, userImage]);
 
   // GSAP Animations
   useEffect(() => {
@@ -257,28 +273,36 @@ export default function FounderProfilePage() {
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-6">
         <div className="animate-item">
           <h2 className="text-4xl font-serif text-white italic">Founder Profile</h2>
-          <p className="text-xs text-[#c5c9b2] mt-1">
-            Connected Account: <span className="text-white font-semibold">{userEmail || "himanshu25b@gmail.com"}</span> • PostgreSQL DB Synced
-          </p>
-        </div>
-        <div className="animate-item flex gap-3 w-full sm:w-auto">
-          {!isEditing ? (
-            <button
-              onClick={handleEdit}
-              className="flex items-center gap-1.5 px-6 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-xs font-bold hover:bg-white/10 transition-all hover:scale-102"
-            >
-              <Edit3 className="w-4 h-4" /> Edit Profile
-            </button>
+          {isOwnProfile ? (
+            <p className="text-xs text-[#c5c9b2] mt-1">
+              Connected Account: <span className="text-white font-semibold">{userEmail || "himanshu25b@gmail.com"}</span> • PostgreSQL DB Synced
+            </p>
           ) : (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-[#ccf063] text-black text-xs font-bold hover:bg-[#c2e45d] disabled:opacity-50 transition-all hover:scale-102 shadow-md shadow-[#ccf063]/10"
-            >
-              <Save className="w-4 h-4" /> {saving ? "Saving to Azure DB..." : "Save Changes"}
-            </button>
+             <p className="text-xs text-[#c5c9b2] mt-1">
+              <span className="text-white font-semibold">{targetEmail}</span>
+            </p>
           )}
         </div>
+        {isOwnProfile && (
+          <div className="animate-item flex gap-3 w-full sm:w-auto">
+            {!isEditing ? (
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-1.5 px-6 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-xs font-bold hover:bg-white/10 transition-all hover:scale-102"
+              >
+                <Edit3 className="w-4 h-4" /> Edit Profile
+              </button>
+            ) : (
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-1.5 px-6 py-3 rounded-xl bg-[#ccf063] text-black text-xs font-bold hover:bg-[#c2e45d] disabled:opacity-50 transition-all hover:scale-102 shadow-md shadow-[#ccf063]/10"
+              >
+                <Save className="w-4 h-4" /> {saving ? "Saving to Azure DB..." : "Save Changes"}
+              </button>
+            )}
+          </div>
+        )}
       </header>
 
       {/* Tabs */}
@@ -293,7 +317,7 @@ export default function FounderProfilePage() {
           onClick={() => setActiveTab("POSTS")}
           className={`text-sm font-bold pb-2 transition-colors ${activeTab === "POSTS" ? "text-[#ccf063] border-b-2 border-[#ccf063]" : "text-white/50 hover:text-white"}`}
         >
-          Manage Posts
+          {isOwnProfile ? "Manage Posts" : "Posts"}
         </button>
       </div>
 
@@ -634,11 +658,11 @@ export default function FounderProfilePage() {
       </>
       ) : (
         <div className="space-y-6">
-          <h3 className="text-xl font-serif text-white mb-4">Your Posts</h3>
+          <h3 className="text-xl font-serif text-white mb-4">{isOwnProfile ? "Your Posts" : "Posts"}</h3>
           {loadingPosts ? (
             <p className="text-white/50 text-sm">Loading posts...</p>
           ) : userPosts.length === 0 ? (
-            <p className="text-white/50 text-sm">You haven't made any posts yet.</p>
+            <p className="text-white/50 text-sm">{isOwnProfile ? "You haven't made any posts yet." : "No posts found."}</p>
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {userPosts.map(post => (
@@ -647,27 +671,29 @@ export default function FounderProfilePage() {
                     <div>
                       <p className="text-xs text-white/50">{new Date(post.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          if (editingPostId === post.id) {
-                            setEditingPostId(null);
-                          } else {
-                            setEditingPostId(post.id);
-                            setEditingPostContent(post.content);
-                          }
-                        }}
-                        className="p-1.5 bg-[#ccf063]/10 hover:bg-[#ccf063]/20 text-[#ccf063] rounded-lg transition-colors"
-                      >
-                        {editingPostId === post.id ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                      </button>
-                      <button 
-                        onClick={() => handleDeletePost(post.id)}
-                        className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {isOwnProfile && (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            if (editingPostId === post.id) {
+                              setEditingPostId(null);
+                            } else {
+                              setEditingPostId(post.id);
+                              setEditingPostContent(post.content);
+                            }
+                          }}
+                          className="p-1.5 bg-[#ccf063]/10 hover:bg-[#ccf063]/20 text-[#ccf063] rounded-lg transition-colors"
+                        >
+                          {editingPostId === post.id ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                        </button>
+                        <button 
+                          onClick={() => handleDeletePost(post.id)}
+                          className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   {editingPostId === post.id ? (

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
 import {
   UserPlus,
@@ -36,6 +37,7 @@ function getRelativeTime(dateString: string) {
 export default function ConnectHubPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { userEmail, role, userName } = useAuth() as any;
   
   const [posts, setPosts] = useState<any[]>([]);
@@ -301,19 +303,44 @@ export default function ConnectHubPage() {
     setLoadingProfile(true);
     setProfileData(null);
     try {
-      // Intentionally simulating network request for UI experience
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const res = await fetch(`/api/users/public-profile?email=${encodeURIComponent(email)}`);
+      const json = (await res.json()) as any;
+      
+      if (json.success && json.data) {
+        setProfileData({
+          name: json.data.name,
+          tagline: json.data.tagline,
+          logoUrl: json.data.logoUrl,
+          category: json.data.category,
+          stage: json.data.stage,
+          gatedFields: json.data.gatedFields,
+          startupName: json.data.startupName,
+          firm: json.data.firm,
+          details: json.data.details,
+          type: json.type
+        });
+      } else {
+        // Fallback if not in DB
+        const post = posts.find(p => p.email === email);
+        setProfileData({
+          name: post?.name || "User Profile",
+          tagline: post?.role || "User",
+          logoUrl: post?.avatar || "",
+          category: "Technology",
+          stage: "General",
+          gatedFields: "[]",
+          details: "No additional profile details found."
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      // Fallback
       const post = posts.find(p => p.email === email);
       setProfileData({
         name: post?.name || "User Profile",
-        tagline: post?.role || "Founder",
+        tagline: post?.role || "User",
         logoUrl: post?.avatar || "",
-        category: "Tech",
-        stage: "Pre-Seed",
-        gatedFields: "[]",
       });
-    } catch (e) {
-      console.error(e);
     } finally {
       setLoadingProfile(false);
     }
@@ -618,9 +645,12 @@ export default function ConnectHubPage() {
                     <p className="text-sm text-[#ccf063]">{profileData.tagline}</p>
                   </div>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p className="text-xs text-white/70 italic">Profile details are limited in this view.</p>
-                </div>
+                <button
+                   onClick={() => router.push(`/${profileData.type || "investor"}/profile?email=${encodeURIComponent(selectedProfileEmail)}`)}
+                   className="w-full py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-sm font-bold transition-colors mt-2"
+                >
+                  View Full Profile
+                </button>
                 <button
                    onClick={() => handleConnectClick(posts.find(p => p.email === selectedProfileEmail)?.id || "", selectedProfileEmail)}
                    className="w-full py-3 bg-[#ccf063] hover:bg-[#bce650] text-black rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"

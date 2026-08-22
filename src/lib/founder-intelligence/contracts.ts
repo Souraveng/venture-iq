@@ -47,6 +47,17 @@ export interface PlaybookConfig {
   regulatoryKeywords: string[];
 }
 
+// ── Phase 0b: Input Validation ─────────────────────────────────────────────
+
+export interface InputValidationResult {
+  isValid: boolean;
+  isFactuallyCorrect: boolean;
+  bestEvaluationSite: string;
+  summary: string;
+  sector: string;
+  geography: string;
+}
+
 // ── Phase 1: Opportunity & Planning Agent ───────────────────────────────────
 
 export interface OpportunityPlan {
@@ -73,6 +84,12 @@ export interface ExtractedFact {
 export interface ValidatedFact extends ExtractedFact {
   validationStatus: "confirmed" | "flagged" | "rejected";
   flagReason?: string;
+}
+
+export interface RuleValidationResult {
+  isResearchComplete: boolean;
+  lackingDetails: string;
+  validatedFacts: ValidatedFact[];
 }
 
 // ── Phase 4a: Market/Competitor Agent ───────────────────────────────────────
@@ -187,14 +204,17 @@ export interface PipelineResult {
 
   // Structured outputs from each phase
   playbook: PlaybookConfig;
+  inputValidation?: InputValidationResult;
   opportunity: OpportunityPlan;
   
   // Cache & Research State
   cachedFacts: ExtractedFact[];
   missingQueries: string[];
   cacheSufficient: boolean;
+  forceContinueResearch?: boolean;
   
   extractedFacts: ExtractedFact[];
+  ruleValidationResult?: RuleValidationResult;
   validatedFacts: ValidatedFact[];
   marketAnalysis: MarketCompetitorAnalysis;
   riskAnalysis: RiskSwotAnalysis;

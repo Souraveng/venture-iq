@@ -2,8 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { Suspense } from "react";
 import {
   CheckCircle2,
   MapPin,
@@ -27,10 +28,23 @@ import {
   X
 } from "lucide-react";
 
-export default function InvestorPublicProfilePage() {
+export default function InvestorPublicProfilePageWrapper() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh] text-white">Loading...</div>}>
+      <InvestorPublicProfilePage />
+    </Suspense>
+  );
+}
+
+function InvestorPublicProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryEmail = searchParams?.get("email");
   const { userEmail, userName, userImage } = useAuth();
+  
+  const isOwnProfile = !queryEmail || queryEmail === userEmail;
+  const targetEmail = queryEmail || userEmail || "himanshu25b@gmail.com";
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
@@ -39,8 +53,7 @@ export default function InvestorPublicProfilePage() {
     async function fetchProfile() {
       setLoading(true);
       try {
-        const email = userEmail || "himanshu25b@gmail.com";
-        const res = await fetch(`/api/investors/profile?email=${encodeURIComponent(email)}`);
+        const res = await fetch(`/api/investors/profile?email=${encodeURIComponent(targetEmail)}`);
         const result = (await res.json()) as any;
         if (result.success && result.data) {
           setData(result.data);
@@ -52,7 +65,7 @@ export default function InvestorPublicProfilePage() {
       }
     }
     fetchProfile();
-  }, [userEmail]);
+  }, [targetEmail]);
 
   const [activeTab, setActiveTab] = useState("PROFILE");
   const [userPosts, setUserPosts] = useState<any[]>([]);
@@ -68,7 +81,7 @@ export default function InvestorPublicProfilePage() {
       const res = await fetch("/api/posts");
       const json = (await res.json()) as any;
       if (json.success) {
-        setUserPosts(json.posts.filter((p: any) => p.authorEmail === userEmail));
+        setUserPosts(json.posts.filter((p: any) => p.authorEmail === targetEmail));
       }
     } catch (e) {
       console.error(e);
@@ -200,12 +213,14 @@ export default function InvestorPublicProfilePage() {
         >
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
-        <button
-          onClick={() => router.push("/investor/edit-profile")}
-          className="flex items-center gap-1.5 text-xs text-[#ccf063] hover:underline font-semibold"
-        >
-          <Settings className="w-3.5 h-3.5" /> Edit Profile
-        </button>
+        {isOwnProfile && (
+          <button
+            onClick={() => router.push("/investor/edit-profile")}
+            className="flex items-center gap-1.5 text-xs text-[#ccf063] hover:underline font-semibold"
+          >
+            <Settings className="w-3.5 h-3.5" /> Edit Profile
+          </button>
+        )}
       </div>
 
       {/* ── Hero Card ── */}
@@ -285,7 +300,7 @@ export default function InvestorPublicProfilePage() {
           onClick={() => setActiveTab("POSTS")}
           className={`text-sm font-bold pb-2 transition-colors ${activeTab === "POSTS" ? "text-[#ccf063] border-b-2 border-[#ccf063]" : "text-white/50 hover:text-white"}`}
         >
-          Manage Posts
+          {isOwnProfile ? "Manage Posts" : "Posts"}
         </button>
       </div>
 
@@ -474,11 +489,11 @@ export default function InvestorPublicProfilePage() {
       </>
       ) : (
         <div className="space-y-6">
-          <h3 className="text-xl font-serif text-white mb-4">Your Posts</h3>
+          <h3 className="text-xl font-serif text-white mb-4">{isOwnProfile ? "Your Posts" : "Posts"}</h3>
           {loadingPosts ? (
             <p className="text-white/50 text-sm">Loading posts...</p>
           ) : userPosts.length === 0 ? (
-            <p className="text-white/50 text-sm">You haven't made any posts yet.</p>
+            <p className="text-white/50 text-sm">{isOwnProfile ? "You haven't made any posts yet." : "No posts found."}</p>
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {userPosts.map(post => (
@@ -487,27 +502,29 @@ export default function InvestorPublicProfilePage() {
                     <div>
                       <p className="text-xs text-white/50">{new Date(post.createdAt).toLocaleDateString()}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          if (editingPostId === post.id) {
-                            setEditingPostId(null);
-                          } else {
-                            setEditingPostId(post.id);
-                            setEditingPostContent(post.content);
-                          }
-                        }}
-                        className="p-1.5 bg-[#ccf063]/10 hover:bg-[#ccf063]/20 text-[#ccf063] rounded-lg transition-colors"
-                      >
-                        {editingPostId === post.id ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                      </button>
-                      <button 
-                        onClick={() => handleDeletePost(post.id)}
-                        className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {isOwnProfile && (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            if (editingPostId === post.id) {
+                              setEditingPostId(null);
+                            } else {
+                              setEditingPostId(post.id);
+                              setEditingPostContent(post.content);
+                            }
+                          }}
+                          className="p-1.5 bg-[#ccf063]/10 hover:bg-[#ccf063]/20 text-[#ccf063] rounded-lg transition-colors"
+                        >
+                          {editingPostId === post.id ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                        </button>
+                        <button 
+                          onClick={() => handleDeletePost(post.id)}
+                          className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   {editingPostId === post.id ? (
