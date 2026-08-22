@@ -184,27 +184,27 @@ const MODEL_FALLBACKS: Partial<Record<VertexModelKey, VertexModelKey>> = {};
 // ── Model IDs mapped to pipeline tasks (Different models for different purposes) ─
 export const VERTEX_MODELS = {
   /** Opportunity & Planning (Orchestrator - Deep Reasoning) */
-  orchestrator: "google/gemini-3.1-pro-preview",
+  orchestrator: "google/gemini-2.5-pro",
   /** Financial narrative (Fast Agentic) */
-  financial: "google/gemini-3.7-flash",
+  financial: "google/gemini-2.5-flash",
   /** Research & Extraction worker (Search Grounding) */
-  researcher: "google/gemini-3.7-flash",
+  researcher: "google/gemini-2.5-flash",
   /** Market/Competitor worker (Fast Agentic) */
-  market_analyst: "google/gemini-3.7-flash",
+  market_analyst: "google/gemini-2.5-flash",
   /** Risk & SWOT worker (Deep Reasoning) */
-  risk_analyst: "google/gemini-3.1-pro-preview",
+  risk_analyst: "google/gemini-2.5-pro",
   /** Venture Synthesis (Deep Reasoning) */
-  synthesis: "google/gemini-3.1-pro-preview",
+  synthesis: "google/gemini-2.5-pro",
   /** Roadmap & Report (Deep Reasoning) */
-  roadmap: "google/gemini-3.1-pro-preview",
+  roadmap: "google/gemini-2.5-pro",
   /** Multimodal & High-Density Embeddings for Vector Store (RAG) */
   embed: "google/text-embedding-004",
 
   // Legacy mappings for backward compatibility of other modules
-  nemotron: "google/gemini-3.7-flash",
-  maverick: "google/gemini-3.7-flash",
-  glm: "google/gemini-3.7-flash",
-  deepseek: "google/gemini-3.1-pro-preview",
+  nemotron: "google/gemini-2.5-flash",
+  maverick: "google/gemini-2.5-flash",
+  glm: "google/gemini-2.5-flash",
+  deepseek: "google/gemini-2.5-pro",
 } as const;
 
 // Backward-compatible alias
