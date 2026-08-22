@@ -1097,12 +1097,12 @@ export default function FounderEditProfilePage() {
                           <div key={c.id} className="flex items-center justify-between bg-black/20 border border-white/5 p-4 rounded-xl hover:border-white/10 transition-colors">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10">
-                                <span className="text-white/70 font-bold text-sm">{c.userEmail[0].toUpperCase()}</span>
+                                <span className="text-white/70 font-bold text-sm">{(c.email || c.userEmail || "?")[0].toUpperCase()}</span>
                               </div>
                               <div>
                                 <div className="text-sm font-bold text-white flex items-center gap-2">
-                                  {c.userEmail}
-                                  {c.userEmail === userEmail && <span className="text-[10px] bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full">(You)</span>}
+                                  {c.email || c.userEmail}
+                                  {(c.email || c.userEmail) === userEmail && <span className="text-[10px] bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full">(You)</span>}
                                 </div>
                                 <div className="text-xs text-white/30 mt-0.5">Added by {c.invitedBy} • {new Date(c.createdAt).toLocaleDateString()}</div>
                               </div>
@@ -1128,7 +1128,7 @@ export default function FounderEditProfilePage() {
                               )}
                               {currentUserRole === "OWNER" && (
                                 <button
-                                  onClick={() => handleRemoveCollaborator(c.id, c.userEmail)}
+                                  onClick={() => handleRemoveCollaborator(c.id, c.email || c.userEmail)}
                                   className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                   title="Remove collaborator"
                                 >

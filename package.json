@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "worker:deploy": "wrangler deploy",
-    "worker:dev": "wrangler dev --experimental-vectorize-bind-to-prod"
+    "worker:dev": "wrangler dev --experimental-vectorize-bind-to-prod",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ai-sdk/azure": "^4.0.36",
