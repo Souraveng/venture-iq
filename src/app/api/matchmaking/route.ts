@@ -67,13 +67,15 @@ export async function POST(req: Request) {
       });
     }
 
-    // 3. Compute Investor Query Vector via Vertex AI (gemini-embedding-2)
+    // 3. Compute Investor Query Vector via Vertex AI (text-embedding-004)
+    // STRICT FILTER REPRESENTATION: Only matching filters from investor profile
     const investorQueryText = [
-      `Investment Thesis: ${investor.thesis || "High-growth tech startups"}`,
-      `Focus Sectors: ${(investor.focusSectors || []).join(", ")}`,
-      `Preferred Stages: ${(investor.preferredStages || []).join(", ")}`,
-      `Check Size: ${investor.checkSize || investor.minCheckSize || "$50k - $250k"}`,
-    ].join(". ");
+      `Investor Sector Focus: ${(investor.focusSectors || []).join(", ")}`,
+      `Target Startup Stage: ${(investor.preferredStages || []).join(", ")}`,
+      `Preferred Investment Instruments: ${(investor.preferredInstruments || []).join(", ")}`,
+      `Check Size Capacity: ${investor.checkSize || investor.minCheckSize || "$50k - $250k"}`,
+      `Geographic Preference: ${investor.geoPreferences || "Global"}`
+    ].join(" | ");
 
     let investorVector: number[];
     try {
@@ -122,7 +124,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5. Rank Startups by Cosine Similarity using gemini-embedding-2 vectors
     const scoredStartups = await Promise.all(
       startups.map(async (s) => {
         let embedding = s.embedding as number[] | null;
@@ -130,14 +131,14 @@ export async function POST(req: Request) {
         // If startup doesn't have an embedding yet, generate & cache on-the-fly
         if (!embedding || embedding.length === 0) {
           try {
+            // STRICT FILTER REPRESENTATION
             const startupText = [
-              `Startup: ${s.name}`,
-              `Category: ${s.category}`,
-              `Stage: ${s.stage}`,
-              `Tagline: ${s.tagline}`,
-              `Problem: ${s.problemText || ""}`,
-              `Solution: ${s.solutionText || ""}`,
-            ].filter(Boolean).join(". ");
+              `Startup Sector/Category: ${s.category} ${s.industry ? `/ ${s.industry}` : ""}`,
+              `Startup Stage: ${s.stage}`,
+              `Offering Instrument / Round Type: ${s.roundType || "SAFE / Priced Equity"}`,
+              `Raising Target Amount: ${s.targetAmount || s.minTicket || "Undisclosed"}`,
+              `Startup Location: ${s.location || s.country || "Global"}`
+            ].join(" | ");
 
             const [newEmb] = await vertexAiEmbed([startupText], { taskType: "RETRIEVAL_DOCUMENT", title: s.name });
             if (newEmb) {
@@ -167,90 +168,8 @@ export async function POST(req: Request) {
     scoredStartups.sort((a, b) => b.cosineScore - a.cosineScore);
     const candidateStartups = scoredStartups.map(item => item.startup);
 
-    // 6. Multi-Dimensional Synthesis via Gemini Synthesis
-    const promptPayload = candidateStartups.slice(0, 8).map((s) => ({
-      id: s.id,
-      name: s.name,
-      tagline: s.tagline,
-      category: s.category,
-      industry: s.industry,
-      stage: s.stage,
-      valuation: s.valuation || s.fixedValuation || "Undisclosed",
-      targetAmount: s.targetAmount || "Undisclosed",
-      traction: s.traction || s.arrMrr || "Early stage",
-    }));
-
-    const synthesisPrompt = `You are a high-speed Venture Capital Matchmaking Agent.
-Evaluate the following startup candidates against this investor's profile:
-- Investor Thesis: "${investor.thesis || "General high-growth technology startups"}"
-- Focus Sectors: ${JSON.stringify(investor.focusSectors || [])}
-- Preferred Stages: ${JSON.stringify(investor.preferredStages || [])}
-- Check Size: "${investor.checkSize || investor.minCheckSize + ' - ' + investor.maxCheckSize || '$50K - $250K'}"
-${interestedStartupIds.size > 0 ? `- Note: Investor has previously shown interest in ${interestedStartupIds.size} similar deals.` : ''}
-
-Startup Candidates:
-${JSON.stringify(promptPayload, null, 2)}
-
-For each startup, provide:
-1. overallScore (0-100 based on thesis, sector, stage, and ticket fit)
-2. aiSummary (A concise 1-sentence explanation of why this startup matches the investor's thesis)
-3. matchBreakdown:
-   - thesis (0-100)
-   - sector (0-100)
-   - stage (0-100)
-   - ticketSize (0-100)
-   - traction (0-100)
-`;
-
-    let evaluatedResults: any[] = [];
-    try {
-      const aiResponse = await vertexAiCallJSON<Array<{
-        id: string;
-        overallScore: number;
-        aiSummary: string;
-        matchBreakdown: {
-          thesis: number;
-          sector: number;
-          stage: number;
-          ticketSize: number;
-          traction: number;
-        };
-      }>>({
-        model: "financial", // Uses Gemini Synthesis for low-latency structured output
-        messages: [{ role: "user", content: synthesisPrompt }],
-        temperature: 0.2,
-        guidedJson: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              id: { type: "string" },
-              overallScore: { type: "number", minimum: 0, maximum: 100 },
-              aiSummary: { type: "string" },
-              matchBreakdown: {
-                type: "object",
-                properties: {
-                  thesis: { type: "number" },
-                  sector: { type: "number" },
-                  stage: { type: "number" },
-                  ticketSize: { type: "number" },
-                  traction: { type: "number" },
-                },
-                required: ["thesis", "sector", "stage", "ticketSize", "traction"],
-              },
-            },
-            required: ["id", "overallScore", "aiSummary", "matchBreakdown"],
-          },
-        },
-      });
-
-      if (Array.isArray(aiResponse) && aiResponse.length > 0) {
-        evaluatedResults = aiResponse;
-      }
-    } catch (aiError: any) {
-      console.error("[Matchmaking API] Gemini synthesis error, falling back to vector search scores:", aiError);
-      // Fallback: Continue without evaluatedResults so that vector search scores are used instead
-    }
+    // 7. Multi-Dimensional Synthesis via Gemini Synthesis has been removed
+    const evaluatedResults: any[] = [];
 
     // 7. Enrich & assemble final startup feed cards
     const enrichedStartups = candidateStartups.map((s) => {
