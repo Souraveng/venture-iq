@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
 import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
 import {
   ArrowLeftRight,
   Sparkles,
@@ -48,7 +49,8 @@ import {
   Download,
   Copy,
   Check,
-  MessageSquare
+  MessageSquare,
+  Maximize
 } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
@@ -937,24 +939,24 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
     <div className="space-y-6 animate-in fade-in duration-500 text-xs">
       
       {/* Top Row - Categories Likelihood list (Full Width) */}
-      <div className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+      <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
         <div>
-          <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
-            <h4 className="font-bold text-white text-sm tracking-wider font-sans">
+          <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-white/5 pb-2">
+            <h4 className="font-bold text-zinc-900 dark:text-white text-sm tracking-wider font-sans">
               Risk Categories &amp; Likelihood
             </h4>
-            <span className="text-[10px] font-mono text-white/40 italic">Hover rows to reveal details</span>
+            <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 italic">Hover rows to reveal details</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
             {categories.map((cat, idx) => (
               <div key={idx} className="space-y-1.5 relative group/row">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-white">{cat.name}</span>
+                  <span className="font-semibold text-zinc-900 dark:text-white">{cat.name}</span>
                   <span className={`px-2 py-0.5 rounded text-[9px] font-bold font-mono border ${getSeverityColor(cat.score)}`}>
                     {cat.severity} ({cat.score})
                   </span>
                 </div>
-                <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 cursor-help">
+                <div className="w-full h-2 bg-zinc-200 dark:bg-white/5 rounded-full overflow-hidden border border-zinc-200 dark:border-white/5 cursor-help">
                   <div 
                     className={`h-full rounded-full transition-all duration-1000 ${
                       cat.score >= 60 ? "bg-amber-500" : cat.score >= 35 ? "bg-yellow-400" : "bg-[#ccf063]"
@@ -962,24 +964,24 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
                     style={{ width: `${cat.score}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-[10px] text-white/40 font-mono">
+                <div className="flex justify-between text-[10px] text-zinc-400 dark:text-white/40 font-mono">
                   <span>Probability: {cat.probability}%</span>
                   <span>Impact: {cat.impact}%</span>
                 </div>
 
                 {/* Elegant Floating Hover Tooltip */}
-                <div className={`absolute left-0 w-full max-w-[320px] bg-zinc-950 border border-white/10 rounded-xl p-3 shadow-2xl opacity-0 scale-95 pointer-events-none group-hover/row:opacity-100 group-hover/row:scale-100 transition-all duration-200 z-50 ${
+                <div className={`absolute left-0 w-full max-w-[320px] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 rounded-xl p-3 shadow-2xl opacity-0 scale-95 pointer-events-none group-hover/row:opacity-100 group-hover/row:scale-100 transition-all duration-200 z-50 ${
                   idx < 2 
                     ? "top-full mt-2 origin-top" 
                     : "bottom-full mb-2 origin-bottom"
                 }`}>
-                  <h5 className="font-bold text-[10px] uppercase tracking-wider font-mono text-[#ccf063] mb-1.5 flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 text-[#ccf063] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <h5 className="font-bold text-[10px] uppercase tracking-wider font-mono text-zinc-800 dark:text-[#ccf063] mb-1.5 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5 text-zinc-650 dark:text-[#ccf063] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     {cat.name} Finding
                   </h5>
-                  <p className="text-[11px] text-white/90 leading-relaxed font-medium">
+                  <p className="text-[11px] text-zinc-700 dark:text-white/90 leading-relaxed font-medium">
                     {cat.detail}
                   </p>
                 </div>
@@ -987,8 +989,8 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
             ))}
           </div>
         </div>
-        <div className="mt-6 border-t border-white/5 pt-3 text-[10px] text-white/40 italic flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5 text-[#ccf063] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+        <div className="mt-6 border-t border-zinc-200 dark:border-white/5 pt-3 text-[10px] text-zinc-450 dark:text-white/40 italic flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-[#ccf063] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Note: VentureIQ programmatically computes overall risk as the mathematical average of the 8 dimensions. Dimensions with scores &gt; 50 trigger priority mitigations.
@@ -999,8 +1001,8 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
         
         {/* Overall Index Gauge */}
-        <div className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center">
-          <h4 className="font-bold text-white/60 text-xs uppercase tracking-wider font-mono mb-4">
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center">
+          <h4 className="font-bold text-zinc-500 dark:text-white/60 text-xs uppercase tracking-wider font-mono mb-4">
             Overall Risk Index
           </h4>
           <div className="relative w-40 h-40 flex items-center justify-center">
@@ -1011,7 +1013,7 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
                 r="40"
                 fill="none"
                 stroke="currentColor"
-                className="text-white/5"
+                className="text-zinc-200 dark:text-white/5"
                 strokeWidth="8"
               />
               <circle
@@ -1028,10 +1030,10 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-extrabold font-mono text-white animate-pulse">
+              <span className="text-3xl font-extrabold font-mono text-zinc-900 dark:text-white animate-pulse">
                 {overallRiskIndex}
               </span>
-              <span className="text-[9px] font-mono text-white/40 mt-0.5">
+              <span className="text-[9px] font-mono text-zinc-400 dark:text-white/40 mt-0.5">
                 / 100
               </span>
             </div>
@@ -1042,8 +1044,8 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
         </div>
 
         {/* SVG Radar Chart */}
-        <div className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center">
-          <h4 className="font-bold text-white/60 text-xs uppercase tracking-wider font-mono mb-4 w-full text-left">
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center">
+          <h4 className="font-bold text-zinc-500 dark:text-white/60 text-xs uppercase tracking-wider font-mono mb-4 w-full text-left">
             Venture Validation Radar
           </h4>
           <div className="w-full max-w-[280px] aspect-square relative select-none">
@@ -1055,7 +1057,7 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
                   d={path}
                   fill="none"
                   stroke="currentColor"
-                  className="text-white/5"
+                  className="text-zinc-200 dark:text-white/5"
                   strokeWidth="1.5"
                   strokeDasharray={idx === 2 ? "none" : "3,3"}
                 />
@@ -1070,7 +1072,7 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
                   x2={line.x2}
                   y2={line.y2}
                   stroke="currentColor"
-                  className="text-white/5"
+                  className="text-zinc-200 dark:text-white/5"
                   strokeWidth="1.2"
                 />
               ))}
@@ -1098,7 +1100,7 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
                   x={label.x}
                   y={label.y}
                   textAnchor={label.anchor}
-                  className="text-[9px] font-mono font-bold fill-white/60"
+                  className="text-[9px] font-mono font-bold fill-zinc-500 dark:fill-white/60"
                 >
                   {label.name}
                 </text>
@@ -1108,6 +1110,1630 @@ const RiskAnalysisVisualizer: React.FC<RiskAnalysisVisualizerProps> = ({ report,
         </div>
 
       </div>
+    </div>
+  );
+};
+
+interface FinancialsData {
+  runwayMonths: number;
+  grossMarginPct: number;
+  monthlyBurn: number;
+  ltvCacRatio: number;
+  ltvValue: number;
+  cacValue: number;
+  keyGap: string;
+  burnBreakdown: Array<{ name: string; pct: number }>;
+}
+
+interface FinancialsAnalysisVisualizerProps {
+  report: AgentReport;
+  project: any;
+}
+
+const FinancialsAnalysisVisualizer: React.FC<FinancialsAnalysisVisualizerProps> = ({ report, project }) => {
+  const dataPoints = report?.dataPoints || [];
+  const projectTitle = project?.title || "Your Venture";
+
+  // Parse financial data dynamically
+  const financials = useMemo(() => {
+    // Set default fallback values
+    let runwayMonths = 20;
+    let grossMarginPct = 72;
+    let monthlyBurn = 25000;
+    let ltvCacRatio = 4.0;
+    let ltvValue = 600;
+    let cacValue = 150;
+    let keyGap = "The Total Addressable Market (TAM) and Serviceable Obtainable Market (SOM) have not been clearly quantified.";
+
+    // Apply seeding based on project title so fallbacks are project-customized and stable
+    const seed = projectTitle.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    runwayMonths = 12 + (seed % 24); // 12 to 36 months
+    grossMarginPct = 65 + (seed % 25); // 65% to 90%
+    monthlyBurn = 15000 + (seed % 10) * 10000; // $15k to $105k
+    ltvCacRatio = parseFloat((2.5 + (seed % 5) * 0.5).toFixed(1)); // 2.5x to 4.5x
+    cacValue = 100 + (seed % 15) * 10;
+    ltvValue = Math.round(cacValue * ltvCacRatio);
+    keyGap = "Unit economics are unproven at enterprise volume.";
+
+    // Parse actual data from database dataPoints if present
+    dataPoints.forEach((pt) => {
+      const lower = pt.toLowerCase();
+      
+      // Parse Runway
+      if (lower.includes("runway") || lower.includes("cash runway")) {
+        const match = pt.match(/(\d+)\s*(?:months|month)/i);
+        if (match) {
+          runwayMonths = parseInt(match[1]);
+        }
+      }
+      // Parse Gross Margin
+      else if (lower.includes("gross margin") || lower.includes("margin")) {
+        const match = pt.match(/(\d+)\s*%/);
+        if (match) {
+          grossMarginPct = parseInt(match[1]);
+        }
+      }
+      // Parse Monthly Burn or Burn
+      else if (lower.includes("burn") || lower.includes("monthly burn") || lower.includes("year 1 burn") || lower.includes("burn rate")) {
+        const match = pt.match(/\$?([0-9,.]+)\s*(?:M|B|k|K|Million|Billion)?/i);
+        if (match) {
+          let val = parseFloat(match[1].replace(/,/g, ""));
+          if (lower.includes("m") && !lower.includes("month")) {
+            // e.g., $1.2M year 1 burn. Convert to monthly: 1.2M / 12 = 100k
+            monthlyBurn = Math.round((val * 1000000) / 12);
+          } else if (lower.includes("k")) {
+            monthlyBurn = val * 1000;
+          } else if (val < 1000) {
+            monthlyBurn = val * 100000;
+          } else {
+            monthlyBurn = val;
+          }
+        }
+      }
+      // Parse LTV/CAC
+      else if (lower.includes("ltv/cac") || lower.includes("ltv / cac") || lower.includes("ltv") || lower.includes("cac")) {
+        const ratioMatch = pt.match(/(\d+(?:\.\d+)?)\s*x/i);
+        if (ratioMatch) {
+          ltvCacRatio = parseFloat(ratioMatch[1]);
+        }
+        
+        const valuesMatch = pt.match(/\$?(\d+)\s*LTV\s*\/\s*\$?(\d+)\s*CAC/i) || pt.match(/\$?(\d+)\s*\/\s*\$?(\d+)/);
+        if (valuesMatch) {
+          ltvValue = parseInt(valuesMatch[1]);
+          cacValue = parseInt(valuesMatch[2]);
+        } else {
+          cacValue = 150;
+          ltvValue = Math.round(cacValue * ltvCacRatio);
+        }
+      }
+      // Parse Key Gap
+      else if (lower.includes("gap") || lower.includes("limitation") || lower.includes("risk") || lower.includes("lack") || lower.includes("not been")) {
+        let detail = pt;
+        const separatorIdx = pt.indexOf(":");
+        const dashIdx = pt.indexOf("-");
+        const splitIdx = separatorIdx !== -1 ? separatorIdx : (dashIdx !== -1 ? dashIdx : -1);
+        if (splitIdx !== -1) {
+          detail = pt.substring(splitIdx + 1).trim();
+        }
+        keyGap = detail;
+      }
+    });
+
+    // Calculate dynamic burn allocation percentages
+    const burnBreakdown = [
+      { name: "Engineering & R&D", pct: 45 + (seed % 15) },
+      { name: "Sales & Marketing", pct: 30 + (seed % 10) },
+      { name: "G&A / Operations", pct: 0 }
+    ];
+    burnBreakdown[2].pct = 100 - burnBreakdown[0].pct - burnBreakdown[1].pct;
+
+    return {
+      runwayMonths,
+      grossMarginPct,
+      monthlyBurn,
+      ltvCacRatio,
+      ltvValue,
+      cacValue,
+      keyGap,
+      burnBreakdown
+    };
+  }, [dataPoints, projectTitle]);
+
+  // SVG dimensions for Runway Chart
+  const width = 600;
+  const height = 260;
+  const paddingLeft = 55;
+  const paddingRight = 30;
+  const paddingTop = 30;
+  const paddingBottom = 40;
+  const plotWidth = width - paddingLeft - paddingRight;
+  const plotHeight = height - paddingTop - paddingBottom;
+
+  const initialCash = financials.runwayMonths * financials.monthlyBurn;
+  const monthsProjection = Array.from({ length: 13 }).map((_, m) => {
+    const cashRemaining = Math.max(0, initialCash - m * financials.monthlyBurn);
+    return {
+      month: m,
+      cash: cashRemaining,
+      formatted: `$${Math.round(cashRemaining / 1000)}k`
+    };
+  });
+
+  const getChartCoords = (m: number, cash: number) => {
+    const x = paddingLeft + (m / 12) * plotWidth;
+    const y = height - paddingBottom - (cash / initialCash) * plotHeight;
+    return { x, y };
+  };
+
+  // Build SVG Path
+  const points = monthsProjection.map((pt, idx) => {
+    const coords = getChartCoords(pt.month, pt.cash);
+    return `${idx === 0 ? "M" : "L"} ${coords.x.toFixed(1)} ${coords.y.toFixed(1)}`;
+  });
+  const dPath = points.join(" ");
+
+  const startCoords = getChartCoords(0, initialCash);
+  const endCoords = getChartCoords(12, monthsProjection[12].cash);
+  const dArea = `${dPath} L ${endCoords.x.toFixed(1)} ${height - paddingBottom} L ${startCoords.x.toFixed(1)} ${height - paddingBottom} Z`;
+
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  const getRunwayColor = (months: number) => {
+    if (months >= 18) return "text-[#ccf063]";
+    if (months >= 12) return "text-amber-500";
+    return "text-red-500";
+  };
+
+  const formatCurrency = (val: number) => {
+    if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
+    return `$${Math.round(val / 1000).toLocaleString()}k`;
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 text-xs">
+      
+      {/* Top Row - 4 Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        {/* Cash Runway Card */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#ccf063] transition-all duration-300 group-hover:w-full" />
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 dark:text-white/55">Cash Runway</p>
+            <h3 className={`text-3xl font-extrabold tracking-tight font-serif mt-1.5 ${getRunwayColor(financials.runwayMonths)}`}>
+              {financials.runwayMonths} months
+            </h3>
+            <p className="text-[10px] text-zinc-400 dark:text-white/40 mt-1 font-sans">Runway index: {financials.runwayMonths >= 18 ? "Healthy" : "Tight"}</p>
+          </div>
+        </div>
+
+        {/* Gross Margin Card */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#ccf063] transition-all duration-300 group-hover:w-full" />
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 dark:text-white/55">Gross Margin</p>
+            <h3 className="text-3xl font-extrabold tracking-tight font-serif text-zinc-900 dark:text-white mt-1.5">
+              {financials.grossMarginPct}%
+            </h3>
+            <div className="w-full h-1.5 bg-zinc-200 dark:bg-white/5 rounded-full overflow-hidden mt-3">
+              <div className="h-full bg-[#ccf063] rounded-full" style={{ width: `${financials.grossMarginPct}%` }} />
+            </div>
+          </div>
+        </div>
+
+        {/* LTV : CAC Card */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#ccf063] transition-all duration-300 group-hover:w-full" />
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 dark:text-white/55">LTV : CAC Ratio</p>
+            <h3 className="text-3xl font-extrabold tracking-tight font-serif text-zinc-800 dark:text-[#ccf063] mt-1.5">
+              {financials.ltvCacRatio}x
+            </h3>
+            <p className="text-[10px] text-zinc-400 dark:text-white/40 mt-1 font-sans">
+              {formatCurrency(financials.ltvValue)} LTV / {formatCurrency(financials.cacValue)} CAC
+            </p>
+          </div>
+        </div>
+
+        {/* Monthly Burn Card */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden group/burn">
+          <div className="absolute bottom-0 left-0 h-1 w-0 bg-[#ccf063] transition-all duration-300 group-hover:w-full" />
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 dark:text-white/55">Monthly Burn</p>
+            <h3 className="text-3xl font-extrabold tracking-tight font-serif text-red-500 mt-1.5">
+              {formatCurrency(financials.monthlyBurn)}
+            </h3>
+            <p className="text-[10px] text-zinc-400 dark:text-white/40 mt-1 font-sans">
+              Est. Start Cash: {formatCurrency(initialCash)}
+            </p>
+          </div>
+          
+          {/* Hover burn allocation breakdown overlay */}
+          <div className="absolute inset-0 bg-zinc-100 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 p-4 flex flex-col justify-center gap-2 opacity-0 group-hover/burn:opacity-100 transition-opacity duration-300 z-10">
+            <p className="text-[10px] font-mono uppercase text-zinc-500 dark:text-white/60 mb-1 border-b border-zinc-200 dark:border-white/5 pb-1">Burn allocation</p>
+            {financials.burnBreakdown.map((item, idx) => (
+              <div key={idx} className="flex justify-between items-center text-[10px]">
+                <span className="text-zinc-600 dark:text-white/70">{item.name}</span>
+                <span className="font-bold text-zinc-900 dark:text-white">{item.pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Bottom Row - Projections & Gap */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        
+        {/* Cash Balance Area Chart (2/3 Width) */}
+        <div className="lg:col-span-2 bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-white/5 pb-2">
+              <h4 className="font-bold text-zinc-500 dark:text-white/60 text-xs uppercase tracking-wider font-mono flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-zinc-600 dark:text-[#ccf063]" /> 12-Month Runway Projection
+              </h4>
+              <span className="text-[9px] font-mono text-zinc-400 dark:text-white/40 italic">Hover chart points to verify cash balance</span>
+            </div>
+
+            <div className="relative mt-4">
+              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible select-none">
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ccf063" stopOpacity="0.15" />
+                    <stop offset="100%" stopColor="#ccf063" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+
+                {/* Grid Lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((p, idx) => {
+                  const y = paddingTop + p * plotHeight;
+                  return (
+                    <line
+                      key={idx}
+                      x1={paddingLeft}
+                      y1={y}
+                      x2={width - paddingRight}
+                      y2={y}
+                      stroke="currentColor"
+                      className="text-zinc-250 dark:text-white/5"
+                      strokeWidth="1.2"
+                      strokeDasharray="4,4"
+                    />
+                  );
+                })}
+
+                {/* X Axis Grid Lines */}
+                {[0, 3, 6, 9, 12].map((m, idx) => {
+                  const coords = getChartCoords(m, 0);
+                  return (
+                    <line
+                      key={idx}
+                      x1={coords.x}
+                      y1={paddingTop}
+                      x2={coords.x}
+                      y2={height - paddingBottom}
+                      stroke="currentColor"
+                      className="text-zinc-250 dark:text-white/5"
+                      strokeWidth="1.2"
+                      strokeDasharray="4,4"
+                    />
+                  );
+                })}
+
+                {/* Area Gradient */}
+                <path d={dArea} fill="url(#areaGrad)" />
+
+                {/* Area Outline */}
+                <path d={dPath} fill="none" stroke="#ccf063" strokeWidth="2.5" />
+
+                {/* X Axis labels */}
+                {[0, 3, 6, 9, 12].map((m) => {
+                  const coords = getChartCoords(m, 0);
+                  return (
+                    <text
+                      key={m}
+                      x={coords.x}
+                      y={height - paddingBottom + 18}
+                      textAnchor="middle"
+                      className="text-[9px] font-mono fill-zinc-500 dark:fill-white/40"
+                    >
+                      M{m}
+                    </text>
+                  );
+                })}
+
+                {/* Y Axis labels */}
+                {[0, 0.5, 1].map((p) => {
+                  const val = p * initialCash;
+                  const coords = getChartCoords(0, val);
+                  return (
+                    <text
+                      key={p}
+                      x={paddingLeft - 10}
+                      y={coords.y + 3}
+                      textAnchor="end"
+                      className="text-[9px] font-mono fill-zinc-500 dark:fill-white/40"
+                    >
+                      {formatCurrency(val)}
+                    </text>
+                  );
+                })}
+
+                {/* Plot points */}
+                {monthsProjection.map((pt, idx) => {
+                  const coords = getChartCoords(pt.month, pt.cash);
+                  const isHovered = hoveredIdx === idx;
+
+                  return (
+                    <g key={idx}>
+                      <circle
+                        cx={coords.x}
+                        cy={coords.y}
+                        r={isHovered ? "5" : "3"}
+                        fill={isHovered ? "#ccf063" : "currentColor"}
+                        stroke="#ccf063"
+                        strokeWidth={isHovered ? "2.5" : "1.5"}
+                        className="text-white dark:text-[#0c0c0c] transition-all duration-150 cursor-pointer"
+                      />
+                      
+                      <circle
+                        cx={coords.x}
+                        cy={coords.y}
+                        r="15"
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredIdx(idx)}
+                        onMouseLeave={() => setHoveredIdx(null)}
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {/* Point hover tooltip */}
+              {hoveredIdx !== null && (
+                <div
+                  className="absolute bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 p-2.5 rounded-xl shadow-2xl pointer-events-none transition-all duration-100 max-w-[160px] flex flex-col z-30"
+                  style={{
+                    left: `${(getChartCoords(monthsProjection[hoveredIdx].month, monthsProjection[hoveredIdx].cash).x / width) * 100}%`,
+                    top: `${(getChartCoords(monthsProjection[hoveredIdx].month, monthsProjection[hoveredIdx].cash).y / height) * 100 - 10}%`,
+                    transform: "translate(-50%, -100%)"
+                  }}
+                >
+                  <span className="text-[8px] font-mono text-zinc-500 dark:text-white/50 uppercase">Month {monthsProjection[hoveredIdx].month} Balance</span>
+                  <span className="text-[12px] font-mono font-extrabold text-zinc-800 dark:text-[#ccf063] mt-0.5">
+                    {formatCurrency(monthsProjection[hoveredIdx].cash)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mt-4 border-t border-zinc-200 dark:border-white/5 pt-3 text-[10px] text-zinc-400 dark:text-white/40 italic flex items-center gap-1">
+            <span>Projection assumes constant monthly burn rate. No dynamic revenue intake modeled.</span>
+          </div>
+        </div>
+
+        {/* Unit Economics & Gap (1/3 Width) */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col justify-between gap-6">
+          <div className="space-y-4">
+            <h4 className="font-bold text-zinc-850 dark:text-white text-xs uppercase tracking-wider font-mono border-b border-zinc-200 dark:border-white/5 pb-2">
+              Unit Economics
+            </h4>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 dark:text-white/55 mb-1.5">
+                  <span>Customer Lifetime Value (LTV)</span>
+                  <span className="font-bold text-zinc-900 dark:text-white">{formatCurrency(financials.ltvValue)}</span>
+                </div>
+                <div className="w-full h-2 bg-zinc-250 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#ccf063] rounded-full" style={{ width: "100%" }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 dark:text-white/55 mb-1.5">
+                  <span>Acquisition Cost (CAC)</span>
+                  <span className="font-bold text-red-500">{formatCurrency(financials.cacValue)}</span>
+                </div>
+                <div className="w-full h-2 bg-zinc-250 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-500 rounded-full" style={{ width: `${(financials.cacValue / financials.ltvValue) * 100}%` }} />
+                </div>
+              </div>
+              <p className="text-[10.5px] leading-relaxed text-zinc-600 dark:text-white/60 italic pt-1">
+                LTV/CAC ratio stands at <strong className="text-zinc-850 dark:text-[#ccf063] font-bold">{financials.ltvCacRatio}x</strong>. A ratio greater than 3.0x represents efficient enterprise customer unit economics.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 flex flex-col gap-2.5">
+            <div className="flex items-center gap-2 text-amber-500 font-bold uppercase tracking-wider text-[10px] font-mono">
+              <AlertTriangle className="w-4 h-4" /> Detected Capital Gap
+            </div>
+            <p className="text-[10.5px] leading-relaxed text-amber-500/80 font-medium">
+              {financials.keyGap}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+};
+
+interface PitchDeckVisualizerProps {
+  reports: Record<string, AgentReport>;
+  activeProject: any;
+}
+
+const PitchDeckVisualizer: React.FC<PitchDeckVisualizerProps> = ({ reports, activeProject }) => {
+  const { userEmail } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch Founder Profile from Azure PostgreSQL Database
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!userEmail) return;
+      try {
+        const res = await fetch(`/api/founder/profile?email=${encodeURIComponent(userEmail)}`);
+        const result = (await res.json()) as any;
+        if (result.success && result.data) {
+          setProfile(result.data);
+        }
+      } catch (err) {
+        console.error("Failed to load founder profile in pitch deck:", err);
+      }
+    }
+    fetchProfile();
+  }, [userEmail]);
+
+  // Parse deck data dynamically
+  const data = useMemo(() => {
+    const projectTitle = activeProject?.title || "Your Venture";
+    const ideaText = activeProject?.idea || "";
+
+    // 1. Cover
+    const coverTitle = projectTitle;
+    const coverSubtitle = activeProject?.reports?.find((r: any) => r.engine === "pitch")?.summary || "Venture Pitch Deck";
+    const founderName = profile?.fullName || "Swapn Kumar";
+    const founderRole = profile?.roleTitle || "Founder & CEO";
+    const founderEmail = profile?.email || userEmail || "swapn9910@gmail.com";
+    const founderLocation = profile?.location || "India";
+
+    // 2. Problem
+    let problems = [
+      "High customer acquisition friction in target market.",
+      "Legacy solutions suffer from integration complexity and high pricing.",
+      "Lack of automated validation infrastructure leads to inefficient capital spend."
+    ];
+    if (ideaText) {
+      const lines = ideaText.split("\n").filter(l => l.toLowerCase().includes("problem:") || l.toLowerCase().includes("pain:") || l.toLowerCase().includes("issue:"));
+      if (lines.length > 0) {
+        problems = lines.map(l => l.replace(/problem:|pain:|issue:/i, "").trim());
+      }
+    }
+
+    // 3. Solution
+    let solutions = [
+      "Provide a unified validation dashboard to run analytics in real-time.",
+      "Reduce execution time and integration margins by up to 70%.",
+      "Enable dual-pane comparative deep dives powered by multi-agent analysis."
+    ];
+    if (ideaText) {
+      const lines = ideaText.split("\n").filter(l => l.toLowerCase().includes("solution:") || l.toLowerCase().includes("product:") || l.toLowerCase().includes("how:"));
+      if (lines.length > 0) {
+        solutions = lines.map(l => l.replace(/solution:|product:|how:/i, "").trim());
+      }
+    }
+
+    // 4. Market Context
+    const research = reports["research"];
+    const marketSize = research?.dataPoints?.find(p => p.toLowerCase().includes("tam") || p.toLowerCase().includes("market size")) || "TAM: $14.2B Skincare Segment";
+    const marketCagr = research?.dataPoints?.find(p => p.toLowerCase().includes("cagr") || p.toLowerCase().includes("growth")) || "CAGR: 8.5% growth rate";
+    const marketTrend = research?.dataPoints?.find(p => p.toLowerCase().includes("trend") || p.toLowerCase().includes("insight")) || "Insight: 72% consumers prefer organic sourcing";
+
+    // 5. TAM SAM SOM
+    let tam = "$4.5B";
+    let sam = "$1.2B";
+    let som = "$350M";
+    if (research?.dataPoints) {
+      research.dataPoints.forEach(pt => {
+        if (pt.toLowerCase().includes("tam")) {
+          const m = pt.match(/\$[0-9.]+\s*(?:Billion|Million|Trillion|B|M|T)/i);
+          if (m) tam = m[0];
+        } else if (pt.toLowerCase().includes("sam") || pt.toLowerCase().includes("serviceable addressable")) {
+          const m = pt.match(/\$[0-9.]+\s*(?:Billion|Million|Trillion|B|M|T)/i);
+          if (m) sam = m[0];
+        } else if (pt.toLowerCase().includes("som") || pt.toLowerCase().includes("serviceable obtainable")) {
+          const m = pt.match(/\$[0-9.]+\s*(?:Billion|Million|Trillion|B|M|T)/i);
+          if (m) som = m[0];
+        }
+      });
+    }
+
+    // 6. Competition
+    const competitors = reports["competitors"];
+    const competitorNames = competitors?.dataPoints?.map(pt => {
+      const splitIdx = pt.indexOf(":");
+      return splitIdx !== -1 ? pt.substring(0, splitIdx).trim() : pt;
+    }) || ["Glossier", "The Ordinary", "Local Indie Brands"];
+    const ourEdge = competitors?.dataPoints?.find(p => p.toLowerCase().includes("edge") || p.toLowerCase().includes("advantage") || p.toLowerCase().includes("differentiation")) || "Your Edge: Ultra-transparent localized supply chain narrative.";
+
+    // 7. Business Model
+    const financials = reports["financials"];
+    const margin = financials?.dataPoints?.find(p => p.toLowerCase().includes("margin")) || "Gross Margin: 75% excluding logistics";
+    const revenueModel = financials?.dataPoints?.find(p => p.toLowerCase().includes("revenue") || p.toLowerCase().includes("pricing") || p.toLowerCase().includes("aov")) || "Target average order value (AOV): $65 standard ticket";
+    const customerLtv = financials?.dataPoints?.find(p => p.toLowerCase().includes("ltv") || p.toLowerCase().includes("cac")) || "LTV to CAC ratio stands at 4.2x inside Year 2";
+
+    // 8. Financial Projections
+    const mrr = financials?.dataPoints?.find(p => p.toLowerCase().includes("mrr") || p.toLowerCase().includes("projected mrr") || p.toLowerCase().includes("year 1")) || "Year 1 Projected MRR: $50,000 standard";
+    const burn = financials?.dataPoints?.find(p => p.toLowerCase().includes("burn") || p.toLowerCase().includes("monthly burn")) || "Monthly Burn rate: $25,000 engineering heavy";
+
+    // 9. Roadmap
+    const roadmap = reports["roadmap"];
+    const roadmapPoints = roadmap?.dataPoints || [
+      "Month 1: Prototype validation & landing page waitlist launch.",
+      "Month 3: Private beta release with 5 design partner clients.",
+      "Month 6: General Availability launch & outreach seed round closure."
+    ];
+
+    // 10. Funding Ask
+    const askAmount = activeProject?.fundingAsk || "₹1.5 Crore";
+    const runway = financials?.dataPoints?.find(p => p.toLowerCase().includes("runway")) || "Provides 18-month operational runway.";
+    const deployment = financials?.dataPoints?.find(p => p.toLowerCase().includes("use") || p.toLowerCase().includes("hiring") || p.toLowerCase().includes("capital")) || "Core use: hiring key lead engineering resources & launching pipeline marketing.";
+    const milestone = financials?.dataPoints?.find(p => p.toLowerCase().includes("target") || p.toLowerCase().includes("milestone") || p.toLowerCase().includes("goal")) || "Target deliverable: achieve 40% repeat purchase rate.";
+
+    // 11. Why Now?
+    const risks = reports["risks"];
+    const riskMitigation = risks?.dataPoints?.find(p => p.toLowerCase().includes("mitigation") || p.toLowerCase().includes("why now") || p.toLowerCase().includes("timing")) || "Market Timing Risk: Optimal (high customer willingness to pay and low adoption cost).";
+    const industryDrivers = research?.summary || "Market shifting rapidly due to Gen Z preferences and transparent supply lines.";
+
+    return {
+      coverTitle,
+      coverSubtitle,
+      founderName,
+      founderRole,
+      founderEmail,
+      founderLocation,
+      problems,
+      solutions,
+      marketSize,
+      marketCagr,
+      marketTrend,
+      tam,
+      sam,
+      som,
+      competitorNames,
+      ourEdge,
+      margin,
+      revenueModel,
+      customerLtv,
+      mrr,
+      burn,
+      roadmapPoints,
+      askAmount,
+      runway,
+      deployment,
+      milestone,
+      riskMitigation,
+      industryDrivers
+    };
+  }, [reports, activeProject, profile, userEmail]);
+
+  const slides = [
+    {
+      id: "cover",
+      label: "1. Cover",
+      tag: "COVER",
+      render: () => (
+        <div className="flex flex-col justify-start pt-8 space-y-6 select-none animate-in fade-in duration-300">
+          <div className="space-y-3">
+            <span className="text-[10px] font-mono tracking-widest text-zinc-800 dark:text-[#ccf063] uppercase border border-zinc-300 dark:border-[#ccf063]/30 px-2.5 py-1 rounded-full">
+              Venture Pitch Deck
+            </span>
+            <h2 className="text-4xl sm:text-5xl font-serif text-zinc-900 dark:text-white italic leading-tight pt-2">
+              {data.coverTitle}
+            </h2>
+            <p className="text-sm text-zinc-600 dark:text-white/60 leading-relaxed max-w-xl">
+              {data.coverSubtitle}
+            </p>
+          </div>
+
+          <div className="border-t border-zinc-200 dark:border-white/10 pt-6 mt-6 grid grid-cols-2 gap-4 max-w-lg">
+            <div>
+              <p className="text-[9px] font-mono uppercase text-zinc-400 dark:text-white/40">Presenter</p>
+              <p className="text-xs font-bold text-zinc-900 dark:text-white mt-0.5">{data.founderName}</p>
+              <p className="text-[10px] text-zinc-500 dark:text-white/50">{data.founderRole}</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-mono uppercase text-zinc-400 dark:text-white/40">Location &amp; Contact</p>
+              <p className="text-xs font-bold text-zinc-900 dark:text-white mt-0.5">{data.founderLocation}</p>
+              <p className="text-[10px] text-zinc-500 dark:text-white/50">{data.founderEmail}</p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "problem",
+      label: "2. Problem",
+      tag: "THE PROBLEM",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Defining the Market Pain Points
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            {data.problems.map((prob, idx) => (
+              <div key={idx} className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+                <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-red-500" />
+                <p className="text-xs text-zinc-800 dark:text-white/80 leading-relaxed font-medium">{prob}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "solution",
+      label: "3. Solution",
+      tag: "THE SOLUTION",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Our Value Proposition
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            {data.solutions.map((sol, idx) => (
+              <div key={idx} className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+                <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+                <p className="text-xs text-zinc-800 dark:text-white/80 leading-relaxed font-medium">{sol}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "market",
+      label: "4. Market Context",
+      tag: "MARKET CONTEXT",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Market Size &amp; Industry Timing
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Addressable Segment</p>
+                <p className="text-xs text-zinc-900 dark:text-white/90 leading-relaxed font-bold mt-0.5">{data.marketSize}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Growth Rate</p>
+                <p className="text-xs text-zinc-900 dark:text-white/90 leading-relaxed font-bold mt-0.5">{data.marketCagr}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Consumer Insight</p>
+                <p className="text-xs text-zinc-800 dark:text-white/80 leading-relaxed mt-0.5 font-medium">{data.marketTrend}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "tamsamsom",
+      label: "5. TAM SAM SOM",
+      tag: "TAM SAM SOM",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Market Opportunity Size
+          </h3>
+          <div className="grid grid-cols-3 gap-4 max-w-2xl">
+            {[
+              { label: "TAM", val: data.tam, desc: "Total Addressable Market" },
+              { label: "SAM", val: data.sam, desc: "Serviceable Addressable Market" },
+              { label: "SOM", val: data.som, desc: "Serviceable Obtainable Market" }
+            ].map((ring, idx) => (
+              <div key={idx} className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-5 rounded-2xl flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden group">
+                <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase tracking-widest">{ring.label}</span>
+                <span className="text-2xl font-serif font-extrabold text-zinc-800 dark:text-[#ccf063]">{ring.val}</span>
+                <span className="text-[9px] text-zinc-500 dark:text-white/55">{ring.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "competition",
+      label: "6. Competition",
+      tag: "COMPETITION",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Competitive Landscape
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl space-y-2">
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Challengers &amp; Legacy</p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {data.competitorNames.map((name, i) => (
+                    <span key={i} className="bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 text-zinc-800 dark:text-white text-[10px] px-2 py-1 rounded-md">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl space-y-2">
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Our Core Advantage</p>
+                <p className="text-xs text-zinc-800 dark:text-white/80 leading-relaxed font-medium">{data.ourEdge}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "bizmodel",
+      label: "7. Business Model",
+      tag: "BUSINESS MODEL",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Business Model &amp; Unit Economics
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Revenue Strategy</p>
+                <p className="text-xs text-zinc-900 dark:text-white/90 leading-relaxed font-bold mt-0.5">{data.revenueModel}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Pricing &amp; Margins</p>
+                <p className="text-xs text-zinc-900 dark:text-white/90 leading-relaxed font-bold mt-0.5">{data.margin}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Unit Economics health</p>
+                <p className="text-xs text-zinc-800 dark:text-white/80 leading-relaxed mt-0.5 font-medium">{data.customerLtv}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "financials",
+      label: "8. Financial Projections",
+      tag: "FINANCIAL PROJECTIONS",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Financial Health Projections
+          </h3>
+          <div className="grid grid-cols-2 gap-4 max-w-2xl">
+            <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-5 rounded-2xl flex flex-col justify-center space-y-2">
+              <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Target MRR</span>
+              <span className="text-xl font-bold text-zinc-900 dark:text-white leading-snug">{data.mrr}</span>
+            </div>
+            <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-5 rounded-2xl flex flex-col justify-center space-y-2">
+              <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Monthly Burn Rate</span>
+              <span className="text-xl font-bold text-red-500 leading-snug">{data.burn}</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "roadmap",
+      label: "9. Product Roadmap",
+      tag: "PRODUCT ROADMAP",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Product Development Milestones
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            {data.roadmapPoints.map((pt, idx) => (
+              <div key={idx} className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+                <span className="w-5 h-5 rounded bg-zinc-100 dark:bg-[#ccf063]/10 border border-zinc-300 dark:border-[#ccf063]/30 text-zinc-800 dark:text-[#ccf063] font-mono font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
+                <p className="text-xs text-zinc-900 dark:text-white/90 leading-relaxed font-medium">{pt}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "funding",
+      label: "10. Funding Ask",
+      tag: "FUNDING ASK",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl sm:text-4xl font-serif text-zinc-900 dark:text-white italic leading-tight">
+            Raising {data.askAmount} Capital
+          </h3>
+          
+          <div className="space-y-3.5 max-w-2xl pt-1">
+            <div className="flex items-start gap-2.5 text-zinc-900 dark:text-white/90">
+              <CheckCircle2 className="w-5 h-5 text-zinc-700 dark:text-[#ccf063] shrink-0 mt-0.5" />
+              <span className="text-xs font-semibold leading-relaxed">{data.runway}</span>
+            </div>
+            <div className="flex items-start gap-2.5 text-zinc-900 dark:text-white/90">
+              <CheckCircle2 className="w-5 h-5 text-zinc-700 dark:text-[#ccf063] shrink-0 mt-0.5" />
+              <span className="text-xs font-semibold leading-relaxed">{data.deployment}</span>
+            </div>
+            <div className="flex items-start gap-2.5 text-zinc-900 dark:text-white/90">
+              <CheckCircle2 className="w-5 h-5 text-zinc-700 dark:text-[#ccf063] shrink-0 mt-0.5" />
+              <span className="text-xs font-semibold leading-relaxed">{data.milestone}</span>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: "why",
+      label: "11. Why Now?",
+      tag: "WHY NOW?",
+      render: () => (
+        <div className="flex flex-col justify-start pt-4 space-y-6 animate-in fade-in duration-300">
+          <h3 className="text-3xl font-serif text-zinc-900 dark:text-white italic">
+            Urgency &amp; Timing
+          </h3>
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Timing catalysts</p>
+                <p className="text-xs text-zinc-900 dark:text-white/90 leading-relaxed font-bold mt-0.5">{data.industryDrivers}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl">
+              <span className="w-1.5 h-1.5 rounded-full mt-2 shrink-0 bg-[#ccf063]" />
+              <div>
+                <p className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Traction risk mitigation</p>
+                <p className="text-xs text-zinc-800 dark:text-white/80 leading-relaxed mt-0.5 font-medium">{data.riskMitigation}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  ];
+
+  const [activeSlideIdx, setActiveSlideIdx] = useState(0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const handleNext = () => {
+    setActiveSlideIdx((prev) => Math.min(slides.length - 1, prev + 1));
+  };
+
+  const handleBack = () => {
+    setActiveSlideIdx((prev) => Math.max(0, prev - 1));
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isFullScreen) return;
+      if (e.key === "ArrowRight") {
+        setActiveSlideIdx((prev) => Math.min(slides.length - 1, prev + 1));
+      } else if (e.key === "ArrowLeft") {
+        setActiveSlideIdx((prev) => Math.max(0, prev - 1));
+      } else if (e.key === "Escape") {
+        setIsFullScreen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullScreen, slides.length]);
+
+  const handleDownloadMarkdown = () => {
+    const text = `# ${data.coverTitle}
+---
+## ${data.coverSubtitle}
+Founder: ${data.founderName} (${data.founderRole})
+Email: ${data.founderEmail} | Location: ${data.founderLocation}
+
+---
+# 2. The Problem
+${data.problems.map((p) => `- ${p}`).join("\n")}
+
+---
+# 3. The Solution
+${data.solutions.map((s) => `- ${s}`).join("\n")}
+
+---
+# 4. Market Context & Timing
+- Market Size: ${data.marketSize}
+- CAGR Growth: ${data.marketCagr}
+- Trend Insight: ${data.marketTrend}
+
+---
+# 5. TAM SAM SOM
+- TAM (Total Addressable Market): ${data.tam}
+- SAM (Serviceable Addressable Market): ${data.sam}
+- SOM (Serviceable Obtainable Market): ${data.som}
+
+---
+# 6. Competitive Landscape
+- Competitors: ${data.competitorNames.join(", ")}
+- Our Unique Edge: ${data.ourEdge}
+
+---
+# 7. Business Model & Unit Economics
+- Pricing/Model: ${data.revenueModel}
+- Margin Structure: ${data.margin}
+- Unit Economics: ${data.customerLtv}
+
+---
+# 8. Financial Outlook & Burn
+- Year 1 MRR Targets: ${data.mrr}
+- Monthly Cash Burn: ${data.burn}
+
+---
+# 9. Product Development Roadmap
+${data.roadmapPoints.map((r) => `- ${r}`).join("\n")}
+
+---
+# 10. Capital Requirements (Funding Ask)
+- Seed Capital Ask: ${data.askAmount}
+- Operational Runway: ${data.runway}
+- Capital Use Allocation: ${data.deployment}
+- Critical Target Milestone: ${data.milestone}
+
+---
+# 11. Why Now? (Timing & Catalyst)
+- Catalyst/Drivers: ${data.industryDrivers}
+- Mitigation Tactics: ${data.riskMitigation}
+`;
+
+    const blob = new Blob([text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${data.coverTitle.toLowerCase().replace(/\s+/g, "_")}_pitch_deck.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrintDeck = () => {
+    window.print();
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 text-xs">
+      
+      {/* Print PDF Style injector */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          /* Hide everything except the print container at the body root */
+          body > *:not(#print-deck-container) {
+            display: none !important;
+          }
+          /* Show print deck container */
+          #print-deck-container {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: #000000 !important;
+          }
+          .print-slide {
+            page-break-after: always !important;
+            width: 100% !important;
+            height: 100vh !important;
+            padding: 80px !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            background: #000000 !important;
+            color: #ffffff !important;
+          }
+        }
+        @media screen {
+          #fullscreen-content {
+            font-size: 1.25rem !important;
+          }
+          #fullscreen-content h2 {
+            font-size: 3rem !important;
+          }
+          #fullscreen-content h3 {
+            font-size: 2.25rem !important;
+          }
+          #fullscreen-content p {
+            font-size: 1.15rem !important;
+            line-height: 1.75 !important;
+            max-width: 100% !important;
+          }
+          #fullscreen-content span {
+            font-size: 1rem !important;
+          }
+          #fullscreen-content div.p-4 {
+            padding: 1.25rem !important;
+          }
+        }
+      `}} />
+
+      {/* Hidden Print Deck Layout (Rendered as Portal at body root) */}
+      {mounted && createPortal(
+        <div id="print-deck-container" className="hidden">
+          {slides.map((slide, idx) => (
+            <div key={idx} className="print-slide bg-black text-white p-20 flex flex-col justify-center h-screen border-b border-zinc-900">
+              <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-widest text-[#ccf063] mb-6">
+                <span>{slide.tag}</span>
+                <span>Slide {idx + 1} / {slides.length}</span>
+              </div>
+              <div className="flex-1">
+                {slide.render()}
+              </div>
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
+
+      {/* Dashboard Deck Display */}
+      <div className="flex flex-col md:flex-row gap-6 items-stretch">
+        
+        {/* Left column - slides navigation list */}
+        <div className="w-full md:w-[24%] bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-4 shadow-xl flex flex-col gap-2">
+          <div className="flex justify-between items-center px-1 mb-2">
+            <h4 className="font-bold text-zinc-400 dark:text-white/50 text-[10px] uppercase tracking-wider font-mono">
+              Presentation Outline
+            </h4>
+          </div>
+          <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible gap-2 pb-2 md:pb-0 scrollbar-thin">
+            {slides.map((slide, idx) => {
+              const isActive = activeSlideIdx === idx;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setActiveSlideIdx(idx)}
+                  className={`px-4 py-3 rounded-xl border text-left text-xs transition-all duration-200 cursor-pointer shrink-0 md:shrink-1 flex items-center justify-between ${
+                    isActive
+                      ? "bg-[#ccf063]/10 border-[#ccf063] text-zinc-800 dark:text-[#ccf063] font-bold"
+                      : "bg-white dark:bg-[#0c0c0c] border-zinc-200 dark:border-white/5 hover:border-zinc-350 dark:hover:border-white/10 text-zinc-650 dark:text-white/60 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  <span>{slide.label}</span>
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-zinc-700 dark:bg-[#ccf063] hidden md:block" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right column - selected slide preview */}
+        <div className="flex-1 bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col justify-between min-h-[420px] relative overflow-hidden group">
+          
+          {/* Deck control action buttons */}
+          <div className="absolute top-4 right-4 flex gap-2 z-20">
+            <button
+              onClick={() => setIsFullScreen(true)}
+              className="bg-white dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-[#ccf063]/10 border border-zinc-200 dark:border-white/10 text-zinc-850 dark:text-white text-[10px] font-mono px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Preview pitch deck in fullscreen mode"
+            >
+              <Maximize className="w-3.5 h-3.5 text-zinc-750 dark:text-[#ccf063]" /> Preview
+            </button>
+            <button
+              onClick={handleDownloadMarkdown}
+              className="bg-white dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-[#ccf063]/10 border border-zinc-200 dark:border-white/10 text-zinc-850 dark:text-white text-[10px] font-mono px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Download presentation in Marp Markdown format"
+            >
+              <Download className="w-3.5 h-3.5 text-zinc-750 dark:text-white" /> Download
+            </button>
+            <button
+              onClick={handlePrintDeck}
+              className="bg-[#ccf063] hover:bg-[#ccf063]/90 text-black text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+              title="Save slides to PDF file"
+            >
+              <Download className="w-3.5 h-3.5 text-black" /> Export PDF
+            </button>
+          </div>
+
+          {/* Slide Header */}
+          <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-widest text-zinc-800 dark:text-[#ccf063] border-b border-zinc-200 dark:border-white/5 pb-3">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-800 dark:bg-[#ccf063]" />
+              {slides[activeSlideIdx].tag}
+            </span>
+            <span className="text-zinc-400 dark:text-white/40">
+              Slide {activeSlideIdx + 1} / {slides.length}
+            </span>
+          </div>
+
+          {/* Main Slide Content Area */}
+          <div className="flex-1 py-6 px-4 flex flex-col justify-start">
+            {slides[activeSlideIdx].render()}
+          </div>
+
+          {/* Slide Footer Navigation */}
+          <div className="flex justify-between items-center border-t border-zinc-200 dark:border-white/5 pt-4">
+            <button
+              onClick={handleBack}
+              disabled={activeSlideIdx === 0}
+              className="px-4 py-2 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-800 dark:text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            >
+              &larr; Back
+            </button>
+
+            {/* Slide dot indicators */}
+            <div className="flex gap-1.5">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveSlideIdx(idx)}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    activeSlideIdx === idx ? "bg-zinc-700 dark:bg-[#ccf063] scale-125" : "bg-zinc-200 dark:bg-white/15 hover:bg-zinc-300 dark:hover:bg-white/30"
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={handleNext}
+              disabled={activeSlideIdx === slides.length - 1}
+              className="px-4 py-2 bg-[#ccf063] hover:bg-[#ccf063]/90 text-black text-xs font-bold rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            >
+              Next &rarr;
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Fullscreen Pitch Deck Modal overlay */}
+      {isFullScreen && (
+        <div className="fixed inset-0 bg-white dark:bg-[#070707] z-[9999] flex flex-col justify-between p-6 sm:p-8 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-zinc-900 dark:text-white font-sans select-none">
+          
+          {/* Fullscreen Header */}
+          <div className="flex justify-between items-center text-xs font-mono uppercase tracking-widest text-zinc-800 dark:text-[#ccf063] border-b border-zinc-200 dark:border-white/5 pb-3.5 z-30 relative shrink-0">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-zinc-800 dark:bg-[#ccf063] animate-pulse" />
+              {slides[activeSlideIdx].tag}
+            </span>
+            <div className="flex items-center gap-6">
+              <span className="text-zinc-400 dark:text-white/40">
+                Slide {activeSlideIdx + 1} / {slides.length}
+              </span>
+              <button
+                onClick={() => setIsFullScreen(false)}
+                className="p-1.5 rounded-lg bg-zinc-100 dark:bg-white/15 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/20 text-zinc-800 dark:text-white hover:text-red-650 dark:hover:text-red-400 transition-colors flex items-center justify-center cursor-pointer z-40 relative"
+                title="Exit fullscreen presentation mode (ESC)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Fullscreen Content Area */}
+          <div id="fullscreen-content" className="flex-1 my-3 px-4 flex flex-col justify-start max-w-4xl mx-auto w-full z-10 relative overflow-y-auto min-h-0">
+            {slides[activeSlideIdx].render()}
+          </div>
+
+          {/* Fullscreen Footer Navigation */}
+          <div className="flex justify-between items-center border-t border-zinc-200 dark:border-white/5 pt-4.5 max-w-4xl mx-auto w-full z-30 relative shrink-0">
+            <button
+              onClick={handleBack}
+              disabled={activeSlideIdx === 0}
+              className="px-5 py-2 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/10 text-zinc-800 dark:text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-20 disabled:pointer-events-none cursor-pointer z-40 relative"
+            >
+              &larr; Back
+            </button>
+
+            {/* Slide dot indicators */}
+            <div className="flex gap-2">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveSlideIdx(idx)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    activeSlideIdx === idx ? "bg-zinc-700 dark:bg-[#ccf063] scale-125" : "bg-zinc-200 dark:bg-white/10 hover:bg-zinc-300 dark:hover:bg-white/30"
+                  } cursor-pointer z-40 relative`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={handleNext}
+              disabled={activeSlideIdx === slides.length - 1}
+              className="px-5 py-2 bg-zinc-900 dark:bg-[#ccf063] hover:bg-zinc-800 dark:hover:bg-[#ccf063]/90 text-white dark:text-black text-xs font-bold rounded-lg transition-colors disabled:opacity-20 disabled:pointer-events-none cursor-pointer z-40 relative"
+            >
+              Next &rarr;
+            </button>
+          </div>
+
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+interface RoadmapExecutionVisualizerProps {
+  report: AgentReport;
+  project: any;
+}
+
+const RoadmapExecutionVisualizer: React.FC<RoadmapExecutionVisualizerProps> = ({ report, project }) => {
+  const dataPoints = report?.dataPoints || [];
+
+  // Parse milestones from dataPoints dynamically
+  const milestones = useMemo(() => {
+    return dataPoints.map((pt, idx) => {
+      let phase = `Phase ${idx + 1}`;
+      let description = pt;
+      
+      const colonIdx = pt.indexOf(":");
+      if (colonIdx !== -1) {
+        phase = pt.substring(0, colonIdx).trim();
+        description = pt.substring(colonIdx + 1).trim();
+      }
+      
+      return {
+        id: idx,
+        phase,
+        description
+      };
+    });
+  }, [dataPoints]);
+
+  const [activeNode, setActiveNode] = useState<number>(0);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 text-xs">
+      
+      {/* Overview Card */}
+      <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1 max-w-xl">
+          <h4 className="font-bold text-zinc-900 dark:text-white text-sm tracking-wider font-sans uppercase">
+            Strategic Roadmap Summary
+          </h4>
+          <p className="text-zinc-650 dark:text-white/60 leading-relaxed">
+            {report?.summary || "Phased execution strategy generated based on market viability checks and competitive constraints."}
+          </p>
+        </div>
+        <div className="flex gap-4 shrink-0">
+          <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl text-center min-w-[100px] shadow-sm">
+            <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Milestones</span>
+            <span className="block text-2xl font-extrabold text-zinc-800 dark:text-[#ccf063] mt-1">{milestones.length}</span>
+          </div>
+          <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl text-center min-w-[100px] shadow-sm">
+            <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase">Confidence</span>
+            <span className="block text-2xl font-extrabold text-[#ccf063] mt-1">{report?.confidenceScore || 90}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Roadmap Timeline Block */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        
+        {/* Left 2 Columns: Interactive Vertical Timeline */}
+        <div className="lg:col-span-2 bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <h4 className="font-bold text-zinc-550 dark:text-white/60 text-xs uppercase tracking-wider font-mono mb-6 border-b border-zinc-200 dark:border-white/5 pb-2">
+            Execution Timeline &amp; Milestones
+          </h4>
+
+          {milestones.length === 0 ? (
+            <div className="py-8 text-center text-zinc-450 dark:text-white/40 italic">
+              No milestones generated yet. Check project details.
+            </div>
+          ) : (
+            <div className="relative pl-8 space-y-6">
+              {/* Central vertical line indicator */}
+              <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-zinc-200 dark:bg-white/10" />
+
+              {milestones.map((ms, idx) => {
+                const isActive = activeNode === idx;
+                return (
+                  <div 
+                    key={ms.id} 
+                    className="relative cursor-pointer group"
+                    onClick={() => setActiveNode(idx)}
+                  >
+                    {/* Circle Node */}
+                    <div 
+                      className={`absolute -left-[30px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-305 flex items-center justify-center ${
+                        isActive 
+                          ? "bg-[#ccf063] border-[#ccf063] scale-125 shadow-[0_0_8px_#ccf063]" 
+                          : "bg-white dark:bg-[#0c0c0c] border-zinc-300 dark:border-white/20 group-hover:border-zinc-500 dark:group-hover:border-white/40"
+                      }`}
+                    >
+                      {isActive && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                    </div>
+
+                    {/* Milestone Card */}
+                    <div 
+                      className={`p-4 rounded-xl border transition-all duration-300 ${
+                        isActive 
+                          ? "bg-white dark:bg-white/5 border-zinc-300 dark:border-[#ccf063]/30 shadow-md" 
+                          : "bg-white/60 dark:bg-[#0c0c0c]/40 border-zinc-200/60 dark:border-white/5 hover:border-zinc-300 dark:hover:border-white/10"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`font-mono text-[10px] uppercase font-bold tracking-widest ${isActive ? "text-zinc-800 dark:text-[#ccf063]" : "text-zinc-500 dark:text-white/40"}`}>
+                          {ms.phase}
+                        </span>
+                        {isActive && (
+                          <span className="text-[8px] font-mono uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-650 dark:text-emerald-400 px-2 py-0.5 rounded">
+                            Active Stage
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs leading-relaxed ${isActive ? "text-zinc-900 dark:text-white font-medium" : "text-zinc-650 dark:text-white/60"}`}>
+                        {ms.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right 1 Column: Stage Deep Dive Analyst View */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+          <div className="space-y-4">
+            <h4 className="font-bold text-zinc-900 dark:text-white text-xs uppercase tracking-wider font-mono border-b border-zinc-200 dark:border-white/5 pb-2 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-[#ccf063]" /> Stage Focus
+            </h4>
+
+            {milestones[activeNode] ? (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div>
+                  <span className="text-[9px] font-mono uppercase text-zinc-400 dark:text-white/40">Target Timeline</span>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-[#ccf063] font-serif italic mt-0.5">
+                    {milestones[activeNode].phase}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[9px] font-mono uppercase text-zinc-400 dark:text-white/40 block">Operational Priority</span>
+                  <div className="p-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 rounded-xl text-zinc-700 dark:text-white/80 leading-relaxed font-medium">
+                    {milestones[activeNode].description}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[9px] font-mono uppercase text-zinc-400 dark:text-white/40 block">Analyst Checkpoints</span>
+                  <ul className="space-y-2">
+                    {[
+                      "Establish core operational checkpoints.",
+                      "Verify customer feedback loop validations.",
+                      "Run cash runway alignment test."
+                    ].map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-zinc-650 dark:text-white/70">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#ccf063] shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="text-zinc-450 dark:text-white/40 italic">
+                Select a milestone stage to review execution analysis.
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/50 dark:bg-white/5 flex flex-col gap-2 mt-4">
+            <span className="text-[9px] font-mono uppercase text-zinc-400 dark:text-white/40">Real-Time Sync</span>
+            <p className="text-[10px] leading-relaxed text-zinc-500 dark:text-white/50 italic">
+              Data sourced directly from live synthesizers. No cached templates loaded.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+};
+
+interface ValidationScorecardVisualizerProps {
+  report: AgentReport;
+  project: any;
+}
+
+const ValidationScorecardVisualizer: React.FC<ValidationScorecardVisualizerProps> = ({ report, project }) => {
+  const dataPoints = report?.dataPoints || [];
+
+  // Parse validation points dynamically
+  const criteriaList = useMemo(() => {
+    return dataPoints.map((pt, idx) => {
+      let metric = "Validation Metric";
+      let details = pt;
+      
+      const colonIdx = pt.indexOf(":");
+      if (colonIdx !== -1) {
+        metric = pt.substring(0, colonIdx).trim();
+        details = pt.substring(colonIdx + 1).trim();
+      }
+      
+      // Determine status from details text
+      const lowerDetails = details.toLowerCase();
+      let status: "verified" | "warning" | "neutral" = "neutral";
+      if (
+        lowerDetails.includes("verified") || 
+        lowerDetails.includes("excellent") || 
+        lowerDetails.includes("strong") || 
+        lowerDetails.includes("proceed") || 
+        lowerDetails.includes("yes") || 
+        lowerDetails.includes("good")
+      ) {
+        status = "verified";
+      } else if (
+        lowerDetails.includes("high risk") || 
+        lowerDetails.includes("warning") || 
+        lowerDetails.includes("check") || 
+        lowerDetails.includes("mitigation") || 
+        lowerDetails.includes("critical")
+      ) {
+        status = "warning";
+      }
+
+      return {
+        id: idx,
+        metric,
+        details,
+        status
+      };
+    });
+  }, [dataPoints]);
+
+  const overallScore = report?.confidenceScore || 92;
+  const ratingGrade = useMemo(() => {
+    if (overallScore >= 95) return "A+ Grade";
+    if (overallScore >= 90) return "A Grade";
+    if (overallScore >= 85) return "B+ Grade";
+    return "B Grade";
+  }, [overallScore]);
+
+  const [hoveredMetric, setHoveredMetric] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 text-xs">
+      
+      {/* Top row: Verdict & Grade summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        
+        {/* Consensus Verdict summary card */}
+        <div className="md:col-span-2 bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col justify-between gap-4">
+          <div className="space-y-2">
+            <h4 className="font-bold text-zinc-900 dark:text-white text-sm tracking-wider font-sans uppercase">
+              Venture Validation Summary
+            </h4>
+            <p className="text-zinc-650 dark:text-white/60 leading-relaxed text-sm">
+              {report?.summary || "Programmatic validation grade synthesized across all loaded market, competitive, and execution checks."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-zinc-500 dark:text-white/40 font-mono text-[10px]">
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span>Consensus complete: Proceeding to execution pathways.</span>
+          </div>
+        </div>
+
+        {/* Dynamic circular grade chart */}
+        <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center">
+          <span className="text-[10px] font-mono text-zinc-400 dark:text-white/40 uppercase mb-3">Consensus Scorecard</span>
+          <div className="relative w-28 h-28 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                className="text-zinc-200 dark:text-white/5"
+                strokeWidth="6"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="42"
+                fill="none"
+                stroke="currentColor"
+                className="stroke-[#ccf063]"
+                strokeWidth="6"
+                strokeDasharray="263.89"
+                strokeDashoffset={263.89 - (overallScore / 100) * 263.89}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-extrabold text-zinc-900 dark:text-white font-mono">{overallScore}%</span>
+              <span className="text-[8px] font-mono text-zinc-400 dark:text-white/40 uppercase mt-0.5">{ratingGrade}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Dynamic Criteria checklist board */}
+      <div className="bg-zinc-50 dark:bg-[#0c0c0c] border border-zinc-200 dark:border-white/5 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-white/5 pb-2">
+          <h4 className="font-bold text-zinc-900 dark:text-white text-sm tracking-wider font-sans">
+            Real-Time Validation Scorecard Checkpoints
+          </h4>
+          <span className="text-[9px] font-mono text-zinc-400 dark:text-white/40 italic">Hover checkpoints to review full details</span>
+        </div>
+
+        {criteriaList.length === 0 ? (
+          <div className="py-8 text-center text-zinc-450 dark:text-white/40 italic">
+            No scorecard checkpoints generated yet. Check execution planning.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {criteriaList.map((crit, idx) => (
+              <div 
+                key={crit.id} 
+                className="p-4 bg-white dark:bg-[#0c0c0c]/40 border border-zinc-200 dark:border-white/5 rounded-xl hover:border-zinc-300 dark:hover:border-white/10 transition-all duration-300 flex items-start gap-3 relative group"
+                onMouseEnter={() => setHoveredMetric(idx)}
+                onMouseLeave={() => setHoveredMetric(null)}
+              >
+                {/* Status Icon Indicator */}
+                {crit.status === "verified" ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                ) : crit.status === "warning" ? (
+                  <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                ) : (
+                  <ShieldCheck className="w-5 h-5 text-[#ccf063] shrink-0 mt-0.5" />
+                )}
+
+                <div className="space-y-1 flex-1 min-w-0">
+                  <p className="font-bold text-zinc-900 dark:text-white text-xs truncate">
+                    {crit.metric}
+                  </p>
+                  <p className="text-zinc-650 dark:text-white/70 leading-relaxed text-[11px]">
+                    {crit.details}
+                  </p>
+                </div>
+
+                {/* Hover tooltips */}
+                {hoveredMetric === idx && (
+                  <div className="absolute right-4 bottom-full mb-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-white/10 p-3 rounded-xl shadow-2xl z-20 max-w-[280px] pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+                    <span className="text-[8px] font-mono text-zinc-400 dark:text-white/40 uppercase">checkpoint log</span>
+                    <p className="text-[10px] text-zinc-800 dark:text-white mt-1 leading-relaxed font-medium">
+                      Programmatically analyzed checkpoint: "{crit.metric}" has status "{crit.status.toUpperCase()}".
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };
@@ -2591,7 +4217,7 @@ export default function VentureValidationDashboardPage() {
                 isSidebarCollapsed ? "left-full bottom-0 ml-3 w-48" : "bottom-[calc(100%+8px)] left-2 right-2"
               }`}>
                 <button onClick={() => { setUserDropdownOpen(false); router.push("/founder/profile"); }} className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-zinc-700 dark:text-white/75 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white transition-colors"><User className="w-4 h-4 text-zinc-400 dark:text-white/40" /> Profile</button>
-                <button onClick={() => { setUserDropdownOpen(false); router.push("/founder/settings"); }} className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-zinc-700 dark:text-white/75 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white transition-colors"><Settings className="w-4 h-4 text-zinc-400 dark:text-white/40" /> Settings</button>
+                <button onClick={() => { setUserDropdownOpen(false); router.push("/founder/edit-profile"); }} className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-zinc-700 dark:text-white/75 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white transition-colors"><Settings className="w-4 h-4 text-zinc-400 dark:text-white/40" /> Settings</button>
                 <button onClick={() => { setUserDropdownOpen(false); setShowTermsModal(true); }} className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-zinc-700 dark:text-white/75 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-950 dark:hover:text-white transition-colors"><Award className="w-4 h-4 text-zinc-400 dark:text-white/40" /> Terms & Conditions</button>
                 <button onClick={() => { setUserDropdownOpen(false); router.push("/"); }} className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-white/5 transition-colors border-t border-zinc-200 dark:border-white/5"><LogOut className="w-4 h-4 text-red-600/70 dark:text-red-400/70" /> Logout</button>
               </div>
@@ -2950,6 +4576,14 @@ export default function VentureValidationDashboardPage() {
                         <CompetitorAnalysisVisualizer report={reports[activeTab]} project={activeProject} />
                       ) : activeTab === "risks" ? (
                         <RiskAnalysisVisualizer report={reports[activeTab]} project={activeProject} />
+                      ) : activeTab === "financials" ? (
+                        <FinancialsAnalysisVisualizer report={reports[activeTab]} project={activeProject} />
+                      ) : activeTab === "pitch" ? (
+                        <PitchDeckVisualizer reports={reports} activeProject={activeProject} />
+                      ) : activeTab === "roadmap" ? (
+                        <RoadmapExecutionVisualizer report={reports[activeTab]} project={activeProject} />
+                      ) : activeTab === "validation" ? (
+                        <ValidationScorecardVisualizer report={reports[activeTab]} project={activeProject} />
                       ) : (
                         <>
                           <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-2xl p-6">
