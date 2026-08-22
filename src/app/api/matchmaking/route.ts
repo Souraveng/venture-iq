@@ -167,7 +167,7 @@ export async function POST(req: Request) {
     scoredStartups.sort((a, b) => b.cosineScore - a.cosineScore);
     const candidateStartups = scoredStartups.map(item => item.startup);
 
-    // 6. Multi-Dimensional Synthesis via Gemini 3.7 Flash
+    // 6. Multi-Dimensional Synthesis via Gemini Synthesis
     const promptPayload = candidateStartups.slice(0, 8).map((s) => ({
       id: s.id,
       name: s.name,
@@ -216,7 +216,7 @@ For each startup, provide:
           traction: number;
         };
       }>>({
-        model: "financial", // Uses Gemini 3.7 Flash for low-latency structured output
+        model: "financial", // Uses Gemini Synthesis for low-latency structured output
         messages: [{ role: "user", content: synthesisPrompt }],
         temperature: 0.2,
         guidedJson: {
@@ -248,11 +248,8 @@ For each startup, provide:
         evaluatedResults = aiResponse;
       }
     } catch (aiError: any) {
-      console.error("[Matchmaking API] Gemini 3.7 Flash synthesis error:", aiError);
-      return NextResponse.json({
-        success: false,
-        error: "Unable to connect to Google Vertex AI Gemini 3.7 Flash scoring agent."
-      }, { status: 503 });
+      console.error("[Matchmaking API] Gemini synthesis error, falling back to vector search scores:", aiError);
+      // Fallback: Continue without evaluatedResults so that vector search scores are used instead
     }
 
     // 7. Enrich & assemble final startup feed cards
