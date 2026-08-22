@@ -191,11 +191,11 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
                     {startups.length === 0 && (
                       <div className="px-3 py-2 text-white/40 italic">No projects found</div>
                     )}
-                    {startups.map((startup) => {
+                    {startups.map((startup, index) => {
                       const isSelected = activeStartup.name === startup.name;
                       return (
                         <div
-                          key={startup.name}
+                          key={`${startup.id}-${index}`}
                           onClick={() => handleSelectStartup(startup)}
                           className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
                             isSelected
@@ -341,12 +341,12 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
                         </td>
                       </tr>
                     ) : (
-                      filteredGcpStartups.map((s) => {
+                      filteredGcpStartups.map((s, index) => {
                         const isSelected = activeStartup.name === s.name;
                         const isStarred = starredProjects.has(s.name);
                         return (
                           <tr
-                            key={s.name}
+                            key={`${s.id}-${index}`}
                             onClick={() => handleSelectStartup(s)}
                             className={`group hover:bg-[#18181b] cursor-pointer transition-colors ${
                               isSelected ? "bg-blue-500/10 text-white" : "text-zinc-300"

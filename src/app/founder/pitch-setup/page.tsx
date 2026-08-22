@@ -126,10 +126,8 @@ export default function FounderPitchRoomSetupPage() {
     
     // Pre-seed specific fields
     ideaStage: "",
-    coreProblem: "",
     whyNow: "",
     uniqueInsight: "",
-    proposedSolution: "",
     technicalApproach: "",
     techStack: "",
     demoLink: "",
@@ -158,6 +156,7 @@ export default function FounderPitchRoomSetupPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [warnings, setWarnings] = useState<Record<string, string>>({});
   const [founderStartups, setFounderStartups] = useState<any[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (!userName) return;
@@ -289,10 +288,8 @@ export default function FounderPitchRoomSetupPage() {
               
               // Pre-seed specific fields mapping
               ideaStage: found.ideaStage || "",
-              coreProblem: found.coreProblem || "",
               whyNow: found.whyNow || "",
               uniqueInsight: found.uniqueInsight || "",
-              proposedSolution: found.proposedSolution || "",
               technicalApproach: found.technicalApproach || "",
               techStack: found.techStack || "",
               demoLink: found.demoLink || "",
@@ -418,10 +415,9 @@ export default function FounderPitchRoomSetupPage() {
       if (!editForm.category?.trim()) errors.category = "Required for publishing";
       if (!editForm.fundingAsk?.trim()) errors.fundingAsk = "Required";
       if (!editForm.pitchDeckUrl?.trim()) errors.pitchDeckUrl = "Required";
-      if (!isPreSeed) {
-        if (!editForm.problemText?.trim()) errors.problemText = "Required";
-        if (!editForm.solutionText?.trim()) errors.solutionText = "Required";
-      }
+      if (!editForm.problemText?.trim()) errors.problemText = "Required";
+      if (!editForm.solutionText?.trim()) errors.solutionText = "Required";
+      
       if (!editForm.roundType?.trim()) errors.roundType = "Required";
       if (!editForm.stage?.trim()) errors.stage = "Required";
       
@@ -435,10 +431,8 @@ export default function FounderPitchRoomSetupPage() {
 
       if (isPreSeed) {
         if (!editForm.ideaStage?.trim()) errors.ideaStage = "Required for publishing";
-        if (!editForm.coreProblem?.trim() || editForm.coreProblem.trim().length < 10) errors.coreProblem = "Must be at least 10 characters";
         if (!editForm.whyNow?.trim() || editForm.whyNow.trim().length < 10) errors.whyNow = "Must be at least 10 characters";
         if (!editForm.uniqueInsight?.trim() || editForm.uniqueInsight.trim().length < 10) errors.uniqueInsight = "Must be at least 10 characters";
-        if (!editForm.proposedSolution?.trim() || editForm.proposedSolution.trim().length < 10) errors.proposedSolution = "Must be at least 10 characters";
         if (!editForm.validationActivity?.trim()) errors.validationActivity = "Required for publishing";
         if (!editForm.validationDetail?.trim() || editForm.validationDetail.trim().length < 10) errors.validationDetail = "Must be at least 10 characters";
         if (!editForm.whyThisTeam?.trim() || editForm.whyThisTeam.trim().length < 15) errors.whyThisTeam = "Must be at least 15 characters";
@@ -596,10 +590,8 @@ export default function FounderPitchRoomSetupPage() {
     fixedValuation: "Fixed Valuation",
     equityOffered: "Equity Offered",
     ideaStage: "Idea Stage (under Idea Tab)",
-    coreProblem: "Core Problem (under Idea Tab)",
     whyNow: "Why Now (under Idea Tab)",
     uniqueInsight: "Unique Insight (under Idea Tab)",
-    proposedSolution: "Proposed Solution (under Idea Tab)",
     validationActivity: "Validation Activity (under Product Tab)",
     validationDetail: "Validation Detail (under Product Tab)",
     whyThisTeam: "Why This Team (under Execution Tab)",
@@ -622,7 +614,7 @@ export default function FounderPitchRoomSetupPage() {
        setIsEditing(true);
        
        const errorKeys = Object.keys(errors);
-       const ideaFields = ["ideaStage", "coreProblem", "whyNow", "uniqueInsight", "proposedSolution"];
+       const ideaFields = ["ideaStage", "whyNow", "uniqueInsight"];
        const productFields = ["validationActivity", "validationDetail", "willingnessToPaySignal"];
        const executionFields = ["technicalApproach", "whyThisTeam", "differentiation", "keyMilestone", "vision"];
        
@@ -634,10 +626,9 @@ export default function FounderPitchRoomSetupPage() {
          setPreSeedTab("execution");
        }
 
-       const missingNames = errorKeys.map(k => fieldLabels[k] || k).join(" • ");
-       setErrorMessage(`Cannot publish pitch (${errorKeys.length} required field(s) missing): ${missingNames}`);
+       setErrorMessage(`Cannot publish pitch. ${errorKeys.length} required field(s) missing. Please fill the fields marked with *`);
        setShowErrorFlash(true);
-       setTimeout(() => setShowErrorFlash(false), 12000);
+       setTimeout(() => setShowErrorFlash(false), 8000);
        scrollToTop();
        return;
     }
@@ -725,19 +716,28 @@ export default function FounderPitchRoomSetupPage() {
   };
 
   const handleDelete = async () => {
-    if (!pitch.id || !confirm("Are you sure you want to delete this pitch? This action cannot be undone.")) return;
+    if (!pitch.id) return;
     
     try {
       const res = await fetch(`/api/startups?id=${pitch.id}`, { method: "DELETE" });
       const json = (await res.json()) as any;
       if (json.success) {
+        setShowDeleteConfirm(false);
         router.push("/founder/projects");
       } else {
-        alert("Failed to delete pitch: " + json.error);
+        setErrorMessage("Failed to delete pitch: " + (json.error || "Server error"));
+        setShowErrorFlash(true);
+        setTimeout(() => setShowErrorFlash(false), 6000);
+        scrollToTop();
+        setShowDeleteConfirm(false);
       }
     } catch (e) {
       console.error(e);
-      alert("Error deleting pitch.");
+      setErrorMessage("Error deleting pitch.");
+      setShowErrorFlash(true);
+      setTimeout(() => setShowErrorFlash(false), 6000);
+      scrollToTop();
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -1219,44 +1219,6 @@ export default function FounderPitchRoomSetupPage() {
                           <option value="Pilots">Active Pilots</option>
                         </select>
                         {formErrors.ideaStage && <span className="text-red-500 text-[10px] block mt-0.5">{formErrors.ideaStage}</span>}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Core Problem */}
-                  <div>
-                    <label className="text-[10px] uppercase text-[#c5c9b2] font-semibold block mb-1">Core Problem <span className="text-red-400">*</span></label>
-                    {!isEditing ? (
-                      <p className="text-xs font-medium text-white/90 leading-relaxed bg-black/20 p-2.5 rounded-lg border border-white/5 whitespace-pre-wrap">{pitch.coreProblem || "N/A"}</p>
-                    ) : (
-                      <div className="flex flex-col">
-                        <textarea
-                          value={editForm.coreProblem}
-                          onChange={(e) => handleChange("coreProblem", e.target.value)}
-                          placeholder="What specific problem does this startup solve? (Min 10 chars)"
-                          rows={3}
-                          className="bg-black border border-white/10 rounded px-2.5 py-1.5 text-white w-full focus:outline-none text-xs resize-none"
-                        />
-                        {formErrors.coreProblem && <span className="text-red-500 text-[10px] block mt-0.5">{formErrors.coreProblem}</span>}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Proposed Solution */}
-                  <div>
-                    <label className="text-[10px] uppercase text-[#c5c9b2] font-semibold block mb-1">Proposed Solution <span className="text-red-400">*</span></label>
-                    {!isEditing ? (
-                      <p className="text-xs font-medium text-white/90 leading-relaxed bg-black/20 p-2.5 rounded-lg border border-white/5 whitespace-pre-wrap">{pitch.proposedSolution || "N/A"}</p>
-                    ) : (
-                      <div className="flex flex-col">
-                        <textarea
-                          value={editForm.proposedSolution}
-                          onChange={(e) => handleChange("proposedSolution", e.target.value)}
-                          placeholder="What is your product/solution? (Min 10 chars)"
-                          rows={3}
-                          className="bg-black border border-white/10 rounded px-2.5 py-1.5 text-white w-full focus:outline-none text-xs resize-none"
-                        />
-                        {formErrors.proposedSolution && <span className="text-red-500 text-[10px] block mt-0.5">{formErrors.proposedSolution}</span>}
                       </div>
                     )}
                   </div>
@@ -2052,7 +2014,7 @@ export default function FounderPitchRoomSetupPage() {
 
         <div className="grid grid-cols-2 sm:flex sm:flex-row flex-wrap gap-2.5 w-full pt-2 border-t border-white/5">
           <button 
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             className="px-3 sm:px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl font-bold transition-colors text-center truncate"
           >
             Delete Pitch
@@ -2084,6 +2046,36 @@ export default function FounderPitchRoomSetupPage() {
         </div>
       </div>
 
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#121212] border border-red-500/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500/20 via-red-500 to-red-500/20" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Delete Pitch?</h3>
+            </div>
+            <p className="text-sm text-[#c5c9b2] mb-6">
+              Are you sure you want to delete this pitch? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-white hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-xl text-sm font-bold bg-red-500 hover:bg-red-600 text-white transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
