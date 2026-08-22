@@ -98,8 +98,8 @@ async function queryCloudflare(
 }
 
 // Query Google Gemini API (completely free tier available via Google AI Studio)
-async function queryGemini(prompt: string, apiKey: string): Promise<string> {
-  const model = process.env.GEMINI_LLM_MODEL || "gemini-2.5-flash";
+async function queryGemini(prompt: string, apiKey: string, modelName?: string): Promise<string> {
+  const model = modelName || process.env.GEMINI_LLM_MODEL || "gemini-3.7-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const response = await fetch(url, {
@@ -115,6 +115,11 @@ async function queryGemini(prompt: string, apiKey: string): Promise<string> {
               text: prompt,
             }
           ]
+        }
+      ],
+      tools: [
+        {
+          googleSearch: {} // Enables Google Search Grounding
         }
       ],
       generationConfig: {
@@ -657,7 +662,8 @@ async function resolveLlmCall(
             console.log(`[LLM${isStructured ? ' Structured' : ''}] Querying Google Gemini API...`);
           }
           const prompt = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join("\n");
-          generatedText = await queryGemini(prompt, geminiApiKey);
+          const geminiModel = isPremiumAgent ? (process.env.GEMINI_PREMIUM_MODEL || "gemini-3.1-pro-preview") : (process.env.GEMINI_LLM_MODEL || "gemini-3.7-flash");
+          generatedText = await queryGemini(prompt, geminiApiKey, geminiModel);
           if (generatedText) {
             if (isStructured) {
               try {
