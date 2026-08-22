@@ -5,7 +5,7 @@ import { invokeExecutionFromPlan } from "@/lib/founder-intelligence/orchestrator
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { idea, userEmail, playbook, opportunity } = body;
+    const { idea, userEmail, playbook, opportunity, forceContinueResearch } = body;
 
     if (!idea || !playbook || !opportunity) {
       return NextResponse.json(
@@ -17,10 +17,20 @@ export async function POST(req: Request) {
     // Execute the remaining phases (Phase 2 to 5) with the confirmed plan
     const { state: finalState, trace } = await invokeExecutionFromPlan(
       { idea, userEmail },
-      { playbook, opportunity }
+      { playbook, opportunity, forceContinueResearch }
     );
 
     const pipeline = finalState.pipeline || {};
+
+    if (pipeline.ruleValidationResult?.isResearchComplete === false && !forceContinueResearch) {
+      return NextResponse.json({
+        success: false,
+        paused: true,
+        reason: "Validation failed: Missing details.",
+        lackingDetails: pipeline.ruleValidationResult.lackingDetails,
+        trace
+      });
+    }
     const scorecard = pipeline.scorecard;
     const financialCalc = pipeline.financialAnalysis?.calculations;
     const report = pipeline.report;

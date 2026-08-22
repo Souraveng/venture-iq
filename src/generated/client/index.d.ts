@@ -260,6 +260,23 @@ export const TeamRole: {
 export type TeamRole = (typeof TeamRole)[keyof typeof TeamRole]
 
 
+export const TeamType: {
+  INVESTOR: 'INVESTOR',
+  FOUNDER: 'FOUNDER'
+};
+
+export type TeamType = (typeof TeamType)[keyof typeof TeamType]
+
+
+export const MemberStatus: {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  DECLINED: 'DECLINED'
+};
+
+export type MemberStatus = (typeof MemberStatus)[keyof typeof MemberStatus]
+
+
 export const VentureRole: {
   OWNER: 'OWNER',
   EDITOR: 'EDITOR',
@@ -310,6 +327,14 @@ export const EscalationStatus: typeof $Enums.EscalationStatus
 export type TeamRole = $Enums.TeamRole
 
 export const TeamRole: typeof $Enums.TeamRole
+
+export type TeamType = $Enums.TeamType
+
+export const TeamType: typeof $Enums.TeamType
+
+export type MemberStatus = $Enums.MemberStatus
+
+export const MemberStatus: typeof $Enums.MemberStatus
 
 export type VentureRole = $Enums.VentureRole
 
@@ -35513,6 +35538,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     description: string | null
+    teamType: $Enums.TeamType | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -35521,6 +35547,7 @@ export namespace Prisma {
     id: string | null
     name: string | null
     description: string | null
+    teamType: $Enums.TeamType | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -35529,6 +35556,7 @@ export namespace Prisma {
     id: number
     name: number
     description: number
+    teamType: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -35539,6 +35567,7 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
+    teamType?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -35547,6 +35576,7 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
+    teamType?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -35555,6 +35585,7 @@ export namespace Prisma {
     id?: true
     name?: true
     description?: true
+    teamType?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -35636,6 +35667,7 @@ export namespace Prisma {
     id: string
     name: string
     description: string | null
+    teamType: $Enums.TeamType
     createdAt: Date
     updatedAt: Date
     _count: TeamCountAggregateOutputType | null
@@ -35661,6 +35693,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    teamType?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     members?: boolean | Team$membersArgs<ExtArgs>
@@ -35672,6 +35705,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    teamType?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["team"]>
@@ -35680,6 +35714,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    teamType?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["team"]>
@@ -35688,11 +35723,12 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     description?: boolean
+    teamType?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "createdAt" | "updatedAt", ExtArgs["result"]["team"]>
+  export type TeamOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "teamType" | "createdAt" | "updatedAt", ExtArgs["result"]["team"]>
   export type TeamInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     members?: boolean | Team$membersArgs<ExtArgs>
     escalations?: boolean | Team$escalationsArgs<ExtArgs>
@@ -35711,6 +35747,7 @@ export namespace Prisma {
       id: string
       name: string
       description: string | null
+      teamType: $Enums.TeamType
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["team"]>
@@ -36141,6 +36178,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Team", 'String'>
     readonly name: FieldRef<"Team", 'String'>
     readonly description: FieldRef<"Team", 'String'>
+    readonly teamType: FieldRef<"Team", 'TeamType'>
     readonly createdAt: FieldRef<"Team", 'DateTime'>
     readonly updatedAt: FieldRef<"Team", 'DateTime'>
   }
@@ -36612,6 +36650,7 @@ export namespace Prisma {
     teamId: string | null
     userEmail: string | null
     role: $Enums.TeamRole | null
+    status: $Enums.MemberStatus | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -36621,6 +36660,7 @@ export namespace Prisma {
     teamId: string | null
     userEmail: string | null
     role: $Enums.TeamRole | null
+    status: $Enums.MemberStatus | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -36630,6 +36670,7 @@ export namespace Prisma {
     teamId: number
     userEmail: number
     role: number
+    status: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -36641,6 +36682,7 @@ export namespace Prisma {
     teamId?: true
     userEmail?: true
     role?: true
+    status?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -36650,6 +36692,7 @@ export namespace Prisma {
     teamId?: true
     userEmail?: true
     role?: true
+    status?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -36659,6 +36702,7 @@ export namespace Prisma {
     teamId?: true
     userEmail?: true
     role?: true
+    status?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -36741,6 +36785,7 @@ export namespace Prisma {
     teamId: string
     userEmail: string
     role: $Enums.TeamRole
+    status: $Enums.MemberStatus
     createdAt: Date
     updatedAt: Date
     _count: TeamMemberCountAggregateOutputType | null
@@ -36767,6 +36812,7 @@ export namespace Prisma {
     teamId?: boolean
     userEmail?: boolean
     role?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     team?: boolean | TeamDefaultArgs<ExtArgs>
@@ -36777,6 +36823,7 @@ export namespace Prisma {
     teamId?: boolean
     userEmail?: boolean
     role?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     team?: boolean | TeamDefaultArgs<ExtArgs>
@@ -36787,6 +36834,7 @@ export namespace Prisma {
     teamId?: boolean
     userEmail?: boolean
     role?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     team?: boolean | TeamDefaultArgs<ExtArgs>
@@ -36797,11 +36845,12 @@ export namespace Prisma {
     teamId?: boolean
     userEmail?: boolean
     role?: boolean
+    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type TeamMemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "teamId" | "userEmail" | "role" | "createdAt" | "updatedAt", ExtArgs["result"]["teamMember"]>
+  export type TeamMemberOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "teamId" | "userEmail" | "role" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["teamMember"]>
   export type TeamMemberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     team?: boolean | TeamDefaultArgs<ExtArgs>
   }
@@ -36822,6 +36871,7 @@ export namespace Prisma {
       teamId: string
       userEmail: string
       role: $Enums.TeamRole
+      status: $Enums.MemberStatus
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["teamMember"]>
@@ -37252,6 +37302,7 @@ export namespace Prisma {
     readonly teamId: FieldRef<"TeamMember", 'String'>
     readonly userEmail: FieldRef<"TeamMember", 'String'>
     readonly role: FieldRef<"TeamMember", 'TeamRole'>
+    readonly status: FieldRef<"TeamMember", 'MemberStatus'>
     readonly createdAt: FieldRef<"TeamMember", 'DateTime'>
     readonly updatedAt: FieldRef<"TeamMember", 'DateTime'>
   }
@@ -40429,6 +40480,7 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     description: 'description',
+    teamType: 'teamType',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -40441,6 +40493,7 @@ export namespace Prisma {
     teamId: 'teamId',
     userEmail: 'userEmail',
     role: 'role',
+    status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -40715,6 +40768,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'TeamType'
+   */
+  export type EnumTeamTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeamType'>
+    
+
+
+  /**
+   * Reference to a field of type 'TeamType[]'
+   */
+  export type ListEnumTeamTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeamType[]'>
+    
+
+
+  /**
    * Reference to a field of type 'TeamRole'
    */
   export type EnumTeamRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeamRole'>
@@ -40725,6 +40792,20 @@ export namespace Prisma {
    * Reference to a field of type 'TeamRole[]'
    */
   export type ListEnumTeamRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeamRole[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MemberStatus'
+   */
+  export type EnumMemberStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MemberStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'MemberStatus[]'
+   */
+  export type ListEnumMemberStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MemberStatus[]'>
     
 
 
@@ -43351,6 +43432,7 @@ export namespace Prisma {
     id?: StringFilter<"Team"> | string
     name?: StringFilter<"Team"> | string
     description?: StringNullableFilter<"Team"> | string | null
+    teamType?: EnumTeamTypeFilter<"Team"> | $Enums.TeamType
     createdAt?: DateTimeFilter<"Team"> | Date | string
     updatedAt?: DateTimeFilter<"Team"> | Date | string
     members?: TeamMemberListRelationFilter
@@ -43361,6 +43443,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    teamType?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     members?: TeamMemberOrderByRelationAggregateInput
@@ -43374,6 +43457,7 @@ export namespace Prisma {
     NOT?: TeamWhereInput | TeamWhereInput[]
     name?: StringFilter<"Team"> | string
     description?: StringNullableFilter<"Team"> | string | null
+    teamType?: EnumTeamTypeFilter<"Team"> | $Enums.TeamType
     createdAt?: DateTimeFilter<"Team"> | Date | string
     updatedAt?: DateTimeFilter<"Team"> | Date | string
     members?: TeamMemberListRelationFilter
@@ -43384,6 +43468,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
+    teamType?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: TeamCountOrderByAggregateInput
@@ -43398,6 +43483,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Team"> | string
     name?: StringWithAggregatesFilter<"Team"> | string
     description?: StringNullableWithAggregatesFilter<"Team"> | string | null
+    teamType?: EnumTeamTypeWithAggregatesFilter<"Team"> | $Enums.TeamType
     createdAt?: DateTimeWithAggregatesFilter<"Team"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Team"> | Date | string
   }
@@ -43410,6 +43496,7 @@ export namespace Prisma {
     teamId?: StringFilter<"TeamMember"> | string
     userEmail?: StringFilter<"TeamMember"> | string
     role?: EnumTeamRoleFilter<"TeamMember"> | $Enums.TeamRole
+    status?: EnumMemberStatusFilter<"TeamMember"> | $Enums.MemberStatus
     createdAt?: DateTimeFilter<"TeamMember"> | Date | string
     updatedAt?: DateTimeFilter<"TeamMember"> | Date | string
     team?: XOR<TeamScalarRelationFilter, TeamWhereInput>
@@ -43420,6 +43507,7 @@ export namespace Prisma {
     teamId?: SortOrder
     userEmail?: SortOrder
     role?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     team?: TeamOrderByWithRelationInput
@@ -43434,6 +43522,7 @@ export namespace Prisma {
     teamId?: StringFilter<"TeamMember"> | string
     userEmail?: StringFilter<"TeamMember"> | string
     role?: EnumTeamRoleFilter<"TeamMember"> | $Enums.TeamRole
+    status?: EnumMemberStatusFilter<"TeamMember"> | $Enums.MemberStatus
     createdAt?: DateTimeFilter<"TeamMember"> | Date | string
     updatedAt?: DateTimeFilter<"TeamMember"> | Date | string
     team?: XOR<TeamScalarRelationFilter, TeamWhereInput>
@@ -43444,6 +43533,7 @@ export namespace Prisma {
     teamId?: SortOrder
     userEmail?: SortOrder
     role?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: TeamMemberCountOrderByAggregateInput
@@ -43459,6 +43549,7 @@ export namespace Prisma {
     teamId?: StringWithAggregatesFilter<"TeamMember"> | string
     userEmail?: StringWithAggregatesFilter<"TeamMember"> | string
     role?: EnumTeamRoleWithAggregatesFilter<"TeamMember"> | $Enums.TeamRole
+    status?: EnumMemberStatusWithAggregatesFilter<"TeamMember"> | $Enums.MemberStatus
     createdAt?: DateTimeWithAggregatesFilter<"TeamMember"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"TeamMember"> | Date | string
   }
@@ -46675,6 +46766,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: TeamMemberCreateNestedManyWithoutTeamInput
@@ -46685,6 +46777,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: TeamMemberUncheckedCreateNestedManyWithoutTeamInput
@@ -46695,6 +46788,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
@@ -46705,6 +46799,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: TeamMemberUncheckedUpdateManyWithoutTeamNestedInput
@@ -46715,6 +46810,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -46723,6 +46819,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46731,6 +46828,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46739,6 +46837,7 @@ export namespace Prisma {
     id?: string
     userEmail: string
     role?: $Enums.TeamRole
+    status?: $Enums.MemberStatus
     createdAt?: Date | string
     updatedAt?: Date | string
     team: TeamCreateNestedOneWithoutMembersInput
@@ -46749,6 +46848,7 @@ export namespace Prisma {
     teamId: string
     userEmail: string
     role?: $Enums.TeamRole
+    status?: $Enums.MemberStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -46757,6 +46857,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     team?: TeamUpdateOneRequiredWithoutMembersNestedInput
@@ -46767,6 +46868,7 @@ export namespace Prisma {
     teamId?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46776,6 +46878,7 @@ export namespace Prisma {
     teamId: string
     userEmail: string
     role?: $Enums.TeamRole
+    status?: $Enums.MemberStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -46784,6 +46887,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46793,6 +46897,7 @@ export namespace Prisma {
     teamId?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48964,6 +49069,13 @@ export namespace Prisma {
     _max?: NestedEnumEscalationStatusFilter<$PrismaModel>
   }
 
+  export type EnumTeamTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.TeamType | EnumTeamTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumTeamTypeFilter<$PrismaModel> | $Enums.TeamType
+  }
+
   export type TeamMemberListRelationFilter = {
     every?: TeamMemberWhereInput
     some?: TeamMemberWhereInput
@@ -48978,6 +49090,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    teamType?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -48986,6 +49099,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    teamType?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -48994,8 +49108,19 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     description?: SortOrder
+    teamType?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type EnumTeamTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.TeamType | EnumTeamTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumTeamTypeWithAggregatesFilter<$PrismaModel> | $Enums.TeamType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumTeamTypeFilter<$PrismaModel>
+    _max?: NestedEnumTeamTypeFilter<$PrismaModel>
   }
 
   export type EnumTeamRoleFilter<$PrismaModel = never> = {
@@ -49003,6 +49128,13 @@ export namespace Prisma {
     in?: $Enums.TeamRole[] | ListEnumTeamRoleFieldRefInput<$PrismaModel>
     notIn?: $Enums.TeamRole[] | ListEnumTeamRoleFieldRefInput<$PrismaModel>
     not?: NestedEnumTeamRoleFilter<$PrismaModel> | $Enums.TeamRole
+  }
+
+  export type EnumMemberStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MemberStatus | EnumMemberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMemberStatusFilter<$PrismaModel> | $Enums.MemberStatus
   }
 
   export type TeamScalarRelationFilter = {
@@ -49020,6 +49152,7 @@ export namespace Prisma {
     teamId?: SortOrder
     userEmail?: SortOrder
     role?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -49029,6 +49162,7 @@ export namespace Prisma {
     teamId?: SortOrder
     userEmail?: SortOrder
     role?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -49038,6 +49172,7 @@ export namespace Prisma {
     teamId?: SortOrder
     userEmail?: SortOrder
     role?: SortOrder
+    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -49050,6 +49185,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTeamRoleFilter<$PrismaModel>
     _max?: NestedEnumTeamRoleFilter<$PrismaModel>
+  }
+
+  export type EnumMemberStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MemberStatus | EnumMemberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMemberStatusWithAggregatesFilter<$PrismaModel> | $Enums.MemberStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMemberStatusFilter<$PrismaModel>
+    _max?: NestedEnumMemberStatusFilter<$PrismaModel>
   }
 
   export type EnumVentureRoleFilter<$PrismaModel = never> = {
@@ -50301,6 +50446,10 @@ export namespace Prisma {
     connect?: EscalationWhereUniqueInput | EscalationWhereUniqueInput[]
   }
 
+  export type EnumTeamTypeFieldUpdateOperationsInput = {
+    set?: $Enums.TeamType
+  }
+
   export type TeamMemberUpdateManyWithoutTeamNestedInput = {
     create?: XOR<TeamMemberCreateWithoutTeamInput, TeamMemberUncheckedCreateWithoutTeamInput> | TeamMemberCreateWithoutTeamInput[] | TeamMemberUncheckedCreateWithoutTeamInput[]
     connectOrCreate?: TeamMemberCreateOrConnectWithoutTeamInput | TeamMemberCreateOrConnectWithoutTeamInput[]
@@ -50365,6 +50514,10 @@ export namespace Prisma {
 
   export type EnumTeamRoleFieldUpdateOperationsInput = {
     set?: $Enums.TeamRole
+  }
+
+  export type EnumMemberStatusFieldUpdateOperationsInput = {
+    set?: $Enums.MemberStatus
   }
 
   export type TeamUpdateOneRequiredWithoutMembersNestedInput = {
@@ -50806,11 +50959,35 @@ export namespace Prisma {
     _max?: NestedEnumEscalationStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumTeamTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.TeamType | EnumTeamTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumTeamTypeFilter<$PrismaModel> | $Enums.TeamType
+  }
+
+  export type NestedEnumTeamTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.TeamType | EnumTeamTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TeamType[] | ListEnumTeamTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumTeamTypeWithAggregatesFilter<$PrismaModel> | $Enums.TeamType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumTeamTypeFilter<$PrismaModel>
+    _max?: NestedEnumTeamTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumTeamRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.TeamRole | EnumTeamRoleFieldRefInput<$PrismaModel>
     in?: $Enums.TeamRole[] | ListEnumTeamRoleFieldRefInput<$PrismaModel>
     notIn?: $Enums.TeamRole[] | ListEnumTeamRoleFieldRefInput<$PrismaModel>
     not?: NestedEnumTeamRoleFilter<$PrismaModel> | $Enums.TeamRole
+  }
+
+  export type NestedEnumMemberStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.MemberStatus | EnumMemberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMemberStatusFilter<$PrismaModel> | $Enums.MemberStatus
   }
 
   export type NestedEnumTeamRoleWithAggregatesFilter<$PrismaModel = never> = {
@@ -50821,6 +50998,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTeamRoleFilter<$PrismaModel>
     _max?: NestedEnumTeamRoleFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMemberStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MemberStatus | EnumMemberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MemberStatus[] | ListEnumMemberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumMemberStatusWithAggregatesFilter<$PrismaModel> | $Enums.MemberStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMemberStatusFilter<$PrismaModel>
+    _max?: NestedEnumMemberStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumVentureRoleFilter<$PrismaModel = never> = {
@@ -54163,6 +54350,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: TeamMemberCreateNestedManyWithoutTeamInput
@@ -54172,6 +54360,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
     members?: TeamMemberUncheckedCreateNestedManyWithoutTeamInput
@@ -54400,6 +54589,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: TeamMemberUpdateManyWithoutTeamNestedInput
@@ -54409,6 +54599,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     members?: TeamMemberUncheckedUpdateManyWithoutTeamNestedInput
@@ -54418,6 +54609,7 @@ export namespace Prisma {
     id?: string
     userEmail: string
     role?: $Enums.TeamRole
+    status?: $Enums.MemberStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -54426,6 +54618,7 @@ export namespace Prisma {
     id?: string
     userEmail: string
     role?: $Enums.TeamRole
+    status?: $Enums.MemberStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -54502,6 +54695,7 @@ export namespace Prisma {
     teamId?: StringFilter<"TeamMember"> | string
     userEmail?: StringFilter<"TeamMember"> | string
     role?: EnumTeamRoleFilter<"TeamMember"> | $Enums.TeamRole
+    status?: EnumMemberStatusFilter<"TeamMember"> | $Enums.MemberStatus
     createdAt?: DateTimeFilter<"TeamMember"> | Date | string
     updatedAt?: DateTimeFilter<"TeamMember"> | Date | string
   }
@@ -54526,6 +54720,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
     escalations?: EscalationCreateNestedManyWithoutTeamInput
@@ -54535,6 +54730,7 @@ export namespace Prisma {
     id?: string
     name: string
     description?: string | null
+    teamType?: $Enums.TeamType
     createdAt?: Date | string
     updatedAt?: Date | string
     escalations?: EscalationUncheckedCreateNestedManyWithoutTeamInput
@@ -54560,6 +54756,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     escalations?: EscalationUpdateManyWithoutTeamNestedInput
@@ -54569,6 +54766,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    teamType?: EnumTeamTypeFieldUpdateOperationsInput | $Enums.TeamType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     escalations?: EscalationUncheckedUpdateManyWithoutTeamNestedInput
@@ -56420,6 +56618,7 @@ export namespace Prisma {
     id?: string
     userEmail: string
     role?: $Enums.TeamRole
+    status?: $Enums.MemberStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -56442,6 +56641,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -56450,6 +56650,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -56458,6 +56659,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userEmail?: StringFieldUpdateOperationsInput | string
     role?: EnumTeamRoleFieldUpdateOperationsInput | $Enums.TeamRole
+    status?: EnumMemberStatusFieldUpdateOperationsInput | $Enums.MemberStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

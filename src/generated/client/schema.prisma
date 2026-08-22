@@ -597,10 +597,22 @@ enum TeamRole {
   VIEWER
 }
 
+enum TeamType {
+  INVESTOR
+  FOUNDER
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  DECLINED
+}
+
 model Team {
   id          String   @id @default(uuid())
   name        String
   description String?
+  teamType    TeamType @default(INVESTOR)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -609,12 +621,13 @@ model Team {
 }
 
 model TeamMember {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   teamId    String
   userEmail String
-  role      TeamRole @default(VIEWER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      TeamRole     @default(VIEWER)
+  status    MemberStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 

@@ -554,6 +554,7 @@ exports.Prisma.TeamScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
+  teamType: 'teamType',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -563,6 +564,7 @@ exports.Prisma.TeamMemberScalarFieldEnum = {
   teamId: 'teamId',
   userEmail: 'userEmail',
   role: 'role',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -678,10 +680,21 @@ exports.EscalationStatus = exports.$Enums.EscalationStatus = {
   REJECTED: 'REJECTED'
 };
 
+exports.TeamType = exports.$Enums.TeamType = {
+  INVESTOR: 'INVESTOR',
+  FOUNDER: 'FOUNDER'
+};
+
 exports.TeamRole = exports.$Enums.TeamRole = {
   OWNER: 'OWNER',
   EDITOR: 'EDITOR',
   VIEWER: 'VIEWER'
+};
+
+exports.MemberStatus = exports.$Enums.MemberStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  DECLINED: 'DECLINED'
 };
 
 exports.VentureRole = exports.$Enums.VentureRole = {

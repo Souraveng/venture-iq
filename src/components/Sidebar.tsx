@@ -28,7 +28,9 @@ import {
   Brain,
   ArrowLeftRight,
   X,
-  Bell
+  Bell,
+  Building,
+  AlertTriangle
 } from "lucide-react";
 
 interface SidebarProps {
@@ -120,6 +122,7 @@ export default function Sidebar({
     { name: "Discovery Feed", href: "/investor/feed", icon: Compass },
     { name: "Shortlisted Deals", href: "/investor/pitch-feed", icon: FileText },
     { name: "AI Diligence", href: "/investor/diligence", icon: Brain },
+    { name: "Escalations", href: "/investor/escalations", icon: AlertTriangle },
     { name: "Connect Hub", href: "/investor/connect", icon: TrendingUp },
     { name: "Meetings", href: "/investor/meetings", icon: Users },
     { name: "Notifications", href: "/investor/notifications", icon: Bell },
@@ -329,6 +332,20 @@ export default function Sidebar({
               className="flex items-center gap-2.5 px-3 py-2 text-white/75 hover:bg-white/5 hover:text-white transition-colors"
             >
               <Settings className="w-4 h-4 text-white/40" /> Settings
+            </Link>
+            <Link
+              href={isFounderPanel ? "/founder/settings" : "/investor/settings/team"}
+              onClick={() => setUserDropdownOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-white/75 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <Building className="w-4 h-4 text-white/40" /> Team & Organization
+            </Link>
+            <Link
+              href="/investor/escalations"
+              onClick={() => setUserDropdownOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-white/75 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <AlertTriangle className="w-4 h-4 text-white/40" /> Escalations & Handoffs
             </Link>
             <button
               onClick={() => {

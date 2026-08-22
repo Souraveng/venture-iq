@@ -60,17 +60,46 @@ export async function POST(req: Request) {
       },
     });
 
-    // (Optional) Trigger an in-app notification to the IC role
-    await prisma.notification.create({
-      data: {
-        userEmail: escalatedToRole, // If role is mapped to emails, otherwise generic "IC"
-        type: "ESCALATION",
-        title: `Deal Escalated: ${startup.name}`,
-        message: `${escalatedBy} escalated ${startup.name} for your review.`,
-        category: "request",
-        metadata: { escalationId: escalation.id, startupId: startup.id },
-      },
-    });
+    // 5. Notify all relevant team members and shared emails
+    const notifyEmails = new Set<string>();
+
+    // If a team is attached, notify all OWNER and EDITOR members of that team
+    if (teamId) {
+      const teamMembers = await prisma.teamMember.findMany({
+        where: { teamId, role: { in: ["OWNER", "EDITOR"] } },
+        select: { userEmail: true },
+      });
+      teamMembers.forEach((m) => notifyEmails.add(m.userEmail));
+    }
+
+    // Notify explicitly shared emails
+    if (sharedWithEmails && sharedWithEmails.length > 0) {
+      sharedWithEmails.forEach((email: string) => notifyEmails.add(email));
+    }
+
+    // If shareWithAll and no specific emails, at least notify the escalatedToRole as a generic target
+    if (notifyEmails.size === 0) {
+      notifyEmails.add(escalatedToRole);
+    }
+
+    // Remove the person who escalated (they already know)
+    notifyEmails.delete(escalatedBy);
+
+    // Create notifications for each team member
+    await Promise.all(
+      Array.from(notifyEmails).map((email) =>
+        prisma.notification.create({
+          data: {
+            userEmail: email,
+            type: "ESCALATION",
+            title: `Deal Escalated: ${startup.name}`,
+            message: `${escalatedBy} escalated ${startup.name} for your review.`,
+            category: "request",
+            metadata: { escalationId: escalation.id, startupId: startup.id },
+          },
+        })
+      )
+    );
 
     return NextResponse.json({
       success: true,

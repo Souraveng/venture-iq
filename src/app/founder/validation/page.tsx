@@ -1711,6 +1711,7 @@ export default function VentureValidationDashboardPage() {
   const [isPlanning, setIsPlanning] = useState(false);
   const [reviewPlan, setReviewPlan] = useState<any>(null);
   const [planIdea, setPlanIdea] = useState("");
+  const [validationPause, setValidationPause] = useState<{ lackingDetails: string, playbook: any, opportunity: any } | null>(null);
 
   // New UI states
   const [isDimensionsOpen, setIsDimensionsOpen] = useState(true);
@@ -2138,11 +2139,17 @@ export default function VentureValidationDashboardPage() {
     setIsPlanning(false);
   };
 
-  const handleResume = async () => {
-    if (!reviewPlan) return;
+  const handleResume = async (forceContinue = false) => {
+    if (!reviewPlan && !validationPause) return;
+    
+    // If we're forcing a resume from a paused state, we use the playbook/opportunity from the paused state
+    const playbookToUse = forceContinue && validationPause ? validationPause.playbook : reviewPlan?.playbook;
+    const opportunityToUse = forceContinue && validationPause ? validationPause.opportunity : reviewPlan?.opportunity;
+    
     setIsAnalyzing(true);
     setAnalysisProgress(30);
     setReviewPlan(null); // Close the review modal
+    if (forceContinue) setValidationPause(null); // Close the pause modal
 
     // Fallback to basic fetch since stream resume isn't implemented as SSE yet
     const interval = setInterval(() => {
@@ -2156,14 +2163,27 @@ export default function VentureValidationDashboardPage() {
       const res = await fetch("/api/validations/resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea: planIdea, userEmail, playbook: reviewPlan.playbook, opportunity: reviewPlan.opportunity }),
+        body: JSON.stringify({ 
+          idea: planIdea, 
+          userEmail, 
+          playbook: playbookToUse, 
+          opportunity: opportunityToUse,
+          forceContinueResearch: forceContinue
+        }),
       });
       const json = (await res.json()) as any;
 
       clearInterval(interval);
       setAnalysisProgress(100);
 
-      if (json.success && json.data) {
+      if (json.paused) {
+        setValidationPause({
+          lackingDetails: json.lackingDetails,
+          playbook: playbookToUse,
+          opportunity: opportunityToUse
+        });
+        setTimeout(() => setIsAnalyzing(false), 500);
+      } else if (json.success && json.data) {
         setMetrics({
           marketViability: json.data.marketViability,
           technicalFeasibility: json.data.technicalFeasibility,
@@ -3135,10 +3155,54 @@ export default function VentureValidationDashboardPage() {
                 <button onClick={() => setReviewPlan(null)} className="px-4 py-2 rounded-xl text-xs text-white/70 hover:text-white transition-colors">
                   Cancel
                 </button>
-                <button onClick={handleResume} className="bg-[#ccf063] hover:bg-[#c2e45d] text-black font-extrabold px-6 py-2 rounded-xl text-xs transition-colors flex items-center gap-2">
+                <button onClick={() => handleResume()} className="bg-[#ccf063] hover:bg-[#c2e45d] text-black font-extrabold px-6 py-2 rounded-xl text-xs transition-colors flex items-center gap-2">
                   Approve & Resume <Rocket className="w-3.5 h-3.5" />
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {validationPause && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#151515] border border-red-500/30 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+            <div className="p-5 border-b border-white/5 flex justify-between items-center bg-black/40">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
+                <div>
+                  <h3 className="text-lg font-bold text-white font-serif italic">Validation Paused</h3>
+                  <p className="text-sm text-white/75 uppercase tracking-wider mt-1">Research is incomplete or missing critical details</p>
+                </div>
+              </div>
+              <button onClick={() => setValidationPause(null)} className="p-1 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                <h4 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">What went wrong</h4>
+                <p className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap">
+                  {validationPause.lackingDetails}
+                </p>
+              </div>
+              
+              <div className="text-sm text-white/70 italic">
+                You can re-run the research agent from scratch to find more information, or force the pipeline to continue anyway with the incomplete data.
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-white/5 bg-black/40 flex justify-end gap-3 items-center">
+              <button onClick={() => setValidationPause(null)} className="px-4 py-2 rounded-xl text-xs text-white/70 hover:text-white transition-colors">
+                Cancel
+              </button>
+              <button onClick={() => handleResume(false)} className="bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 font-bold px-4 py-2 rounded-xl text-xs transition-colors flex items-center gap-2">
+                <Search className="w-3.5 h-3.5" /> Re-run Research
+              </button>
+              <button onClick={() => handleResume(true)} className="bg-red-500 hover:bg-red-600 text-white font-extrabold px-6 py-2 rounded-xl text-xs transition-colors flex items-center gap-2">
+                Continue Anyway <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         </div>

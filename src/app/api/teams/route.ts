@@ -3,13 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email") || "investor@ventureiq.com"; // Default for testing if not set
+    const userEmail = req.headers.get("x-user-email") || "investor@ventureiq.com";
     if (!userEmail) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const teams = await prisma.team.findMany({
       where: {
         members: {
-          some: { userEmail }
+          some: { userEmail, status: "ACTIVE" }
         }
       },
       include: {
@@ -27,29 +27,25 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email") || "investor@ventureiq.com"; // Default for testing
+    const userEmail = req.headers.get("x-user-email") || "investor@ventureiq.com";
     if (!userEmail) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Enforce single team per user
-    const existingTeam = await prisma.teamMember.findFirst({
-      where: { userEmail }
-    });
-
-    if (existingTeam) {
-      return NextResponse.json({ success: false, error: "You can only belong to one team." }, { status: 400 });
-    }
-
     const body = (await req.json()) as any;
-    const { name, description } = body;
+    const { name, description, teamType } = body;
+
+    // Determine the teamType based on the user's role or explicit param
+    const resolvedTeamType = teamType || "INVESTOR";
 
     const team = await prisma.team.create({
       data: {
         name,
         description,
+        teamType: resolvedTeamType,
         members: {
           create: {
             userEmail,
-            role: "OWNER"
+            role: "OWNER",
+            status: "ACTIVE" // Creator is automatically active
           }
         }
       }

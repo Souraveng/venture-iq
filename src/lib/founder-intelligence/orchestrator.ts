@@ -445,6 +445,7 @@ export async function invokeExecutionFromPlan(
   confirmedPlan: {
     opportunity: OpportunityPlan;
     playbook: PlaybookConfig;
+    forceContinueResearch?: boolean;
   },
   options?: InvokeOptions,
 ) {
@@ -462,6 +463,7 @@ export async function invokeExecutionFromPlan(
       pipeline: {
         playbook: confirmedPlan.playbook,
         opportunity: confirmedPlan.opportunity,
+        forceContinueResearch: confirmedPlan.forceContinueResearch,
         completedNodes: ["input-validation", "opportunity-planning"] as PipelineNodeId[],
       },
     });
