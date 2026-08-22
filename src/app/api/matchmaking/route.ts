@@ -60,6 +60,8 @@ function buildSemanticText(obj: any): string {
   return parts.join(" | ");
 }
 
+import { upsertStartupVector, searchMatchingStartups } from "@/lib/matchmaking/cosmos-matchmaking";
+
 export async function POST(req: Request) {
   try {
     let { investorId, investorEmail } = (await req.json().catch(() => ({}))) as any;
@@ -160,7 +162,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const scoredStartups = await Promise.all(
+    await Promise.all(
       startups.map(async (s) => {
         let embedding = s.embedding as number[] | null;
 
@@ -183,16 +185,30 @@ export async function POST(req: Request) {
           }
         }
 
-        const cosineSim = (embedding && embedding.length > 0)
-          ? cosineSimilarity(investorVector, embedding)
-          : 0.5;
-
-        return {
-          startup: s,
-          cosineScore: Math.round(Math.max(0.4, Math.min(0.99, cosineSim)) * 100)
-        };
+        if (embedding && embedding.length > 0) {
+          await upsertStartupVector({
+            id: s.id,
+            name: s.name,
+            category: s.category || "Uncategorized",
+            embedding: embedding,
+          });
+        }
       })
     );
+
+    // 6. Rank Startups natively using Azure Cosmos DB Vector Search
+    const cosmosMatches = await searchMatchingStartups(investorVector, 50);
+
+    const scoredStartups = cosmosMatches
+      .map((match) => {
+        const startup = startups.find((s) => s.id === match.id);
+        if (!startup) return null;
+        return {
+          startup,
+          cosineScore: Math.round(Math.max(0.4, Math.min(0.99, match.score)) * 100),
+        };
+      })
+      .filter(Boolean) as Array<{ startup: any; cosineScore: number }>;
 
     // Sort by descending semantic similarity
     scoredStartups.sort((a, b) => b.cosineScore - a.cosineScore);
