@@ -6,6 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[r2_buckets]]
 binding = "MEDIA_BUCKET"
 bucket_name = "ventureiq-media"
+preview_bucket_name = "ventureiq-media"
 
 [ai]
 binding = "AI"
