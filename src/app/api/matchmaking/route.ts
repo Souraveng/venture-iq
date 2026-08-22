@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Investor not found" }, { status: 404 });
     }
 
-    // 1. Fetch past interactions for active feedback learning
+    // 2. Fetch past interactions for active feedback learning
     const interactions = await prisma.dealInteraction.findMany({
       where: { investorId: investor.id }
     });
@@ -94,22 +94,6 @@ export async function POST(req: Request) {
         .filter((i) => ["SHORTLISTED", "INTRO_REQUESTED", "MUTUAL_MATCH"].includes(i.state))
         .map((i) => i.startupId)
     );
-
-    // 2. Fetch published startups from PostgreSQL (excluding explicitly passed deals)
-    const startups = await prisma.startup.findMany({
-      where: {
-        isPublished: true,
-        id: { notIn: Array.from(passedStartupIds) }
-      },
-      include: { founderProfile: true },
-    });
-
-    if (startups.length === 0) {
-      return NextResponse.json({
-        success: true,
-        data: []
-      });
-    }
 
     // 3. Compute Investor Query Vector via Vertex AI (text-embedding-004)
     // DYNAMIC FILTER REPRESENTATION: Extracted from Investor profile dynamically
@@ -162,57 +146,39 @@ export async function POST(req: Request) {
       }
     }
 
-    await Promise.all(
-      startups.map(async (s) => {
-        let embedding = s.embedding as number[] | null;
-
-        // If startup doesn't have an embedding yet, generate & cache on-the-fly
-        if (!embedding || embedding.length === 0) {
-          try {
-            // DYNAMIC FILTER REPRESENTATION: Extracted from Startup profile dynamically
-            const startupText = buildSemanticText(s);
-
-            const [newEmb] = await vertexAiEmbed([startupText], { taskType: "RETRIEVAL_DOCUMENT", title: s.name });
-            if (newEmb) {
-              embedding = newEmb;
-              await prisma.startup.update({
-                where: { id: s.id },
-                data: { embedding: newEmb as any }
-              }).catch(() => {});
-            }
-          } catch (e) {
-            // Non-blocking for single item
-          }
-        }
-
-        if (embedding && embedding.length > 0) {
-          await upsertStartupVector({
-            id: s.id,
-            name: s.name,
-            category: s.category || "Uncategorized",
-            embedding: embedding,
-          });
-        }
-      })
-    );
-
-    // 6. Rank Startups natively using Azure Cosmos DB Vector Search
+    // 5. Rank Startups natively using Azure Cosmos DB Vector Search
+    // This allows us to scale to millions of startups instantly without looping in-memory
     const cosmosMatches = await searchMatchingStartups(investorVector, 50);
+    
+    // Filter out startups the investor has already passed on
+    const validMatches = cosmosMatches.filter(m => !passedStartupIds.has(m.id));
 
-    const scoredStartups = cosmosMatches
-      .map((match) => {
-        const startup = startups.find((s) => s.id === match.id);
-        if (!startup) return null;
-        return {
-          startup,
-          cosineScore: Math.round(Math.max(0.4, Math.min(0.99, match.score)) * 100),
-        };
-      })
-      .filter(Boolean) as Array<{ startup: any; cosineScore: number }>;
+    if (validMatches.length === 0) {
+      return NextResponse.json({ success: true, data: [] });
+    }
+
+    const matchIds = validMatches.map(m => m.id);
+    const cosmosScoreMap = new Map(validMatches.map(m => [m.id, m.score]));
+
+    // 6. Fetch ONLY the matched startups from Prisma
+    const candidateStartups = await prisma.startup.findMany({
+      where: {
+        isPublished: true,
+        id: { in: matchIds }
+      },
+      include: { founderProfile: true },
+    });
+
+    const scoredStartups = candidateStartups.map((s) => {
+      const score = cosmosScoreMap.get(s.id) || 0.5;
+      return {
+        startup: s,
+        cosineScore: Math.round(Math.max(0.4, Math.min(0.99, score)) * 100),
+      };
+    });
 
     // Sort by descending semantic similarity
     scoredStartups.sort((a, b) => b.cosineScore - a.cosineScore);
-    const candidateStartups = scoredStartups.map(item => item.startup);
 
     // 7. Multi-Dimensional Synthesis via Gemini Synthesis has been removed
     const evaluatedResults: any[] = [];
