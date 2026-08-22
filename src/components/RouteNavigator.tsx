@@ -27,7 +27,7 @@ export default function RouteNavigator() {
       { name: "Verification Center", href: "/founder/verification" },
       { name: "Startup Verification Form", href: "/founder/verification-form" },
       { name: "Startup Pitch Room Setup Phase", href: "/founder/pitch-setup" },
-      { name: "Edit Founder Profile", href: "/founder/edit-profile" },
+      { name: "Edit Founder Profile", href: "/founder/settings" },
       { name: "Enhanced Founder Profile", href: "/founder/profile" },
       { name: "Founder Venture Management", href: "/founder/profile-venture" },
       { name: "Founder Meetings", href: "/founder/meetings" },

@@ -567,6 +567,31 @@ exports.Prisma.TeamMemberScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.VentureCollaboratorScalarFieldEnum = {
+  id: 'id',
+  startupId: 'startupId',
+  userEmail: 'userEmail',
+  role: 'role',
+  invitedBy: 'invitedBy',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.HandoffNoteScalarFieldEnum = {
+  id: 'id',
+  startupId: 'startupId',
+  createdBy: 'createdBy',
+  assignedTo: 'assignedTo',
+  title: 'title',
+  context: 'context',
+  pendingActions: 'pendingActions',
+  keyDecisions: 'keyDecisions',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -659,6 +684,18 @@ exports.TeamRole = exports.$Enums.TeamRole = {
   VIEWER: 'VIEWER'
 };
 
+exports.VentureRole = exports.$Enums.VentureRole = {
+  OWNER: 'OWNER',
+  EDITOR: 'EDITOR',
+  VIEWER: 'VIEWER'
+};
+
+exports.CollaboratorStatus = exports.$Enums.CollaboratorStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED'
+};
+
 exports.Prisma.ModelName = {
   Startup: 'Startup',
   Investor: 'Investor',
@@ -688,7 +725,9 @@ exports.Prisma.ModelName = {
   StartupAnalyticsEvent: 'StartupAnalyticsEvent',
   Escalation: 'Escalation',
   Team: 'Team',
-  TeamMember: 'TeamMember'
+  TeamMember: 'TeamMember',
+  VentureCollaborator: 'VentureCollaborator',
+  HandoffNote: 'HandoffNote'
 };
 
 /**

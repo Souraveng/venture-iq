@@ -9,6 +9,7 @@ interface Startup {
   id?: string;
   name: string;
   verified: boolean;
+  role?: string; // added to track role in the UI if needed
 }
 
 interface Meeting {
@@ -30,6 +31,8 @@ interface AuthContextType {
   setShowVerifyModal: (show: boolean) => void;
   activeStartup: Startup;
   setActiveStartup: (startup: Startup) => void;
+  userVentures: Startup[];
+  fetchUserVentures: () => Promise<void>;
   meetings: Meeting[];
   addMeeting: (meeting: Meeting) => void;
   loginAsFounder: (email: string, name?: string) => void;
@@ -50,6 +53,8 @@ const AuthContext = createContext<AuthContextType>({
   setShowVerifyModal: () => {},
   activeStartup: defaultStartup,
   setActiveStartup: () => {},
+  userVentures: [],
+  fetchUserVentures: async () => {},
   meetings: defaultMeetings,
   addMeeting: () => {},
   loginAsFounder: () => {},
@@ -73,6 +78,7 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [activeStartup, setActiveStartupState] = useState<Startup>(defaultStartup);
+  const [userVentures, setUserVentures] = useState<Startup[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>(defaultMeetings);
 
   // Restore active startup from localStorage on mount
@@ -103,6 +109,27 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const fetchUserVentures = async () => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch("/api/user/ventures", {
+        headers: { "x-user-email": userEmail },
+      });
+      const data = (await res.json()) as any;
+      if (data.success && data.ventures) {
+        setUserVentures(data.ventures);
+        
+        // If there's no active startup or the active one isn't in the list, set default
+        const activeExists = data.ventures.find((v: any) => v.id === activeStartup.id);
+        if (!activeExists && data.ventures.length > 0) {
+          setActiveStartup(data.ventures[0]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch user ventures:", err);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       setUserEmail(session.user.email || null);
@@ -114,8 +141,16 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
       setUserEmail(null);
       setUserName(null);
       setUserImage(null);
+      setUserVentures([]);
     }
   }, [session, status]);
+
+  // Fetch ventures when email is set and user is founder
+  useEffect(() => {
+    if (userEmail && role === "founder") {
+      fetchUserVentures();
+    }
+  }, [userEmail, role]);
 
   const loginAsFounder = (email: string, name?: string) => {
     setRole("founder");
@@ -155,6 +190,8 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
         setShowVerifyModal,
         activeStartup,
         setActiveStartup,
+        userVentures,
+        fetchUserVentures,
         meetings,
         addMeeting,
         loginAsFounder,

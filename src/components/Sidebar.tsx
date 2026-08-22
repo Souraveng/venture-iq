@@ -52,16 +52,21 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { role, userName, userEmail, userImage, logout } = useAuth();
+  const { role, userName, userEmail, userImage, logout, activeStartup, userVentures, setActiveStartup } = useAuth();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [ventureDropdownOpen, setVentureDropdownOpen] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const ventureDropdownRef = useRef<HTMLDivElement>(null);
 
   // Click outside listener for user dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setUserDropdownOpen(false);
+      }
+      if (ventureDropdownRef.current && !ventureDropdownRef.current.contains(event.target as Node)) {
+        setVentureDropdownOpen(false);
       }
     };
     if (userDropdownOpen) {
@@ -70,7 +75,7 @@ export default function Sidebar({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [userDropdownOpen]);
+  }, [userDropdownOpen, ventureDropdownOpen]);
 
   const startResizing = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -163,7 +168,44 @@ export default function Sidebar({
           </div>
         )}
       <div className="w-full">
-
+        {/* Venture Switcher */}
+        {isFounderPanel && !isCollapsed && userVentures && userVentures.length > 0 && (
+          <div ref={ventureDropdownRef} className="relative mb-4">
+            <button
+              onClick={() => setVentureDropdownOpen(!ventureDropdownOpen)}
+              className="w-full bg-[#1a1a1a] border border-white/10 hover:border-white/20 hover:bg-[#252525] p-2.5 rounded-xl flex items-center justify-between transition-all"
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Rocket className="w-4 h-4 text-[#ccf063] shrink-0" />
+                <span className="text-sm font-bold text-white truncate text-left">
+                  {activeStartup?.name || "Select Venture"}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-white/50 shrink-0" />
+            </button>
+            {ventureDropdownOpen && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-[#1f1f1f] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                {userVentures.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => {
+                      setActiveStartup(v);
+                      setVentureDropdownOpen(false);
+                      // Force a router refresh so permissions reload on current page
+                      router.refresh();
+                    }}
+                    className={`w-full text-left p-2.5 text-xs hover:bg-white/5 transition-colors flex items-center justify-between ${
+                      activeStartup?.id === v.id ? "bg-[#ccf063]/10 text-[#ccf063] font-bold" : "text-white/80"
+                    }`}
+                  >
+                    <span className="truncate">{v.name}</span>
+                    {v.role && <span className="text-[9px] uppercase tracking-wider opacity-60 bg-white/10 px-1.5 py-0.5 rounded">{v.role}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Switch Toggle (Validation vs. Investment) */}
         {isFounderPanel && (
@@ -282,7 +324,7 @@ export default function Sidebar({
               <User className="w-4 h-4 text-white/40" /> Profile
             </Link>
             <Link
-              href={isFounderPanel ? "/founder/edit-profile" : "/investor/settings"}
+              href={isFounderPanel ? "/founder/settings" : "/investor/settings"}
               onClick={() => setUserDropdownOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-white/75 hover:bg-white/5 hover:text-white transition-colors"
             >

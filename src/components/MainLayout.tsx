@@ -33,7 +33,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     pathname === "/login-role" ||
     pathname === "/founder/home" ||
     pathname === "/founder/validation" ||
-    pathname === "/founder/edit-profile" ||
+    pathname === "/founder/settings" ||
     pathname === "/investor/profile" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/onboarding");

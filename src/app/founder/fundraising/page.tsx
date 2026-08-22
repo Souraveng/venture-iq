@@ -23,6 +23,7 @@ import {
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useVenturePermission } from "@/hooks/useVenturePermission";
 
 export default function FounderFundraisingPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,6 +36,10 @@ export default function FounderFundraisingPage() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showUnverifiedBanner, setShowUnverifiedBanner] = useState(true);
+
+  // RBAC checks
+  const { can, role, loading: permsLoading } = useVenturePermission(activeStartup?.id || null);
+  const canEdit = can("fundraising", "edit");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -235,12 +240,14 @@ export default function FounderFundraisingPage() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm uppercase font-bold text-[#c5c9b2] tracking-wider">Current Round</span>
-              <button
-                onClick={() => alert("Edit Round functionality can be added here or in a separate modal.")}
-                className="p-1.5 hover:bg-white/5 rounded-lg border border-white/10 text-white/60 hover:text-white transition-all flex items-center gap-1 text-sm font-bold uppercase tracking-wider cursor-pointer"
-              >
-                <Edit2 className="w-3 h-3" /> Edit Round
-              </button>
+              {canEdit && (
+                <button
+                  onClick={() => alert("Edit Round functionality can be added here or in a separate modal.")}
+                  className="p-1.5 hover:bg-white/5 rounded-lg border border-white/10 text-white/60 hover:text-white transition-all flex items-center gap-1 text-sm font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  <Edit2 className="w-3 h-3" /> Edit Round
+                </button>
+              )}
             </div>
             <h3 className="text-3xl font-bold text-white font-serif tracking-tight">
               {displayStartup.stage} Funding

@@ -158,6 +158,16 @@ export type Team = $Result.DefaultSelection<Prisma.$TeamPayload>
  * 
  */
 export type TeamMember = $Result.DefaultSelection<Prisma.$TeamMemberPayload>
+/**
+ * Model VentureCollaborator
+ * 
+ */
+export type VentureCollaborator = $Result.DefaultSelection<Prisma.$VentureCollaboratorPayload>
+/**
+ * Model HandoffNote
+ * 
+ */
+export type HandoffNote = $Result.DefaultSelection<Prisma.$HandoffNotePayload>
 
 /**
  * Enums
@@ -249,6 +259,24 @@ export const TeamRole: {
 
 export type TeamRole = (typeof TeamRole)[keyof typeof TeamRole]
 
+
+export const VentureRole: {
+  OWNER: 'OWNER',
+  EDITOR: 'EDITOR',
+  VIEWER: 'VIEWER'
+};
+
+export type VentureRole = (typeof VentureRole)[keyof typeof VentureRole]
+
+
+export const CollaboratorStatus: {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED'
+};
+
+export type CollaboratorStatus = (typeof CollaboratorStatus)[keyof typeof CollaboratorStatus]
+
 }
 
 export type AnalysisRunStatus = $Enums.AnalysisRunStatus
@@ -282,6 +310,14 @@ export const EscalationStatus: typeof $Enums.EscalationStatus
 export type TeamRole = $Enums.TeamRole
 
 export const TeamRole: typeof $Enums.TeamRole
+
+export type VentureRole = $Enums.VentureRole
+
+export const VentureRole: typeof $Enums.VentureRole
+
+export type CollaboratorStatus = $Enums.CollaboratorStatus
+
+export const CollaboratorStatus: typeof $Enums.CollaboratorStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -690,6 +726,26 @@ export class PrismaClient<
     * ```
     */
   get teamMember(): Prisma.TeamMemberDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.ventureCollaborator`: Exposes CRUD operations for the **VentureCollaborator** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VentureCollaborators
+    * const ventureCollaborators = await prisma.ventureCollaborator.findMany()
+    * ```
+    */
+  get ventureCollaborator(): Prisma.VentureCollaboratorDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.handoffNote`: Exposes CRUD operations for the **HandoffNote** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more HandoffNotes
+    * const handoffNotes = await prisma.handoffNote.findMany()
+    * ```
+    */
+  get handoffNote(): Prisma.HandoffNoteDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1159,7 +1215,9 @@ export namespace Prisma {
     StartupAnalyticsEvent: 'StartupAnalyticsEvent',
     Escalation: 'Escalation',
     Team: 'Team',
-    TeamMember: 'TeamMember'
+    TeamMember: 'TeamMember',
+    VentureCollaborator: 'VentureCollaborator',
+    HandoffNote: 'HandoffNote'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1178,7 +1236,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "startup" | "investor" | "analysisRun" | "analysisEvidence" | "analysisFinding" | "analysisScorecard" | "analysisRecommendation" | "founder" | "negotiation" | "meeting" | "account" | "session" | "user" | "verificationToken" | "validation" | "userPublicKey" | "chatRoom" | "chatMessage" | "dealInteraction" | "investorActivityEvent" | "post" | "comment" | "connectionRequest" | "directMessage" | "notification" | "startupAnalyticsEvent" | "escalation" | "team" | "teamMember"
+      modelProps: "startup" | "investor" | "analysisRun" | "analysisEvidence" | "analysisFinding" | "analysisScorecard" | "analysisRecommendation" | "founder" | "negotiation" | "meeting" | "account" | "session" | "user" | "verificationToken" | "validation" | "userPublicKey" | "chatRoom" | "chatMessage" | "dealInteraction" | "investorActivityEvent" | "post" | "comment" | "connectionRequest" | "directMessage" | "notification" | "startupAnalyticsEvent" | "escalation" | "team" | "teamMember" | "ventureCollaborator" | "handoffNote"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3328,6 +3386,154 @@ export namespace Prisma {
           }
         }
       }
+      VentureCollaborator: {
+        payload: Prisma.$VentureCollaboratorPayload<ExtArgs>
+        fields: Prisma.VentureCollaboratorFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VentureCollaboratorFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VentureCollaboratorFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>
+          }
+          findFirst: {
+            args: Prisma.VentureCollaboratorFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VentureCollaboratorFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>
+          }
+          findMany: {
+            args: Prisma.VentureCollaboratorFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>[]
+          }
+          create: {
+            args: Prisma.VentureCollaboratorCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>
+          }
+          createMany: {
+            args: Prisma.VentureCollaboratorCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VentureCollaboratorCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>[]
+          }
+          delete: {
+            args: Prisma.VentureCollaboratorDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>
+          }
+          update: {
+            args: Prisma.VentureCollaboratorUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>
+          }
+          deleteMany: {
+            args: Prisma.VentureCollaboratorDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VentureCollaboratorUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VentureCollaboratorUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>[]
+          }
+          upsert: {
+            args: Prisma.VentureCollaboratorUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VentureCollaboratorPayload>
+          }
+          aggregate: {
+            args: Prisma.VentureCollaboratorAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVentureCollaborator>
+          }
+          groupBy: {
+            args: Prisma.VentureCollaboratorGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VentureCollaboratorGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VentureCollaboratorCountArgs<ExtArgs>
+            result: $Utils.Optional<VentureCollaboratorCountAggregateOutputType> | number
+          }
+        }
+      }
+      HandoffNote: {
+        payload: Prisma.$HandoffNotePayload<ExtArgs>
+        fields: Prisma.HandoffNoteFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.HandoffNoteFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.HandoffNoteFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>
+          }
+          findFirst: {
+            args: Prisma.HandoffNoteFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.HandoffNoteFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>
+          }
+          findMany: {
+            args: Prisma.HandoffNoteFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>[]
+          }
+          create: {
+            args: Prisma.HandoffNoteCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>
+          }
+          createMany: {
+            args: Prisma.HandoffNoteCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.HandoffNoteCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>[]
+          }
+          delete: {
+            args: Prisma.HandoffNoteDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>
+          }
+          update: {
+            args: Prisma.HandoffNoteUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>
+          }
+          deleteMany: {
+            args: Prisma.HandoffNoteDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.HandoffNoteUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.HandoffNoteUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>[]
+          }
+          upsert: {
+            args: Prisma.HandoffNoteUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HandoffNotePayload>
+          }
+          aggregate: {
+            args: Prisma.HandoffNoteAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateHandoffNote>
+          }
+          groupBy: {
+            args: Prisma.HandoffNoteGroupByArgs<ExtArgs>
+            result: $Utils.Optional<HandoffNoteGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.HandoffNoteCountArgs<ExtArgs>
+            result: $Utils.Optional<HandoffNoteCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3453,6 +3659,8 @@ export namespace Prisma {
     escalation?: EscalationOmit
     team?: TeamOmit
     teamMember?: TeamMemberOmit
+    ventureCollaborator?: VentureCollaboratorOmit
+    handoffNote?: HandoffNoteOmit
   }
 
   /* Types for Logging */
@@ -3536,12 +3744,16 @@ export namespace Prisma {
     analysisRuns: number
     analyticsEvents: number
     escalations: number
+    collaborators: number
+    handoffNotes: number
   }
 
   export type StartupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     analysisRuns?: boolean | StartupCountOutputTypeCountAnalysisRunsArgs
     analyticsEvents?: boolean | StartupCountOutputTypeCountAnalyticsEventsArgs
     escalations?: boolean | StartupCountOutputTypeCountEscalationsArgs
+    collaborators?: boolean | StartupCountOutputTypeCountCollaboratorsArgs
+    handoffNotes?: boolean | StartupCountOutputTypeCountHandoffNotesArgs
   }
 
   // Custom InputTypes
@@ -3574,6 +3786,20 @@ export namespace Prisma {
    */
   export type StartupCountOutputTypeCountEscalationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EscalationWhereInput
+  }
+
+  /**
+   * StartupCountOutputType without action
+   */
+  export type StartupCountOutputTypeCountCollaboratorsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VentureCollaboratorWhereInput
+  }
+
+  /**
+   * StartupCountOutputType without action
+   */
+  export type StartupCountOutputTypeCountHandoffNotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: HandoffNoteWhereInput
   }
 
 
@@ -4713,6 +4939,8 @@ export namespace Prisma {
     analysisRuns?: boolean | Startup$analysisRunsArgs<ExtArgs>
     analyticsEvents?: boolean | Startup$analyticsEventsArgs<ExtArgs>
     escalations?: boolean | Startup$escalationsArgs<ExtArgs>
+    collaborators?: boolean | Startup$collaboratorsArgs<ExtArgs>
+    handoffNotes?: boolean | Startup$handoffNotesArgs<ExtArgs>
     _count?: boolean | StartupCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["startup"]>
 
@@ -5000,6 +5228,8 @@ export namespace Prisma {
     analysisRuns?: boolean | Startup$analysisRunsArgs<ExtArgs>
     analyticsEvents?: boolean | Startup$analyticsEventsArgs<ExtArgs>
     escalations?: boolean | Startup$escalationsArgs<ExtArgs>
+    collaborators?: boolean | Startup$collaboratorsArgs<ExtArgs>
+    handoffNotes?: boolean | Startup$handoffNotesArgs<ExtArgs>
     _count?: boolean | StartupCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type StartupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5016,6 +5246,8 @@ export namespace Prisma {
       analysisRuns: Prisma.$AnalysisRunPayload<ExtArgs>[]
       analyticsEvents: Prisma.$StartupAnalyticsEventPayload<ExtArgs>[]
       escalations: Prisma.$EscalationPayload<ExtArgs>[]
+      collaborators: Prisma.$VentureCollaboratorPayload<ExtArgs>[]
+      handoffNotes: Prisma.$HandoffNotePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5505,6 +5737,8 @@ export namespace Prisma {
     analysisRuns<T extends Startup$analysisRunsArgs<ExtArgs> = {}>(args?: Subset<T, Startup$analysisRunsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnalysisRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     analyticsEvents<T extends Startup$analyticsEventsArgs<ExtArgs> = {}>(args?: Subset<T, Startup$analyticsEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StartupAnalyticsEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     escalations<T extends Startup$escalationsArgs<ExtArgs> = {}>(args?: Subset<T, Startup$escalationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EscalationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    collaborators<T extends Startup$collaboratorsArgs<ExtArgs> = {}>(args?: Subset<T, Startup$collaboratorsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    handoffNotes<T extends Startup$handoffNotesArgs<ExtArgs> = {}>(args?: Subset<T, Startup$handoffNotesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6107,6 +6341,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EscalationScalarFieldEnum | EscalationScalarFieldEnum[]
+  }
+
+  /**
+   * Startup.collaborators
+   */
+  export type Startup$collaboratorsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    where?: VentureCollaboratorWhereInput
+    orderBy?: VentureCollaboratorOrderByWithRelationInput | VentureCollaboratorOrderByWithRelationInput[]
+    cursor?: VentureCollaboratorWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: VentureCollaboratorScalarFieldEnum | VentureCollaboratorScalarFieldEnum[]
+  }
+
+  /**
+   * Startup.handoffNotes
+   */
+  export type Startup$handoffNotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    where?: HandoffNoteWhereInput
+    orderBy?: HandoffNoteOrderByWithRelationInput | HandoffNoteOrderByWithRelationInput[]
+    cursor?: HandoffNoteWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: HandoffNoteScalarFieldEnum | HandoffNoteScalarFieldEnum[]
   }
 
   /**
@@ -37387,6 +37669,2239 @@ export namespace Prisma {
 
 
   /**
+   * Model VentureCollaborator
+   */
+
+  export type AggregateVentureCollaborator = {
+    _count: VentureCollaboratorCountAggregateOutputType | null
+    _min: VentureCollaboratorMinAggregateOutputType | null
+    _max: VentureCollaboratorMaxAggregateOutputType | null
+  }
+
+  export type VentureCollaboratorMinAggregateOutputType = {
+    id: string | null
+    startupId: string | null
+    userEmail: string | null
+    role: $Enums.VentureRole | null
+    invitedBy: string | null
+    status: $Enums.CollaboratorStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VentureCollaboratorMaxAggregateOutputType = {
+    id: string | null
+    startupId: string | null
+    userEmail: string | null
+    role: $Enums.VentureRole | null
+    invitedBy: string | null
+    status: $Enums.CollaboratorStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type VentureCollaboratorCountAggregateOutputType = {
+    id: number
+    startupId: number
+    userEmail: number
+    role: number
+    invitedBy: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type VentureCollaboratorMinAggregateInputType = {
+    id?: true
+    startupId?: true
+    userEmail?: true
+    role?: true
+    invitedBy?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VentureCollaboratorMaxAggregateInputType = {
+    id?: true
+    startupId?: true
+    userEmail?: true
+    role?: true
+    invitedBy?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type VentureCollaboratorCountAggregateInputType = {
+    id?: true
+    startupId?: true
+    userEmail?: true
+    role?: true
+    invitedBy?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type VentureCollaboratorAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VentureCollaborator to aggregate.
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VentureCollaborators to fetch.
+     */
+    orderBy?: VentureCollaboratorOrderByWithRelationInput | VentureCollaboratorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VentureCollaboratorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VentureCollaborators from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VentureCollaborators.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VentureCollaborators
+    **/
+    _count?: true | VentureCollaboratorCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VentureCollaboratorMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VentureCollaboratorMaxAggregateInputType
+  }
+
+  export type GetVentureCollaboratorAggregateType<T extends VentureCollaboratorAggregateArgs> = {
+        [P in keyof T & keyof AggregateVentureCollaborator]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVentureCollaborator[P]>
+      : GetScalarType<T[P], AggregateVentureCollaborator[P]>
+  }
+
+
+
+
+  export type VentureCollaboratorGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VentureCollaboratorWhereInput
+    orderBy?: VentureCollaboratorOrderByWithAggregationInput | VentureCollaboratorOrderByWithAggregationInput[]
+    by: VentureCollaboratorScalarFieldEnum[] | VentureCollaboratorScalarFieldEnum
+    having?: VentureCollaboratorScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VentureCollaboratorCountAggregateInputType | true
+    _min?: VentureCollaboratorMinAggregateInputType
+    _max?: VentureCollaboratorMaxAggregateInputType
+  }
+
+  export type VentureCollaboratorGroupByOutputType = {
+    id: string
+    startupId: string
+    userEmail: string
+    role: $Enums.VentureRole
+    invitedBy: string
+    status: $Enums.CollaboratorStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: VentureCollaboratorCountAggregateOutputType | null
+    _min: VentureCollaboratorMinAggregateOutputType | null
+    _max: VentureCollaboratorMaxAggregateOutputType | null
+  }
+
+  type GetVentureCollaboratorGroupByPayload<T extends VentureCollaboratorGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VentureCollaboratorGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VentureCollaboratorGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VentureCollaboratorGroupByOutputType[P]>
+            : GetScalarType<T[P], VentureCollaboratorGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VentureCollaboratorSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    startupId?: boolean
+    userEmail?: boolean
+    role?: boolean
+    invitedBy?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["ventureCollaborator"]>
+
+  export type VentureCollaboratorSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    startupId?: boolean
+    userEmail?: boolean
+    role?: boolean
+    invitedBy?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["ventureCollaborator"]>
+
+  export type VentureCollaboratorSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    startupId?: boolean
+    userEmail?: boolean
+    role?: boolean
+    invitedBy?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["ventureCollaborator"]>
+
+  export type VentureCollaboratorSelectScalar = {
+    id?: boolean
+    startupId?: boolean
+    userEmail?: boolean
+    role?: boolean
+    invitedBy?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type VentureCollaboratorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "startupId" | "userEmail" | "role" | "invitedBy" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["ventureCollaborator"]>
+  export type VentureCollaboratorInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }
+  export type VentureCollaboratorIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }
+  export type VentureCollaboratorIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }
+
+  export type $VentureCollaboratorPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VentureCollaborator"
+    objects: {
+      startup: Prisma.$StartupPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      startupId: string
+      userEmail: string
+      role: $Enums.VentureRole
+      invitedBy: string
+      status: $Enums.CollaboratorStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["ventureCollaborator"]>
+    composites: {}
+  }
+
+  type VentureCollaboratorGetPayload<S extends boolean | null | undefined | VentureCollaboratorDefaultArgs> = $Result.GetResult<Prisma.$VentureCollaboratorPayload, S>
+
+  type VentureCollaboratorCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VentureCollaboratorFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VentureCollaboratorCountAggregateInputType | true
+    }
+
+  export interface VentureCollaboratorDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VentureCollaborator'], meta: { name: 'VentureCollaborator' } }
+    /**
+     * Find zero or one VentureCollaborator that matches the filter.
+     * @param {VentureCollaboratorFindUniqueArgs} args - Arguments to find a VentureCollaborator
+     * @example
+     * // Get one VentureCollaborator
+     * const ventureCollaborator = await prisma.ventureCollaborator.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VentureCollaboratorFindUniqueArgs>(args: SelectSubset<T, VentureCollaboratorFindUniqueArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VentureCollaborator that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VentureCollaboratorFindUniqueOrThrowArgs} args - Arguments to find a VentureCollaborator
+     * @example
+     * // Get one VentureCollaborator
+     * const ventureCollaborator = await prisma.ventureCollaborator.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VentureCollaboratorFindUniqueOrThrowArgs>(args: SelectSubset<T, VentureCollaboratorFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VentureCollaborator that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorFindFirstArgs} args - Arguments to find a VentureCollaborator
+     * @example
+     * // Get one VentureCollaborator
+     * const ventureCollaborator = await prisma.ventureCollaborator.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VentureCollaboratorFindFirstArgs>(args?: SelectSubset<T, VentureCollaboratorFindFirstArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VentureCollaborator that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorFindFirstOrThrowArgs} args - Arguments to find a VentureCollaborator
+     * @example
+     * // Get one VentureCollaborator
+     * const ventureCollaborator = await prisma.ventureCollaborator.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VentureCollaboratorFindFirstOrThrowArgs>(args?: SelectSubset<T, VentureCollaboratorFindFirstOrThrowArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VentureCollaborators that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VentureCollaborators
+     * const ventureCollaborators = await prisma.ventureCollaborator.findMany()
+     * 
+     * // Get first 10 VentureCollaborators
+     * const ventureCollaborators = await prisma.ventureCollaborator.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const ventureCollaboratorWithIdOnly = await prisma.ventureCollaborator.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VentureCollaboratorFindManyArgs>(args?: SelectSubset<T, VentureCollaboratorFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VentureCollaborator.
+     * @param {VentureCollaboratorCreateArgs} args - Arguments to create a VentureCollaborator.
+     * @example
+     * // Create one VentureCollaborator
+     * const VentureCollaborator = await prisma.ventureCollaborator.create({
+     *   data: {
+     *     // ... data to create a VentureCollaborator
+     *   }
+     * })
+     * 
+     */
+    create<T extends VentureCollaboratorCreateArgs>(args: SelectSubset<T, VentureCollaboratorCreateArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VentureCollaborators.
+     * @param {VentureCollaboratorCreateManyArgs} args - Arguments to create many VentureCollaborators.
+     * @example
+     * // Create many VentureCollaborators
+     * const ventureCollaborator = await prisma.ventureCollaborator.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VentureCollaboratorCreateManyArgs>(args?: SelectSubset<T, VentureCollaboratorCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VentureCollaborators and returns the data saved in the database.
+     * @param {VentureCollaboratorCreateManyAndReturnArgs} args - Arguments to create many VentureCollaborators.
+     * @example
+     * // Create many VentureCollaborators
+     * const ventureCollaborator = await prisma.ventureCollaborator.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VentureCollaborators and only return the `id`
+     * const ventureCollaboratorWithIdOnly = await prisma.ventureCollaborator.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VentureCollaboratorCreateManyAndReturnArgs>(args?: SelectSubset<T, VentureCollaboratorCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VentureCollaborator.
+     * @param {VentureCollaboratorDeleteArgs} args - Arguments to delete one VentureCollaborator.
+     * @example
+     * // Delete one VentureCollaborator
+     * const VentureCollaborator = await prisma.ventureCollaborator.delete({
+     *   where: {
+     *     // ... filter to delete one VentureCollaborator
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VentureCollaboratorDeleteArgs>(args: SelectSubset<T, VentureCollaboratorDeleteArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VentureCollaborator.
+     * @param {VentureCollaboratorUpdateArgs} args - Arguments to update one VentureCollaborator.
+     * @example
+     * // Update one VentureCollaborator
+     * const ventureCollaborator = await prisma.ventureCollaborator.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VentureCollaboratorUpdateArgs>(args: SelectSubset<T, VentureCollaboratorUpdateArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VentureCollaborators.
+     * @param {VentureCollaboratorDeleteManyArgs} args - Arguments to filter VentureCollaborators to delete.
+     * @example
+     * // Delete a few VentureCollaborators
+     * const { count } = await prisma.ventureCollaborator.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VentureCollaboratorDeleteManyArgs>(args?: SelectSubset<T, VentureCollaboratorDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VentureCollaborators.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VentureCollaborators
+     * const ventureCollaborator = await prisma.ventureCollaborator.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VentureCollaboratorUpdateManyArgs>(args: SelectSubset<T, VentureCollaboratorUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VentureCollaborators and returns the data updated in the database.
+     * @param {VentureCollaboratorUpdateManyAndReturnArgs} args - Arguments to update many VentureCollaborators.
+     * @example
+     * // Update many VentureCollaborators
+     * const ventureCollaborator = await prisma.ventureCollaborator.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VentureCollaborators and only return the `id`
+     * const ventureCollaboratorWithIdOnly = await prisma.ventureCollaborator.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VentureCollaboratorUpdateManyAndReturnArgs>(args: SelectSubset<T, VentureCollaboratorUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VentureCollaborator.
+     * @param {VentureCollaboratorUpsertArgs} args - Arguments to update or create a VentureCollaborator.
+     * @example
+     * // Update or create a VentureCollaborator
+     * const ventureCollaborator = await prisma.ventureCollaborator.upsert({
+     *   create: {
+     *     // ... data to create a VentureCollaborator
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VentureCollaborator we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VentureCollaboratorUpsertArgs>(args: SelectSubset<T, VentureCollaboratorUpsertArgs<ExtArgs>>): Prisma__VentureCollaboratorClient<$Result.GetResult<Prisma.$VentureCollaboratorPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VentureCollaborators.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorCountArgs} args - Arguments to filter VentureCollaborators to count.
+     * @example
+     * // Count the number of VentureCollaborators
+     * const count = await prisma.ventureCollaborator.count({
+     *   where: {
+     *     // ... the filter for the VentureCollaborators we want to count
+     *   }
+     * })
+    **/
+    count<T extends VentureCollaboratorCountArgs>(
+      args?: Subset<T, VentureCollaboratorCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VentureCollaboratorCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VentureCollaborator.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VentureCollaboratorAggregateArgs>(args: Subset<T, VentureCollaboratorAggregateArgs>): Prisma.PrismaPromise<GetVentureCollaboratorAggregateType<T>>
+
+    /**
+     * Group by VentureCollaborator.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VentureCollaboratorGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VentureCollaboratorGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VentureCollaboratorGroupByArgs['orderBy'] }
+        : { orderBy?: VentureCollaboratorGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VentureCollaboratorGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVentureCollaboratorGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VentureCollaborator model
+   */
+  readonly fields: VentureCollaboratorFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VentureCollaborator.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VentureCollaboratorClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    startup<T extends StartupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StartupDefaultArgs<ExtArgs>>): Prisma__StartupClient<$Result.GetResult<Prisma.$StartupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VentureCollaborator model
+   */
+  interface VentureCollaboratorFieldRefs {
+    readonly id: FieldRef<"VentureCollaborator", 'String'>
+    readonly startupId: FieldRef<"VentureCollaborator", 'String'>
+    readonly userEmail: FieldRef<"VentureCollaborator", 'String'>
+    readonly role: FieldRef<"VentureCollaborator", 'VentureRole'>
+    readonly invitedBy: FieldRef<"VentureCollaborator", 'String'>
+    readonly status: FieldRef<"VentureCollaborator", 'CollaboratorStatus'>
+    readonly createdAt: FieldRef<"VentureCollaborator", 'DateTime'>
+    readonly updatedAt: FieldRef<"VentureCollaborator", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VentureCollaborator findUnique
+   */
+  export type VentureCollaboratorFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * Filter, which VentureCollaborator to fetch.
+     */
+    where: VentureCollaboratorWhereUniqueInput
+  }
+
+  /**
+   * VentureCollaborator findUniqueOrThrow
+   */
+  export type VentureCollaboratorFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * Filter, which VentureCollaborator to fetch.
+     */
+    where: VentureCollaboratorWhereUniqueInput
+  }
+
+  /**
+   * VentureCollaborator findFirst
+   */
+  export type VentureCollaboratorFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * Filter, which VentureCollaborator to fetch.
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VentureCollaborators to fetch.
+     */
+    orderBy?: VentureCollaboratorOrderByWithRelationInput | VentureCollaboratorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VentureCollaborators.
+     */
+    cursor?: VentureCollaboratorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VentureCollaborators from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VentureCollaborators.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VentureCollaborators.
+     */
+    distinct?: VentureCollaboratorScalarFieldEnum | VentureCollaboratorScalarFieldEnum[]
+  }
+
+  /**
+   * VentureCollaborator findFirstOrThrow
+   */
+  export type VentureCollaboratorFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * Filter, which VentureCollaborator to fetch.
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VentureCollaborators to fetch.
+     */
+    orderBy?: VentureCollaboratorOrderByWithRelationInput | VentureCollaboratorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VentureCollaborators.
+     */
+    cursor?: VentureCollaboratorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VentureCollaborators from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VentureCollaborators.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VentureCollaborators.
+     */
+    distinct?: VentureCollaboratorScalarFieldEnum | VentureCollaboratorScalarFieldEnum[]
+  }
+
+  /**
+   * VentureCollaborator findMany
+   */
+  export type VentureCollaboratorFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * Filter, which VentureCollaborators to fetch.
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VentureCollaborators to fetch.
+     */
+    orderBy?: VentureCollaboratorOrderByWithRelationInput | VentureCollaboratorOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VentureCollaborators.
+     */
+    cursor?: VentureCollaboratorWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VentureCollaborators from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VentureCollaborators.
+     */
+    skip?: number
+    distinct?: VentureCollaboratorScalarFieldEnum | VentureCollaboratorScalarFieldEnum[]
+  }
+
+  /**
+   * VentureCollaborator create
+   */
+  export type VentureCollaboratorCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VentureCollaborator.
+     */
+    data: XOR<VentureCollaboratorCreateInput, VentureCollaboratorUncheckedCreateInput>
+  }
+
+  /**
+   * VentureCollaborator createMany
+   */
+  export type VentureCollaboratorCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VentureCollaborators.
+     */
+    data: VentureCollaboratorCreateManyInput | VentureCollaboratorCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VentureCollaborator createManyAndReturn
+   */
+  export type VentureCollaboratorCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * The data used to create many VentureCollaborators.
+     */
+    data: VentureCollaboratorCreateManyInput | VentureCollaboratorCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VentureCollaborator update
+   */
+  export type VentureCollaboratorUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VentureCollaborator.
+     */
+    data: XOR<VentureCollaboratorUpdateInput, VentureCollaboratorUncheckedUpdateInput>
+    /**
+     * Choose, which VentureCollaborator to update.
+     */
+    where: VentureCollaboratorWhereUniqueInput
+  }
+
+  /**
+   * VentureCollaborator updateMany
+   */
+  export type VentureCollaboratorUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VentureCollaborators.
+     */
+    data: XOR<VentureCollaboratorUpdateManyMutationInput, VentureCollaboratorUncheckedUpdateManyInput>
+    /**
+     * Filter which VentureCollaborators to update
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * Limit how many VentureCollaborators to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VentureCollaborator updateManyAndReturn
+   */
+  export type VentureCollaboratorUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * The data used to update VentureCollaborators.
+     */
+    data: XOR<VentureCollaboratorUpdateManyMutationInput, VentureCollaboratorUncheckedUpdateManyInput>
+    /**
+     * Filter which VentureCollaborators to update
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * Limit how many VentureCollaborators to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VentureCollaborator upsert
+   */
+  export type VentureCollaboratorUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VentureCollaborator to update in case it exists.
+     */
+    where: VentureCollaboratorWhereUniqueInput
+    /**
+     * In case the VentureCollaborator found by the `where` argument doesn't exist, create a new VentureCollaborator with this data.
+     */
+    create: XOR<VentureCollaboratorCreateInput, VentureCollaboratorUncheckedCreateInput>
+    /**
+     * In case the VentureCollaborator was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VentureCollaboratorUpdateInput, VentureCollaboratorUncheckedUpdateInput>
+  }
+
+  /**
+   * VentureCollaborator delete
+   */
+  export type VentureCollaboratorDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+    /**
+     * Filter which VentureCollaborator to delete.
+     */
+    where: VentureCollaboratorWhereUniqueInput
+  }
+
+  /**
+   * VentureCollaborator deleteMany
+   */
+  export type VentureCollaboratorDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VentureCollaborators to delete
+     */
+    where?: VentureCollaboratorWhereInput
+    /**
+     * Limit how many VentureCollaborators to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VentureCollaborator without action
+   */
+  export type VentureCollaboratorDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VentureCollaborator
+     */
+    select?: VentureCollaboratorSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VentureCollaborator
+     */
+    omit?: VentureCollaboratorOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VentureCollaboratorInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model HandoffNote
+   */
+
+  export type AggregateHandoffNote = {
+    _count: HandoffNoteCountAggregateOutputType | null
+    _min: HandoffNoteMinAggregateOutputType | null
+    _max: HandoffNoteMaxAggregateOutputType | null
+  }
+
+  export type HandoffNoteMinAggregateOutputType = {
+    id: string | null
+    startupId: string | null
+    createdBy: string | null
+    assignedTo: string | null
+    title: string | null
+    context: string | null
+    pendingActions: string | null
+    keyDecisions: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type HandoffNoteMaxAggregateOutputType = {
+    id: string | null
+    startupId: string | null
+    createdBy: string | null
+    assignedTo: string | null
+    title: string | null
+    context: string | null
+    pendingActions: string | null
+    keyDecisions: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type HandoffNoteCountAggregateOutputType = {
+    id: number
+    startupId: number
+    createdBy: number
+    assignedTo: number
+    title: number
+    context: number
+    pendingActions: number
+    keyDecisions: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type HandoffNoteMinAggregateInputType = {
+    id?: true
+    startupId?: true
+    createdBy?: true
+    assignedTo?: true
+    title?: true
+    context?: true
+    pendingActions?: true
+    keyDecisions?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type HandoffNoteMaxAggregateInputType = {
+    id?: true
+    startupId?: true
+    createdBy?: true
+    assignedTo?: true
+    title?: true
+    context?: true
+    pendingActions?: true
+    keyDecisions?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type HandoffNoteCountAggregateInputType = {
+    id?: true
+    startupId?: true
+    createdBy?: true
+    assignedTo?: true
+    title?: true
+    context?: true
+    pendingActions?: true
+    keyDecisions?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type HandoffNoteAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which HandoffNote to aggregate.
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HandoffNotes to fetch.
+     */
+    orderBy?: HandoffNoteOrderByWithRelationInput | HandoffNoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: HandoffNoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HandoffNotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HandoffNotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned HandoffNotes
+    **/
+    _count?: true | HandoffNoteCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: HandoffNoteMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: HandoffNoteMaxAggregateInputType
+  }
+
+  export type GetHandoffNoteAggregateType<T extends HandoffNoteAggregateArgs> = {
+        [P in keyof T & keyof AggregateHandoffNote]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateHandoffNote[P]>
+      : GetScalarType<T[P], AggregateHandoffNote[P]>
+  }
+
+
+
+
+  export type HandoffNoteGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: HandoffNoteWhereInput
+    orderBy?: HandoffNoteOrderByWithAggregationInput | HandoffNoteOrderByWithAggregationInput[]
+    by: HandoffNoteScalarFieldEnum[] | HandoffNoteScalarFieldEnum
+    having?: HandoffNoteScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: HandoffNoteCountAggregateInputType | true
+    _min?: HandoffNoteMinAggregateInputType
+    _max?: HandoffNoteMaxAggregateInputType
+  }
+
+  export type HandoffNoteGroupByOutputType = {
+    id: string
+    startupId: string
+    createdBy: string
+    assignedTo: string | null
+    title: string
+    context: string
+    pendingActions: string | null
+    keyDecisions: string | null
+    status: string
+    createdAt: Date
+    updatedAt: Date
+    _count: HandoffNoteCountAggregateOutputType | null
+    _min: HandoffNoteMinAggregateOutputType | null
+    _max: HandoffNoteMaxAggregateOutputType | null
+  }
+
+  type GetHandoffNoteGroupByPayload<T extends HandoffNoteGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<HandoffNoteGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof HandoffNoteGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], HandoffNoteGroupByOutputType[P]>
+            : GetScalarType<T[P], HandoffNoteGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type HandoffNoteSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    startupId?: boolean
+    createdBy?: boolean
+    assignedTo?: boolean
+    title?: boolean
+    context?: boolean
+    pendingActions?: boolean
+    keyDecisions?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["handoffNote"]>
+
+  export type HandoffNoteSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    startupId?: boolean
+    createdBy?: boolean
+    assignedTo?: boolean
+    title?: boolean
+    context?: boolean
+    pendingActions?: boolean
+    keyDecisions?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["handoffNote"]>
+
+  export type HandoffNoteSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    startupId?: boolean
+    createdBy?: boolean
+    assignedTo?: boolean
+    title?: boolean
+    context?: boolean
+    pendingActions?: boolean
+    keyDecisions?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["handoffNote"]>
+
+  export type HandoffNoteSelectScalar = {
+    id?: boolean
+    startupId?: boolean
+    createdBy?: boolean
+    assignedTo?: boolean
+    title?: boolean
+    context?: boolean
+    pendingActions?: boolean
+    keyDecisions?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type HandoffNoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "startupId" | "createdBy" | "assignedTo" | "title" | "context" | "pendingActions" | "keyDecisions" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["handoffNote"]>
+  export type HandoffNoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }
+  export type HandoffNoteIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }
+  export type HandoffNoteIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    startup?: boolean | StartupDefaultArgs<ExtArgs>
+  }
+
+  export type $HandoffNotePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "HandoffNote"
+    objects: {
+      startup: Prisma.$StartupPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      startupId: string
+      createdBy: string
+      assignedTo: string | null
+      title: string
+      context: string
+      pendingActions: string | null
+      keyDecisions: string | null
+      status: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["handoffNote"]>
+    composites: {}
+  }
+
+  type HandoffNoteGetPayload<S extends boolean | null | undefined | HandoffNoteDefaultArgs> = $Result.GetResult<Prisma.$HandoffNotePayload, S>
+
+  type HandoffNoteCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<HandoffNoteFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: HandoffNoteCountAggregateInputType | true
+    }
+
+  export interface HandoffNoteDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['HandoffNote'], meta: { name: 'HandoffNote' } }
+    /**
+     * Find zero or one HandoffNote that matches the filter.
+     * @param {HandoffNoteFindUniqueArgs} args - Arguments to find a HandoffNote
+     * @example
+     * // Get one HandoffNote
+     * const handoffNote = await prisma.handoffNote.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends HandoffNoteFindUniqueArgs>(args: SelectSubset<T, HandoffNoteFindUniqueArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one HandoffNote that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {HandoffNoteFindUniqueOrThrowArgs} args - Arguments to find a HandoffNote
+     * @example
+     * // Get one HandoffNote
+     * const handoffNote = await prisma.handoffNote.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends HandoffNoteFindUniqueOrThrowArgs>(args: SelectSubset<T, HandoffNoteFindUniqueOrThrowArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first HandoffNote that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteFindFirstArgs} args - Arguments to find a HandoffNote
+     * @example
+     * // Get one HandoffNote
+     * const handoffNote = await prisma.handoffNote.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends HandoffNoteFindFirstArgs>(args?: SelectSubset<T, HandoffNoteFindFirstArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first HandoffNote that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteFindFirstOrThrowArgs} args - Arguments to find a HandoffNote
+     * @example
+     * // Get one HandoffNote
+     * const handoffNote = await prisma.handoffNote.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends HandoffNoteFindFirstOrThrowArgs>(args?: SelectSubset<T, HandoffNoteFindFirstOrThrowArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more HandoffNotes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all HandoffNotes
+     * const handoffNotes = await prisma.handoffNote.findMany()
+     * 
+     * // Get first 10 HandoffNotes
+     * const handoffNotes = await prisma.handoffNote.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const handoffNoteWithIdOnly = await prisma.handoffNote.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends HandoffNoteFindManyArgs>(args?: SelectSubset<T, HandoffNoteFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a HandoffNote.
+     * @param {HandoffNoteCreateArgs} args - Arguments to create a HandoffNote.
+     * @example
+     * // Create one HandoffNote
+     * const HandoffNote = await prisma.handoffNote.create({
+     *   data: {
+     *     // ... data to create a HandoffNote
+     *   }
+     * })
+     * 
+     */
+    create<T extends HandoffNoteCreateArgs>(args: SelectSubset<T, HandoffNoteCreateArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many HandoffNotes.
+     * @param {HandoffNoteCreateManyArgs} args - Arguments to create many HandoffNotes.
+     * @example
+     * // Create many HandoffNotes
+     * const handoffNote = await prisma.handoffNote.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends HandoffNoteCreateManyArgs>(args?: SelectSubset<T, HandoffNoteCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many HandoffNotes and returns the data saved in the database.
+     * @param {HandoffNoteCreateManyAndReturnArgs} args - Arguments to create many HandoffNotes.
+     * @example
+     * // Create many HandoffNotes
+     * const handoffNote = await prisma.handoffNote.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many HandoffNotes and only return the `id`
+     * const handoffNoteWithIdOnly = await prisma.handoffNote.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends HandoffNoteCreateManyAndReturnArgs>(args?: SelectSubset<T, HandoffNoteCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a HandoffNote.
+     * @param {HandoffNoteDeleteArgs} args - Arguments to delete one HandoffNote.
+     * @example
+     * // Delete one HandoffNote
+     * const HandoffNote = await prisma.handoffNote.delete({
+     *   where: {
+     *     // ... filter to delete one HandoffNote
+     *   }
+     * })
+     * 
+     */
+    delete<T extends HandoffNoteDeleteArgs>(args: SelectSubset<T, HandoffNoteDeleteArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one HandoffNote.
+     * @param {HandoffNoteUpdateArgs} args - Arguments to update one HandoffNote.
+     * @example
+     * // Update one HandoffNote
+     * const handoffNote = await prisma.handoffNote.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends HandoffNoteUpdateArgs>(args: SelectSubset<T, HandoffNoteUpdateArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more HandoffNotes.
+     * @param {HandoffNoteDeleteManyArgs} args - Arguments to filter HandoffNotes to delete.
+     * @example
+     * // Delete a few HandoffNotes
+     * const { count } = await prisma.handoffNote.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends HandoffNoteDeleteManyArgs>(args?: SelectSubset<T, HandoffNoteDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more HandoffNotes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many HandoffNotes
+     * const handoffNote = await prisma.handoffNote.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends HandoffNoteUpdateManyArgs>(args: SelectSubset<T, HandoffNoteUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more HandoffNotes and returns the data updated in the database.
+     * @param {HandoffNoteUpdateManyAndReturnArgs} args - Arguments to update many HandoffNotes.
+     * @example
+     * // Update many HandoffNotes
+     * const handoffNote = await prisma.handoffNote.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more HandoffNotes and only return the `id`
+     * const handoffNoteWithIdOnly = await prisma.handoffNote.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends HandoffNoteUpdateManyAndReturnArgs>(args: SelectSubset<T, HandoffNoteUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one HandoffNote.
+     * @param {HandoffNoteUpsertArgs} args - Arguments to update or create a HandoffNote.
+     * @example
+     * // Update or create a HandoffNote
+     * const handoffNote = await prisma.handoffNote.upsert({
+     *   create: {
+     *     // ... data to create a HandoffNote
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the HandoffNote we want to update
+     *   }
+     * })
+     */
+    upsert<T extends HandoffNoteUpsertArgs>(args: SelectSubset<T, HandoffNoteUpsertArgs<ExtArgs>>): Prisma__HandoffNoteClient<$Result.GetResult<Prisma.$HandoffNotePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of HandoffNotes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteCountArgs} args - Arguments to filter HandoffNotes to count.
+     * @example
+     * // Count the number of HandoffNotes
+     * const count = await prisma.handoffNote.count({
+     *   where: {
+     *     // ... the filter for the HandoffNotes we want to count
+     *   }
+     * })
+    **/
+    count<T extends HandoffNoteCountArgs>(
+      args?: Subset<T, HandoffNoteCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], HandoffNoteCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a HandoffNote.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends HandoffNoteAggregateArgs>(args: Subset<T, HandoffNoteAggregateArgs>): Prisma.PrismaPromise<GetHandoffNoteAggregateType<T>>
+
+    /**
+     * Group by HandoffNote.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HandoffNoteGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends HandoffNoteGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: HandoffNoteGroupByArgs['orderBy'] }
+        : { orderBy?: HandoffNoteGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, HandoffNoteGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetHandoffNoteGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the HandoffNote model
+   */
+  readonly fields: HandoffNoteFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for HandoffNote.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__HandoffNoteClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    startup<T extends StartupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StartupDefaultArgs<ExtArgs>>): Prisma__StartupClient<$Result.GetResult<Prisma.$StartupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the HandoffNote model
+   */
+  interface HandoffNoteFieldRefs {
+    readonly id: FieldRef<"HandoffNote", 'String'>
+    readonly startupId: FieldRef<"HandoffNote", 'String'>
+    readonly createdBy: FieldRef<"HandoffNote", 'String'>
+    readonly assignedTo: FieldRef<"HandoffNote", 'String'>
+    readonly title: FieldRef<"HandoffNote", 'String'>
+    readonly context: FieldRef<"HandoffNote", 'String'>
+    readonly pendingActions: FieldRef<"HandoffNote", 'String'>
+    readonly keyDecisions: FieldRef<"HandoffNote", 'String'>
+    readonly status: FieldRef<"HandoffNote", 'String'>
+    readonly createdAt: FieldRef<"HandoffNote", 'DateTime'>
+    readonly updatedAt: FieldRef<"HandoffNote", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * HandoffNote findUnique
+   */
+  export type HandoffNoteFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * Filter, which HandoffNote to fetch.
+     */
+    where: HandoffNoteWhereUniqueInput
+  }
+
+  /**
+   * HandoffNote findUniqueOrThrow
+   */
+  export type HandoffNoteFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * Filter, which HandoffNote to fetch.
+     */
+    where: HandoffNoteWhereUniqueInput
+  }
+
+  /**
+   * HandoffNote findFirst
+   */
+  export type HandoffNoteFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * Filter, which HandoffNote to fetch.
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HandoffNotes to fetch.
+     */
+    orderBy?: HandoffNoteOrderByWithRelationInput | HandoffNoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for HandoffNotes.
+     */
+    cursor?: HandoffNoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HandoffNotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HandoffNotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of HandoffNotes.
+     */
+    distinct?: HandoffNoteScalarFieldEnum | HandoffNoteScalarFieldEnum[]
+  }
+
+  /**
+   * HandoffNote findFirstOrThrow
+   */
+  export type HandoffNoteFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * Filter, which HandoffNote to fetch.
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HandoffNotes to fetch.
+     */
+    orderBy?: HandoffNoteOrderByWithRelationInput | HandoffNoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for HandoffNotes.
+     */
+    cursor?: HandoffNoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HandoffNotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HandoffNotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of HandoffNotes.
+     */
+    distinct?: HandoffNoteScalarFieldEnum | HandoffNoteScalarFieldEnum[]
+  }
+
+  /**
+   * HandoffNote findMany
+   */
+  export type HandoffNoteFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * Filter, which HandoffNotes to fetch.
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HandoffNotes to fetch.
+     */
+    orderBy?: HandoffNoteOrderByWithRelationInput | HandoffNoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing HandoffNotes.
+     */
+    cursor?: HandoffNoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HandoffNotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HandoffNotes.
+     */
+    skip?: number
+    distinct?: HandoffNoteScalarFieldEnum | HandoffNoteScalarFieldEnum[]
+  }
+
+  /**
+   * HandoffNote create
+   */
+  export type HandoffNoteCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * The data needed to create a HandoffNote.
+     */
+    data: XOR<HandoffNoteCreateInput, HandoffNoteUncheckedCreateInput>
+  }
+
+  /**
+   * HandoffNote createMany
+   */
+  export type HandoffNoteCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many HandoffNotes.
+     */
+    data: HandoffNoteCreateManyInput | HandoffNoteCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * HandoffNote createManyAndReturn
+   */
+  export type HandoffNoteCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * The data used to create many HandoffNotes.
+     */
+    data: HandoffNoteCreateManyInput | HandoffNoteCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * HandoffNote update
+   */
+  export type HandoffNoteUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * The data needed to update a HandoffNote.
+     */
+    data: XOR<HandoffNoteUpdateInput, HandoffNoteUncheckedUpdateInput>
+    /**
+     * Choose, which HandoffNote to update.
+     */
+    where: HandoffNoteWhereUniqueInput
+  }
+
+  /**
+   * HandoffNote updateMany
+   */
+  export type HandoffNoteUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update HandoffNotes.
+     */
+    data: XOR<HandoffNoteUpdateManyMutationInput, HandoffNoteUncheckedUpdateManyInput>
+    /**
+     * Filter which HandoffNotes to update
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * Limit how many HandoffNotes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * HandoffNote updateManyAndReturn
+   */
+  export type HandoffNoteUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * The data used to update HandoffNotes.
+     */
+    data: XOR<HandoffNoteUpdateManyMutationInput, HandoffNoteUncheckedUpdateManyInput>
+    /**
+     * Filter which HandoffNotes to update
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * Limit how many HandoffNotes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * HandoffNote upsert
+   */
+  export type HandoffNoteUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * The filter to search for the HandoffNote to update in case it exists.
+     */
+    where: HandoffNoteWhereUniqueInput
+    /**
+     * In case the HandoffNote found by the `where` argument doesn't exist, create a new HandoffNote with this data.
+     */
+    create: XOR<HandoffNoteCreateInput, HandoffNoteUncheckedCreateInput>
+    /**
+     * In case the HandoffNote was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<HandoffNoteUpdateInput, HandoffNoteUncheckedUpdateInput>
+  }
+
+  /**
+   * HandoffNote delete
+   */
+  export type HandoffNoteDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+    /**
+     * Filter which HandoffNote to delete.
+     */
+    where: HandoffNoteWhereUniqueInput
+  }
+
+  /**
+   * HandoffNote deleteMany
+   */
+  export type HandoffNoteDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which HandoffNotes to delete
+     */
+    where?: HandoffNoteWhereInput
+    /**
+     * Limit how many HandoffNotes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * HandoffNote without action
+   */
+  export type HandoffNoteDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HandoffNote
+     */
+    select?: HandoffNoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HandoffNote
+     */
+    omit?: HandoffNoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: HandoffNoteInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -37933,6 +40448,37 @@ export namespace Prisma {
   export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
 
 
+  export const VentureCollaboratorScalarFieldEnum: {
+    id: 'id',
+    startupId: 'startupId',
+    userEmail: 'userEmail',
+    role: 'role',
+    invitedBy: 'invitedBy',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type VentureCollaboratorScalarFieldEnum = (typeof VentureCollaboratorScalarFieldEnum)[keyof typeof VentureCollaboratorScalarFieldEnum]
+
+
+  export const HandoffNoteScalarFieldEnum: {
+    id: 'id',
+    startupId: 'startupId',
+    createdBy: 'createdBy',
+    assignedTo: 'assignedTo',
+    title: 'title',
+    context: 'context',
+    pendingActions: 'pendingActions',
+    keyDecisions: 'keyDecisions',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type HandoffNoteScalarFieldEnum = (typeof HandoffNoteScalarFieldEnum)[keyof typeof HandoffNoteScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -38180,6 +40726,34 @@ export namespace Prisma {
    */
   export type ListEnumTeamRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TeamRole[]'>
     
+
+
+  /**
+   * Reference to a field of type 'VentureRole'
+   */
+  export type EnumVentureRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VentureRole'>
+    
+
+
+  /**
+   * Reference to a field of type 'VentureRole[]'
+   */
+  export type ListEnumVentureRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VentureRole[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CollaboratorStatus'
+   */
+  export type EnumCollaboratorStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollaboratorStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'CollaboratorStatus[]'
+   */
+  export type ListEnumCollaboratorStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CollaboratorStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -38282,6 +40856,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunListRelationFilter
     analyticsEvents?: StartupAnalyticsEventListRelationFilter
     escalations?: EscalationListRelationFilter
+    collaborators?: VentureCollaboratorListRelationFilter
+    handoffNotes?: HandoffNoteListRelationFilter
   }
 
   export type StartupOrderByWithRelationInput = {
@@ -38378,6 +40954,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunOrderByRelationAggregateInput
     analyticsEvents?: StartupAnalyticsEventOrderByRelationAggregateInput
     escalations?: EscalationOrderByRelationAggregateInput
+    collaborators?: VentureCollaboratorOrderByRelationAggregateInput
+    handoffNotes?: HandoffNoteOrderByRelationAggregateInput
   }
 
   export type StartupWhereUniqueInput = Prisma.AtLeast<{
@@ -38477,6 +41055,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunListRelationFilter
     analyticsEvents?: StartupAnalyticsEventListRelationFilter
     escalations?: EscalationListRelationFilter
+    collaborators?: VentureCollaboratorListRelationFilter
+    handoffNotes?: HandoffNoteListRelationFilter
   }, "id">
 
   export type StartupOrderByWithAggregationInput = {
@@ -40883,6 +43463,162 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"TeamMember"> | Date | string
   }
 
+  export type VentureCollaboratorWhereInput = {
+    AND?: VentureCollaboratorWhereInput | VentureCollaboratorWhereInput[]
+    OR?: VentureCollaboratorWhereInput[]
+    NOT?: VentureCollaboratorWhereInput | VentureCollaboratorWhereInput[]
+    id?: StringFilter<"VentureCollaborator"> | string
+    startupId?: StringFilter<"VentureCollaborator"> | string
+    userEmail?: StringFilter<"VentureCollaborator"> | string
+    role?: EnumVentureRoleFilter<"VentureCollaborator"> | $Enums.VentureRole
+    invitedBy?: StringFilter<"VentureCollaborator"> | string
+    status?: EnumCollaboratorStatusFilter<"VentureCollaborator"> | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFilter<"VentureCollaborator"> | Date | string
+    updatedAt?: DateTimeFilter<"VentureCollaborator"> | Date | string
+    startup?: XOR<StartupScalarRelationFilter, StartupWhereInput>
+  }
+
+  export type VentureCollaboratorOrderByWithRelationInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    userEmail?: SortOrder
+    role?: SortOrder
+    invitedBy?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    startup?: StartupOrderByWithRelationInput
+  }
+
+  export type VentureCollaboratorWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    startupId_userEmail?: VentureCollaboratorStartupIdUserEmailCompoundUniqueInput
+    AND?: VentureCollaboratorWhereInput | VentureCollaboratorWhereInput[]
+    OR?: VentureCollaboratorWhereInput[]
+    NOT?: VentureCollaboratorWhereInput | VentureCollaboratorWhereInput[]
+    startupId?: StringFilter<"VentureCollaborator"> | string
+    userEmail?: StringFilter<"VentureCollaborator"> | string
+    role?: EnumVentureRoleFilter<"VentureCollaborator"> | $Enums.VentureRole
+    invitedBy?: StringFilter<"VentureCollaborator"> | string
+    status?: EnumCollaboratorStatusFilter<"VentureCollaborator"> | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFilter<"VentureCollaborator"> | Date | string
+    updatedAt?: DateTimeFilter<"VentureCollaborator"> | Date | string
+    startup?: XOR<StartupScalarRelationFilter, StartupWhereInput>
+  }, "id" | "startupId_userEmail">
+
+  export type VentureCollaboratorOrderByWithAggregationInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    userEmail?: SortOrder
+    role?: SortOrder
+    invitedBy?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: VentureCollaboratorCountOrderByAggregateInput
+    _max?: VentureCollaboratorMaxOrderByAggregateInput
+    _min?: VentureCollaboratorMinOrderByAggregateInput
+  }
+
+  export type VentureCollaboratorScalarWhereWithAggregatesInput = {
+    AND?: VentureCollaboratorScalarWhereWithAggregatesInput | VentureCollaboratorScalarWhereWithAggregatesInput[]
+    OR?: VentureCollaboratorScalarWhereWithAggregatesInput[]
+    NOT?: VentureCollaboratorScalarWhereWithAggregatesInput | VentureCollaboratorScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VentureCollaborator"> | string
+    startupId?: StringWithAggregatesFilter<"VentureCollaborator"> | string
+    userEmail?: StringWithAggregatesFilter<"VentureCollaborator"> | string
+    role?: EnumVentureRoleWithAggregatesFilter<"VentureCollaborator"> | $Enums.VentureRole
+    invitedBy?: StringWithAggregatesFilter<"VentureCollaborator"> | string
+    status?: EnumCollaboratorStatusWithAggregatesFilter<"VentureCollaborator"> | $Enums.CollaboratorStatus
+    createdAt?: DateTimeWithAggregatesFilter<"VentureCollaborator"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"VentureCollaborator"> | Date | string
+  }
+
+  export type HandoffNoteWhereInput = {
+    AND?: HandoffNoteWhereInput | HandoffNoteWhereInput[]
+    OR?: HandoffNoteWhereInput[]
+    NOT?: HandoffNoteWhereInput | HandoffNoteWhereInput[]
+    id?: StringFilter<"HandoffNote"> | string
+    startupId?: StringFilter<"HandoffNote"> | string
+    createdBy?: StringFilter<"HandoffNote"> | string
+    assignedTo?: StringNullableFilter<"HandoffNote"> | string | null
+    title?: StringFilter<"HandoffNote"> | string
+    context?: StringFilter<"HandoffNote"> | string
+    pendingActions?: StringNullableFilter<"HandoffNote"> | string | null
+    keyDecisions?: StringNullableFilter<"HandoffNote"> | string | null
+    status?: StringFilter<"HandoffNote"> | string
+    createdAt?: DateTimeFilter<"HandoffNote"> | Date | string
+    updatedAt?: DateTimeFilter<"HandoffNote"> | Date | string
+    startup?: XOR<StartupScalarRelationFilter, StartupWhereInput>
+  }
+
+  export type HandoffNoteOrderByWithRelationInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    createdBy?: SortOrder
+    assignedTo?: SortOrderInput | SortOrder
+    title?: SortOrder
+    context?: SortOrder
+    pendingActions?: SortOrderInput | SortOrder
+    keyDecisions?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    startup?: StartupOrderByWithRelationInput
+  }
+
+  export type HandoffNoteWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: HandoffNoteWhereInput | HandoffNoteWhereInput[]
+    OR?: HandoffNoteWhereInput[]
+    NOT?: HandoffNoteWhereInput | HandoffNoteWhereInput[]
+    startupId?: StringFilter<"HandoffNote"> | string
+    createdBy?: StringFilter<"HandoffNote"> | string
+    assignedTo?: StringNullableFilter<"HandoffNote"> | string | null
+    title?: StringFilter<"HandoffNote"> | string
+    context?: StringFilter<"HandoffNote"> | string
+    pendingActions?: StringNullableFilter<"HandoffNote"> | string | null
+    keyDecisions?: StringNullableFilter<"HandoffNote"> | string | null
+    status?: StringFilter<"HandoffNote"> | string
+    createdAt?: DateTimeFilter<"HandoffNote"> | Date | string
+    updatedAt?: DateTimeFilter<"HandoffNote"> | Date | string
+    startup?: XOR<StartupScalarRelationFilter, StartupWhereInput>
+  }, "id">
+
+  export type HandoffNoteOrderByWithAggregationInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    createdBy?: SortOrder
+    assignedTo?: SortOrderInput | SortOrder
+    title?: SortOrder
+    context?: SortOrder
+    pendingActions?: SortOrderInput | SortOrder
+    keyDecisions?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: HandoffNoteCountOrderByAggregateInput
+    _max?: HandoffNoteMaxOrderByAggregateInput
+    _min?: HandoffNoteMinOrderByAggregateInput
+  }
+
+  export type HandoffNoteScalarWhereWithAggregatesInput = {
+    AND?: HandoffNoteScalarWhereWithAggregatesInput | HandoffNoteScalarWhereWithAggregatesInput[]
+    OR?: HandoffNoteScalarWhereWithAggregatesInput[]
+    NOT?: HandoffNoteScalarWhereWithAggregatesInput | HandoffNoteScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"HandoffNote"> | string
+    startupId?: StringWithAggregatesFilter<"HandoffNote"> | string
+    createdBy?: StringWithAggregatesFilter<"HandoffNote"> | string
+    assignedTo?: StringNullableWithAggregatesFilter<"HandoffNote"> | string | null
+    title?: StringWithAggregatesFilter<"HandoffNote"> | string
+    context?: StringWithAggregatesFilter<"HandoffNote"> | string
+    pendingActions?: StringNullableWithAggregatesFilter<"HandoffNote"> | string | null
+    keyDecisions?: StringNullableWithAggregatesFilter<"HandoffNote"> | string | null
+    status?: StringWithAggregatesFilter<"HandoffNote"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"HandoffNote"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"HandoffNote"> | Date | string
+  }
+
   export type StartupCreateInput = {
     id?: string
     name: string
@@ -40976,6 +43712,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunCreateNestedManyWithoutStartupInput
     analyticsEvents?: StartupAnalyticsEventCreateNestedManyWithoutStartupInput
     escalations?: EscalationCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteCreateNestedManyWithoutStartupInput
   }
 
   export type StartupUncheckedCreateInput = {
@@ -41071,6 +43809,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunUncheckedCreateNestedManyWithoutStartupInput
     analyticsEvents?: StartupAnalyticsEventUncheckedCreateNestedManyWithoutStartupInput
     escalations?: EscalationUncheckedCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteUncheckedCreateNestedManyWithoutStartupInput
   }
 
   export type StartupUpdateInput = {
@@ -41166,6 +43906,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunUpdateManyWithoutStartupNestedInput
     analyticsEvents?: StartupAnalyticsEventUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupUncheckedUpdateInput = {
@@ -41261,6 +44003,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput
     analyticsEvents?: StartupAnalyticsEventUncheckedUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUncheckedUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupCreateManyInput = {
@@ -44053,6 +46797,179 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VentureCollaboratorCreateInput = {
+    id?: string
+    userEmail: string
+    role?: $Enums.VentureRole
+    invitedBy: string
+    status?: $Enums.CollaboratorStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    startup: StartupCreateNestedOneWithoutCollaboratorsInput
+  }
+
+  export type VentureCollaboratorUncheckedCreateInput = {
+    id?: string
+    startupId: string
+    userEmail: string
+    role?: $Enums.VentureRole
+    invitedBy: string
+    status?: $Enums.CollaboratorStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VentureCollaboratorUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    startup?: StartupUpdateOneRequiredWithoutCollaboratorsNestedInput
+  }
+
+  export type VentureCollaboratorUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startupId?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VentureCollaboratorCreateManyInput = {
+    id?: string
+    startupId: string
+    userEmail: string
+    role?: $Enums.VentureRole
+    invitedBy: string
+    status?: $Enums.CollaboratorStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VentureCollaboratorUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VentureCollaboratorUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startupId?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HandoffNoteCreateInput = {
+    id?: string
+    createdBy: string
+    assignedTo?: string | null
+    title: string
+    context: string
+    pendingActions?: string | null
+    keyDecisions?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    startup: StartupCreateNestedOneWithoutHandoffNotesInput
+  }
+
+  export type HandoffNoteUncheckedCreateInput = {
+    id?: string
+    startupId: string
+    createdBy: string
+    assignedTo?: string | null
+    title: string
+    context: string
+    pendingActions?: string | null
+    keyDecisions?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type HandoffNoteUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    startup?: StartupUpdateOneRequiredWithoutHandoffNotesNestedInput
+  }
+
+  export type HandoffNoteUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startupId?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HandoffNoteCreateManyInput = {
+    id?: string
+    startupId: string
+    createdBy: string
+    assignedTo?: string | null
+    title: string
+    context: string
+    pendingActions?: string | null
+    keyDecisions?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type HandoffNoteUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HandoffNoteUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startupId?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -44153,6 +47070,18 @@ export namespace Prisma {
     none?: EscalationWhereInput
   }
 
+  export type VentureCollaboratorListRelationFilter = {
+    every?: VentureCollaboratorWhereInput
+    some?: VentureCollaboratorWhereInput
+    none?: VentureCollaboratorWhereInput
+  }
+
+  export type HandoffNoteListRelationFilter = {
+    every?: HandoffNoteWhereInput
+    some?: HandoffNoteWhereInput
+    none?: HandoffNoteWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -44167,6 +47096,14 @@ export namespace Prisma {
   }
 
   export type EscalationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type VentureCollaboratorOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type HandoffNoteOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -46115,6 +49052,120 @@ export namespace Prisma {
     _max?: NestedEnumTeamRoleFilter<$PrismaModel>
   }
 
+  export type EnumVentureRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.VentureRole | EnumVentureRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumVentureRoleFilter<$PrismaModel> | $Enums.VentureRole
+  }
+
+  export type EnumCollaboratorStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CollaboratorStatus | EnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCollaboratorStatusFilter<$PrismaModel> | $Enums.CollaboratorStatus
+  }
+
+  export type VentureCollaboratorStartupIdUserEmailCompoundUniqueInput = {
+    startupId: string
+    userEmail: string
+  }
+
+  export type VentureCollaboratorCountOrderByAggregateInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    userEmail?: SortOrder
+    role?: SortOrder
+    invitedBy?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VentureCollaboratorMaxOrderByAggregateInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    userEmail?: SortOrder
+    role?: SortOrder
+    invitedBy?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type VentureCollaboratorMinOrderByAggregateInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    userEmail?: SortOrder
+    role?: SortOrder
+    invitedBy?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumVentureRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VentureRole | EnumVentureRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumVentureRoleWithAggregatesFilter<$PrismaModel> | $Enums.VentureRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVentureRoleFilter<$PrismaModel>
+    _max?: NestedEnumVentureRoleFilter<$PrismaModel>
+  }
+
+  export type EnumCollaboratorStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CollaboratorStatus | EnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCollaboratorStatusWithAggregatesFilter<$PrismaModel> | $Enums.CollaboratorStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCollaboratorStatusFilter<$PrismaModel>
+    _max?: NestedEnumCollaboratorStatusFilter<$PrismaModel>
+  }
+
+  export type HandoffNoteCountOrderByAggregateInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    createdBy?: SortOrder
+    assignedTo?: SortOrder
+    title?: SortOrder
+    context?: SortOrder
+    pendingActions?: SortOrder
+    keyDecisions?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type HandoffNoteMaxOrderByAggregateInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    createdBy?: SortOrder
+    assignedTo?: SortOrder
+    title?: SortOrder
+    context?: SortOrder
+    pendingActions?: SortOrder
+    keyDecisions?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type HandoffNoteMinOrderByAggregateInput = {
+    id?: SortOrder
+    startupId?: SortOrder
+    createdBy?: SortOrder
+    assignedTo?: SortOrder
+    title?: SortOrder
+    context?: SortOrder
+    pendingActions?: SortOrder
+    keyDecisions?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type StartupCreatekeywordsInput = {
     set: string[]
   }
@@ -46150,6 +49201,20 @@ export namespace Prisma {
     connect?: EscalationWhereUniqueInput | EscalationWhereUniqueInput[]
   }
 
+  export type VentureCollaboratorCreateNestedManyWithoutStartupInput = {
+    create?: XOR<VentureCollaboratorCreateWithoutStartupInput, VentureCollaboratorUncheckedCreateWithoutStartupInput> | VentureCollaboratorCreateWithoutStartupInput[] | VentureCollaboratorUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: VentureCollaboratorCreateOrConnectWithoutStartupInput | VentureCollaboratorCreateOrConnectWithoutStartupInput[]
+    createMany?: VentureCollaboratorCreateManyStartupInputEnvelope
+    connect?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+  }
+
+  export type HandoffNoteCreateNestedManyWithoutStartupInput = {
+    create?: XOR<HandoffNoteCreateWithoutStartupInput, HandoffNoteUncheckedCreateWithoutStartupInput> | HandoffNoteCreateWithoutStartupInput[] | HandoffNoteUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: HandoffNoteCreateOrConnectWithoutStartupInput | HandoffNoteCreateOrConnectWithoutStartupInput[]
+    createMany?: HandoffNoteCreateManyStartupInputEnvelope
+    connect?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+  }
+
   export type AnalysisRunUncheckedCreateNestedManyWithoutStartupInput = {
     create?: XOR<AnalysisRunCreateWithoutStartupInput, AnalysisRunUncheckedCreateWithoutStartupInput> | AnalysisRunCreateWithoutStartupInput[] | AnalysisRunUncheckedCreateWithoutStartupInput[]
     connectOrCreate?: AnalysisRunCreateOrConnectWithoutStartupInput | AnalysisRunCreateOrConnectWithoutStartupInput[]
@@ -46169,6 +49234,20 @@ export namespace Prisma {
     connectOrCreate?: EscalationCreateOrConnectWithoutStartupInput | EscalationCreateOrConnectWithoutStartupInput[]
     createMany?: EscalationCreateManyStartupInputEnvelope
     connect?: EscalationWhereUniqueInput | EscalationWhereUniqueInput[]
+  }
+
+  export type VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput = {
+    create?: XOR<VentureCollaboratorCreateWithoutStartupInput, VentureCollaboratorUncheckedCreateWithoutStartupInput> | VentureCollaboratorCreateWithoutStartupInput[] | VentureCollaboratorUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: VentureCollaboratorCreateOrConnectWithoutStartupInput | VentureCollaboratorCreateOrConnectWithoutStartupInput[]
+    createMany?: VentureCollaboratorCreateManyStartupInputEnvelope
+    connect?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+  }
+
+  export type HandoffNoteUncheckedCreateNestedManyWithoutStartupInput = {
+    create?: XOR<HandoffNoteCreateWithoutStartupInput, HandoffNoteUncheckedCreateWithoutStartupInput> | HandoffNoteCreateWithoutStartupInput[] | HandoffNoteUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: HandoffNoteCreateOrConnectWithoutStartupInput | HandoffNoteCreateOrConnectWithoutStartupInput[]
+    createMany?: HandoffNoteCreateManyStartupInputEnvelope
+    connect?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -46253,6 +49332,34 @@ export namespace Prisma {
     deleteMany?: EscalationScalarWhereInput | EscalationScalarWhereInput[]
   }
 
+  export type VentureCollaboratorUpdateManyWithoutStartupNestedInput = {
+    create?: XOR<VentureCollaboratorCreateWithoutStartupInput, VentureCollaboratorUncheckedCreateWithoutStartupInput> | VentureCollaboratorCreateWithoutStartupInput[] | VentureCollaboratorUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: VentureCollaboratorCreateOrConnectWithoutStartupInput | VentureCollaboratorCreateOrConnectWithoutStartupInput[]
+    upsert?: VentureCollaboratorUpsertWithWhereUniqueWithoutStartupInput | VentureCollaboratorUpsertWithWhereUniqueWithoutStartupInput[]
+    createMany?: VentureCollaboratorCreateManyStartupInputEnvelope
+    set?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    disconnect?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    delete?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    connect?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    update?: VentureCollaboratorUpdateWithWhereUniqueWithoutStartupInput | VentureCollaboratorUpdateWithWhereUniqueWithoutStartupInput[]
+    updateMany?: VentureCollaboratorUpdateManyWithWhereWithoutStartupInput | VentureCollaboratorUpdateManyWithWhereWithoutStartupInput[]
+    deleteMany?: VentureCollaboratorScalarWhereInput | VentureCollaboratorScalarWhereInput[]
+  }
+
+  export type HandoffNoteUpdateManyWithoutStartupNestedInput = {
+    create?: XOR<HandoffNoteCreateWithoutStartupInput, HandoffNoteUncheckedCreateWithoutStartupInput> | HandoffNoteCreateWithoutStartupInput[] | HandoffNoteUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: HandoffNoteCreateOrConnectWithoutStartupInput | HandoffNoteCreateOrConnectWithoutStartupInput[]
+    upsert?: HandoffNoteUpsertWithWhereUniqueWithoutStartupInput | HandoffNoteUpsertWithWhereUniqueWithoutStartupInput[]
+    createMany?: HandoffNoteCreateManyStartupInputEnvelope
+    set?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    disconnect?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    delete?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    connect?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    update?: HandoffNoteUpdateWithWhereUniqueWithoutStartupInput | HandoffNoteUpdateWithWhereUniqueWithoutStartupInput[]
+    updateMany?: HandoffNoteUpdateManyWithWhereWithoutStartupInput | HandoffNoteUpdateManyWithWhereWithoutStartupInput[]
+    deleteMany?: HandoffNoteScalarWhereInput | HandoffNoteScalarWhereInput[]
+  }
+
   export type AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput = {
     create?: XOR<AnalysisRunCreateWithoutStartupInput, AnalysisRunUncheckedCreateWithoutStartupInput> | AnalysisRunCreateWithoutStartupInput[] | AnalysisRunUncheckedCreateWithoutStartupInput[]
     connectOrCreate?: AnalysisRunCreateOrConnectWithoutStartupInput | AnalysisRunCreateOrConnectWithoutStartupInput[]
@@ -46293,6 +49400,34 @@ export namespace Prisma {
     update?: EscalationUpdateWithWhereUniqueWithoutStartupInput | EscalationUpdateWithWhereUniqueWithoutStartupInput[]
     updateMany?: EscalationUpdateManyWithWhereWithoutStartupInput | EscalationUpdateManyWithWhereWithoutStartupInput[]
     deleteMany?: EscalationScalarWhereInput | EscalationScalarWhereInput[]
+  }
+
+  export type VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput = {
+    create?: XOR<VentureCollaboratorCreateWithoutStartupInput, VentureCollaboratorUncheckedCreateWithoutStartupInput> | VentureCollaboratorCreateWithoutStartupInput[] | VentureCollaboratorUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: VentureCollaboratorCreateOrConnectWithoutStartupInput | VentureCollaboratorCreateOrConnectWithoutStartupInput[]
+    upsert?: VentureCollaboratorUpsertWithWhereUniqueWithoutStartupInput | VentureCollaboratorUpsertWithWhereUniqueWithoutStartupInput[]
+    createMany?: VentureCollaboratorCreateManyStartupInputEnvelope
+    set?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    disconnect?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    delete?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    connect?: VentureCollaboratorWhereUniqueInput | VentureCollaboratorWhereUniqueInput[]
+    update?: VentureCollaboratorUpdateWithWhereUniqueWithoutStartupInput | VentureCollaboratorUpdateWithWhereUniqueWithoutStartupInput[]
+    updateMany?: VentureCollaboratorUpdateManyWithWhereWithoutStartupInput | VentureCollaboratorUpdateManyWithWhereWithoutStartupInput[]
+    deleteMany?: VentureCollaboratorScalarWhereInput | VentureCollaboratorScalarWhereInput[]
+  }
+
+  export type HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput = {
+    create?: XOR<HandoffNoteCreateWithoutStartupInput, HandoffNoteUncheckedCreateWithoutStartupInput> | HandoffNoteCreateWithoutStartupInput[] | HandoffNoteUncheckedCreateWithoutStartupInput[]
+    connectOrCreate?: HandoffNoteCreateOrConnectWithoutStartupInput | HandoffNoteCreateOrConnectWithoutStartupInput[]
+    upsert?: HandoffNoteUpsertWithWhereUniqueWithoutStartupInput | HandoffNoteUpsertWithWhereUniqueWithoutStartupInput[]
+    createMany?: HandoffNoteCreateManyStartupInputEnvelope
+    set?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    disconnect?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    delete?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    connect?: HandoffNoteWhereUniqueInput | HandoffNoteWhereUniqueInput[]
+    update?: HandoffNoteUpdateWithWhereUniqueWithoutStartupInput | HandoffNoteUpdateWithWhereUniqueWithoutStartupInput[]
+    updateMany?: HandoffNoteUpdateManyWithWhereWithoutStartupInput | HandoffNoteUpdateManyWithWhereWithoutStartupInput[]
+    deleteMany?: HandoffNoteScalarWhereInput | HandoffNoteScalarWhereInput[]
   }
 
   export type InvestorCreatefocusSectorsInput = {
@@ -47240,6 +50375,42 @@ export namespace Prisma {
     update?: XOR<XOR<TeamUpdateToOneWithWhereWithoutMembersInput, TeamUpdateWithoutMembersInput>, TeamUncheckedUpdateWithoutMembersInput>
   }
 
+  export type StartupCreateNestedOneWithoutCollaboratorsInput = {
+    create?: XOR<StartupCreateWithoutCollaboratorsInput, StartupUncheckedCreateWithoutCollaboratorsInput>
+    connectOrCreate?: StartupCreateOrConnectWithoutCollaboratorsInput
+    connect?: StartupWhereUniqueInput
+  }
+
+  export type EnumVentureRoleFieldUpdateOperationsInput = {
+    set?: $Enums.VentureRole
+  }
+
+  export type EnumCollaboratorStatusFieldUpdateOperationsInput = {
+    set?: $Enums.CollaboratorStatus
+  }
+
+  export type StartupUpdateOneRequiredWithoutCollaboratorsNestedInput = {
+    create?: XOR<StartupCreateWithoutCollaboratorsInput, StartupUncheckedCreateWithoutCollaboratorsInput>
+    connectOrCreate?: StartupCreateOrConnectWithoutCollaboratorsInput
+    upsert?: StartupUpsertWithoutCollaboratorsInput
+    connect?: StartupWhereUniqueInput
+    update?: XOR<XOR<StartupUpdateToOneWithWhereWithoutCollaboratorsInput, StartupUpdateWithoutCollaboratorsInput>, StartupUncheckedUpdateWithoutCollaboratorsInput>
+  }
+
+  export type StartupCreateNestedOneWithoutHandoffNotesInput = {
+    create?: XOR<StartupCreateWithoutHandoffNotesInput, StartupUncheckedCreateWithoutHandoffNotesInput>
+    connectOrCreate?: StartupCreateOrConnectWithoutHandoffNotesInput
+    connect?: StartupWhereUniqueInput
+  }
+
+  export type StartupUpdateOneRequiredWithoutHandoffNotesNestedInput = {
+    create?: XOR<StartupCreateWithoutHandoffNotesInput, StartupUncheckedCreateWithoutHandoffNotesInput>
+    connectOrCreate?: StartupCreateOrConnectWithoutHandoffNotesInput
+    upsert?: StartupUpsertWithoutHandoffNotesInput
+    connect?: StartupWhereUniqueInput
+    update?: XOR<XOR<StartupUpdateToOneWithWhereWithoutHandoffNotesInput, StartupUpdateWithoutHandoffNotesInput>, StartupUncheckedUpdateWithoutHandoffNotesInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -47652,6 +50823,40 @@ export namespace Prisma {
     _max?: NestedEnumTeamRoleFilter<$PrismaModel>
   }
 
+  export type NestedEnumVentureRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.VentureRole | EnumVentureRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumVentureRoleFilter<$PrismaModel> | $Enums.VentureRole
+  }
+
+  export type NestedEnumCollaboratorStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CollaboratorStatus | EnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCollaboratorStatusFilter<$PrismaModel> | $Enums.CollaboratorStatus
+  }
+
+  export type NestedEnumVentureRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VentureRole | EnumVentureRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VentureRole[] | ListEnumVentureRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumVentureRoleWithAggregatesFilter<$PrismaModel> | $Enums.VentureRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVentureRoleFilter<$PrismaModel>
+    _max?: NestedEnumVentureRoleFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCollaboratorStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CollaboratorStatus | EnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CollaboratorStatus[] | ListEnumCollaboratorStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCollaboratorStatusWithAggregatesFilter<$PrismaModel> | $Enums.CollaboratorStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCollaboratorStatusFilter<$PrismaModel>
+    _max?: NestedEnumCollaboratorStatusFilter<$PrismaModel>
+  }
+
   export type FounderCreateWithoutStartupsInput = {
     id?: string
     email?: string | null
@@ -47815,6 +51020,72 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type VentureCollaboratorCreateWithoutStartupInput = {
+    id?: string
+    userEmail: string
+    role?: $Enums.VentureRole
+    invitedBy: string
+    status?: $Enums.CollaboratorStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VentureCollaboratorUncheckedCreateWithoutStartupInput = {
+    id?: string
+    userEmail: string
+    role?: $Enums.VentureRole
+    invitedBy: string
+    status?: $Enums.CollaboratorStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type VentureCollaboratorCreateOrConnectWithoutStartupInput = {
+    where: VentureCollaboratorWhereUniqueInput
+    create: XOR<VentureCollaboratorCreateWithoutStartupInput, VentureCollaboratorUncheckedCreateWithoutStartupInput>
+  }
+
+  export type VentureCollaboratorCreateManyStartupInputEnvelope = {
+    data: VentureCollaboratorCreateManyStartupInput | VentureCollaboratorCreateManyStartupInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type HandoffNoteCreateWithoutStartupInput = {
+    id?: string
+    createdBy: string
+    assignedTo?: string | null
+    title: string
+    context: string
+    pendingActions?: string | null
+    keyDecisions?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type HandoffNoteUncheckedCreateWithoutStartupInput = {
+    id?: string
+    createdBy: string
+    assignedTo?: string | null
+    title: string
+    context: string
+    pendingActions?: string | null
+    keyDecisions?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type HandoffNoteCreateOrConnectWithoutStartupInput = {
+    where: HandoffNoteWhereUniqueInput
+    create: XOR<HandoffNoteCreateWithoutStartupInput, HandoffNoteUncheckedCreateWithoutStartupInput>
+  }
+
+  export type HandoffNoteCreateManyStartupInputEnvelope = {
+    data: HandoffNoteCreateManyStartupInput | HandoffNoteCreateManyStartupInput[]
+    skipDuplicates?: boolean
+  }
+
   export type FounderUpsertWithoutStartupsInput = {
     update: XOR<FounderUpdateWithoutStartupsInput, FounderUncheckedUpdateWithoutStartupsInput>
     create: XOR<FounderCreateWithoutStartupsInput, FounderUncheckedCreateWithoutStartupsInput>
@@ -47966,6 +51237,69 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Escalation"> | Date | string
     updatedAt?: DateTimeFilter<"Escalation"> | Date | string
     teamId?: StringNullableFilter<"Escalation"> | string | null
+  }
+
+  export type VentureCollaboratorUpsertWithWhereUniqueWithoutStartupInput = {
+    where: VentureCollaboratorWhereUniqueInput
+    update: XOR<VentureCollaboratorUpdateWithoutStartupInput, VentureCollaboratorUncheckedUpdateWithoutStartupInput>
+    create: XOR<VentureCollaboratorCreateWithoutStartupInput, VentureCollaboratorUncheckedCreateWithoutStartupInput>
+  }
+
+  export type VentureCollaboratorUpdateWithWhereUniqueWithoutStartupInput = {
+    where: VentureCollaboratorWhereUniqueInput
+    data: XOR<VentureCollaboratorUpdateWithoutStartupInput, VentureCollaboratorUncheckedUpdateWithoutStartupInput>
+  }
+
+  export type VentureCollaboratorUpdateManyWithWhereWithoutStartupInput = {
+    where: VentureCollaboratorScalarWhereInput
+    data: XOR<VentureCollaboratorUpdateManyMutationInput, VentureCollaboratorUncheckedUpdateManyWithoutStartupInput>
+  }
+
+  export type VentureCollaboratorScalarWhereInput = {
+    AND?: VentureCollaboratorScalarWhereInput | VentureCollaboratorScalarWhereInput[]
+    OR?: VentureCollaboratorScalarWhereInput[]
+    NOT?: VentureCollaboratorScalarWhereInput | VentureCollaboratorScalarWhereInput[]
+    id?: StringFilter<"VentureCollaborator"> | string
+    startupId?: StringFilter<"VentureCollaborator"> | string
+    userEmail?: StringFilter<"VentureCollaborator"> | string
+    role?: EnumVentureRoleFilter<"VentureCollaborator"> | $Enums.VentureRole
+    invitedBy?: StringFilter<"VentureCollaborator"> | string
+    status?: EnumCollaboratorStatusFilter<"VentureCollaborator"> | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFilter<"VentureCollaborator"> | Date | string
+    updatedAt?: DateTimeFilter<"VentureCollaborator"> | Date | string
+  }
+
+  export type HandoffNoteUpsertWithWhereUniqueWithoutStartupInput = {
+    where: HandoffNoteWhereUniqueInput
+    update: XOR<HandoffNoteUpdateWithoutStartupInput, HandoffNoteUncheckedUpdateWithoutStartupInput>
+    create: XOR<HandoffNoteCreateWithoutStartupInput, HandoffNoteUncheckedCreateWithoutStartupInput>
+  }
+
+  export type HandoffNoteUpdateWithWhereUniqueWithoutStartupInput = {
+    where: HandoffNoteWhereUniqueInput
+    data: XOR<HandoffNoteUpdateWithoutStartupInput, HandoffNoteUncheckedUpdateWithoutStartupInput>
+  }
+
+  export type HandoffNoteUpdateManyWithWhereWithoutStartupInput = {
+    where: HandoffNoteScalarWhereInput
+    data: XOR<HandoffNoteUpdateManyMutationInput, HandoffNoteUncheckedUpdateManyWithoutStartupInput>
+  }
+
+  export type HandoffNoteScalarWhereInput = {
+    AND?: HandoffNoteScalarWhereInput | HandoffNoteScalarWhereInput[]
+    OR?: HandoffNoteScalarWhereInput[]
+    NOT?: HandoffNoteScalarWhereInput | HandoffNoteScalarWhereInput[]
+    id?: StringFilter<"HandoffNote"> | string
+    startupId?: StringFilter<"HandoffNote"> | string
+    createdBy?: StringFilter<"HandoffNote"> | string
+    assignedTo?: StringNullableFilter<"HandoffNote"> | string | null
+    title?: StringFilter<"HandoffNote"> | string
+    context?: StringFilter<"HandoffNote"> | string
+    pendingActions?: StringNullableFilter<"HandoffNote"> | string | null
+    keyDecisions?: StringNullableFilter<"HandoffNote"> | string | null
+    status?: StringFilter<"HandoffNote"> | string
+    createdAt?: DateTimeFilter<"HandoffNote"> | Date | string
+    updatedAt?: DateTimeFilter<"HandoffNote"> | Date | string
   }
 
   export type AnalysisRunCreateWithoutInvestorInput = {
@@ -48128,6 +51462,8 @@ export namespace Prisma {
     founderProfile?: FounderCreateNestedOneWithoutStartupsInput
     analyticsEvents?: StartupAnalyticsEventCreateNestedManyWithoutStartupInput
     escalations?: EscalationCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteCreateNestedManyWithoutStartupInput
   }
 
   export type StartupUncheckedCreateWithoutAnalysisRunsInput = {
@@ -48222,6 +51558,8 @@ export namespace Prisma {
     vision?: string | null
     analyticsEvents?: StartupAnalyticsEventUncheckedCreateNestedManyWithoutStartupInput
     escalations?: EscalationUncheckedCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteUncheckedCreateNestedManyWithoutStartupInput
   }
 
   export type StartupCreateOrConnectWithoutAnalysisRunsInput = {
@@ -48563,6 +51901,8 @@ export namespace Prisma {
     founderProfile?: FounderUpdateOneWithoutStartupsNestedInput
     analyticsEvents?: StartupAnalyticsEventUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupUncheckedUpdateWithoutAnalysisRunsInput = {
@@ -48657,6 +51997,8 @@ export namespace Prisma {
     vision?: NullableStringFieldUpdateOperationsInput | string | null
     analyticsEvents?: StartupAnalyticsEventUncheckedUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUncheckedUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput
   }
 
   export type InvestorUpsertWithoutAnalysisRunsInput = {
@@ -49380,6 +52722,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunCreateNestedManyWithoutStartupInput
     analyticsEvents?: StartupAnalyticsEventCreateNestedManyWithoutStartupInput
     escalations?: EscalationCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteCreateNestedManyWithoutStartupInput
   }
 
   export type StartupUncheckedCreateWithoutFounderProfileInput = {
@@ -49474,6 +52818,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunUncheckedCreateNestedManyWithoutStartupInput
     analyticsEvents?: StartupAnalyticsEventUncheckedCreateNestedManyWithoutStartupInput
     escalations?: EscalationUncheckedCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteUncheckedCreateNestedManyWithoutStartupInput
   }
 
   export type StartupCreateOrConnectWithoutFounderProfileInput = {
@@ -50308,6 +53654,8 @@ export namespace Prisma {
     founderProfile?: FounderCreateNestedOneWithoutStartupsInput
     analysisRuns?: AnalysisRunCreateNestedManyWithoutStartupInput
     escalations?: EscalationCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteCreateNestedManyWithoutStartupInput
   }
 
   export type StartupUncheckedCreateWithoutAnalyticsEventsInput = {
@@ -50402,6 +53750,8 @@ export namespace Prisma {
     vision?: string | null
     analysisRuns?: AnalysisRunUncheckedCreateNestedManyWithoutStartupInput
     escalations?: EscalationUncheckedCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteUncheckedCreateNestedManyWithoutStartupInput
   }
 
   export type StartupCreateOrConnectWithoutAnalyticsEventsInput = {
@@ -50512,6 +53862,8 @@ export namespace Prisma {
     founderProfile?: FounderUpdateOneWithoutStartupsNestedInput
     analysisRuns?: AnalysisRunUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupUncheckedUpdateWithoutAnalyticsEventsInput = {
@@ -50606,6 +53958,8 @@ export namespace Prisma {
     vision?: NullableStringFieldUpdateOperationsInput | string | null
     analysisRuns?: AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUncheckedUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupCreateWithoutEscalationsInput = {
@@ -50700,6 +54054,8 @@ export namespace Prisma {
     founderProfile?: FounderCreateNestedOneWithoutStartupsInput
     analysisRuns?: AnalysisRunCreateNestedManyWithoutStartupInput
     analyticsEvents?: StartupAnalyticsEventCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteCreateNestedManyWithoutStartupInput
   }
 
   export type StartupUncheckedCreateWithoutEscalationsInput = {
@@ -50794,6 +54150,8 @@ export namespace Prisma {
     vision?: string | null
     analysisRuns?: AnalysisRunUncheckedCreateNestedManyWithoutStartupInput
     analyticsEvents?: StartupAnalyticsEventUncheckedCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteUncheckedCreateNestedManyWithoutStartupInput
   }
 
   export type StartupCreateOrConnectWithoutEscalationsInput = {
@@ -50927,6 +54285,8 @@ export namespace Prisma {
     founderProfile?: FounderUpdateOneWithoutStartupsNestedInput
     analysisRuns?: AnalysisRunUpdateManyWithoutStartupNestedInput
     analyticsEvents?: StartupAnalyticsEventUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupUncheckedUpdateWithoutEscalationsInput = {
@@ -51021,6 +54381,8 @@ export namespace Prisma {
     vision?: NullableStringFieldUpdateOperationsInput | string | null
     analysisRuns?: AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput
     analyticsEvents?: StartupAnalyticsEventUncheckedUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput
   }
 
   export type TeamUpsertWithoutEscalationsInput = {
@@ -51212,6 +54574,806 @@ export namespace Prisma {
     escalations?: EscalationUncheckedUpdateManyWithoutTeamNestedInput
   }
 
+  export type StartupCreateWithoutCollaboratorsInput = {
+    id?: string
+    name: string
+    tagline: string
+    category: string
+    stage: string
+    valuation: string
+    targetAmount: string
+    raisedAmount: string
+    founder: string
+    location: string
+    traction: string
+    pitchDeckUrl?: string
+    verified?: boolean
+    isPublished?: boolean
+    videoFormat?: string
+    industry?: string | null
+    subIndustry?: string | null
+    businessModel?: string | null
+    country?: string | null
+    state?: string | null
+    city?: string | null
+    teamSize?: string | null
+    monthlyBurn?: string | null
+    monthlyRevenue?: string | null
+    ebitda?: string | null
+    grossMargin?: string | null
+    problemText?: string | null
+    solutionText?: string | null
+    payingCustomers?: string | null
+    monthlyActiveUsers?: string | null
+    arrMrr?: string | null
+    growthRate?: string | null
+    customerGeography?: string | null
+    businessPlanUrl?: string | null
+    financialModelUrl?: string | null
+    onePagerUrl?: string | null
+    investorReadinessScore?: number | null
+    marketScore?: number | null
+    riskScore?: number | null
+    moatScore?: number | null
+    executionScore?: number | null
+    aiSummary?: string | null
+    keywords?: StartupCreatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: number | null
+    recommendedInvestors?: StartupCreaterecommendedInvestorsInput | string[]
+    logoUrl?: string | null
+    websiteUrl?: string | null
+    linkedinUrl?: string | null
+    twitterUrl?: string | null
+    roundType?: string | null
+    fixedValuation?: string | null
+    valuationCap?: string | null
+    equityOffered?: string | null
+    minTicket?: string | null
+    interestRate?: string | null
+    roundStatus?: string | null
+    targetCloseDate?: string | null
+    mrr?: string | null
+    arr?: string | null
+    mrrGrowthRate?: string | null
+    burnRate?: string | null
+    cashInBank?: string | null
+    runway?: string | null
+    priorFundingRaised?: string | null
+    priorNotableInvestors?: string | null
+    tam?: string | null
+    sam?: string | null
+    som?: string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: string | null
+    coreProblem?: string | null
+    whyNow?: string | null
+    uniqueInsight?: string | null
+    proposedSolution?: string | null
+    technicalApproach?: string | null
+    techStack?: string | null
+    demoLink?: string | null
+    validationActivity?: string | null
+    validationDetail?: string | null
+    willingnessToPaySignal?: string | null
+    whyThisTeam?: string | null
+    differentiation?: string | null
+    ipAssets?: string | null
+    keyMilestone?: string | null
+    vision?: string | null
+    founderProfile?: FounderCreateNestedOneWithoutStartupsInput
+    analysisRuns?: AnalysisRunCreateNestedManyWithoutStartupInput
+    analyticsEvents?: StartupAnalyticsEventCreateNestedManyWithoutStartupInput
+    escalations?: EscalationCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteCreateNestedManyWithoutStartupInput
+  }
+
+  export type StartupUncheckedCreateWithoutCollaboratorsInput = {
+    id?: string
+    name: string
+    tagline: string
+    category: string
+    stage: string
+    valuation: string
+    targetAmount: string
+    raisedAmount: string
+    founder: string
+    location: string
+    traction: string
+    pitchDeckUrl?: string
+    verified?: boolean
+    isPublished?: boolean
+    videoFormat?: string
+    founderId?: string | null
+    industry?: string | null
+    subIndustry?: string | null
+    businessModel?: string | null
+    country?: string | null
+    state?: string | null
+    city?: string | null
+    teamSize?: string | null
+    monthlyBurn?: string | null
+    monthlyRevenue?: string | null
+    ebitda?: string | null
+    grossMargin?: string | null
+    problemText?: string | null
+    solutionText?: string | null
+    payingCustomers?: string | null
+    monthlyActiveUsers?: string | null
+    arrMrr?: string | null
+    growthRate?: string | null
+    customerGeography?: string | null
+    businessPlanUrl?: string | null
+    financialModelUrl?: string | null
+    onePagerUrl?: string | null
+    investorReadinessScore?: number | null
+    marketScore?: number | null
+    riskScore?: number | null
+    moatScore?: number | null
+    executionScore?: number | null
+    aiSummary?: string | null
+    keywords?: StartupCreatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: number | null
+    recommendedInvestors?: StartupCreaterecommendedInvestorsInput | string[]
+    logoUrl?: string | null
+    websiteUrl?: string | null
+    linkedinUrl?: string | null
+    twitterUrl?: string | null
+    roundType?: string | null
+    fixedValuation?: string | null
+    valuationCap?: string | null
+    equityOffered?: string | null
+    minTicket?: string | null
+    interestRate?: string | null
+    roundStatus?: string | null
+    targetCloseDate?: string | null
+    mrr?: string | null
+    arr?: string | null
+    mrrGrowthRate?: string | null
+    burnRate?: string | null
+    cashInBank?: string | null
+    runway?: string | null
+    priorFundingRaised?: string | null
+    priorNotableInvestors?: string | null
+    tam?: string | null
+    sam?: string | null
+    som?: string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: string | null
+    coreProblem?: string | null
+    whyNow?: string | null
+    uniqueInsight?: string | null
+    proposedSolution?: string | null
+    technicalApproach?: string | null
+    techStack?: string | null
+    demoLink?: string | null
+    validationActivity?: string | null
+    validationDetail?: string | null
+    willingnessToPaySignal?: string | null
+    whyThisTeam?: string | null
+    differentiation?: string | null
+    ipAssets?: string | null
+    keyMilestone?: string | null
+    vision?: string | null
+    analysisRuns?: AnalysisRunUncheckedCreateNestedManyWithoutStartupInput
+    analyticsEvents?: StartupAnalyticsEventUncheckedCreateNestedManyWithoutStartupInput
+    escalations?: EscalationUncheckedCreateNestedManyWithoutStartupInput
+    handoffNotes?: HandoffNoteUncheckedCreateNestedManyWithoutStartupInput
+  }
+
+  export type StartupCreateOrConnectWithoutCollaboratorsInput = {
+    where: StartupWhereUniqueInput
+    create: XOR<StartupCreateWithoutCollaboratorsInput, StartupUncheckedCreateWithoutCollaboratorsInput>
+  }
+
+  export type StartupUpsertWithoutCollaboratorsInput = {
+    update: XOR<StartupUpdateWithoutCollaboratorsInput, StartupUncheckedUpdateWithoutCollaboratorsInput>
+    create: XOR<StartupCreateWithoutCollaboratorsInput, StartupUncheckedCreateWithoutCollaboratorsInput>
+    where?: StartupWhereInput
+  }
+
+  export type StartupUpdateToOneWithWhereWithoutCollaboratorsInput = {
+    where?: StartupWhereInput
+    data: XOR<StartupUpdateWithoutCollaboratorsInput, StartupUncheckedUpdateWithoutCollaboratorsInput>
+  }
+
+  export type StartupUpdateWithoutCollaboratorsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tagline?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    valuation?: StringFieldUpdateOperationsInput | string
+    targetAmount?: StringFieldUpdateOperationsInput | string
+    raisedAmount?: StringFieldUpdateOperationsInput | string
+    founder?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    traction?: StringFieldUpdateOperationsInput | string
+    pitchDeckUrl?: StringFieldUpdateOperationsInput | string
+    verified?: BoolFieldUpdateOperationsInput | boolean
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    videoFormat?: StringFieldUpdateOperationsInput | string
+    industry?: NullableStringFieldUpdateOperationsInput | string | null
+    subIndustry?: NullableStringFieldUpdateOperationsInput | string | null
+    businessModel?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    teamSize?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyBurn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyRevenue?: NullableStringFieldUpdateOperationsInput | string | null
+    ebitda?: NullableStringFieldUpdateOperationsInput | string | null
+    grossMargin?: NullableStringFieldUpdateOperationsInput | string | null
+    problemText?: NullableStringFieldUpdateOperationsInput | string | null
+    solutionText?: NullableStringFieldUpdateOperationsInput | string | null
+    payingCustomers?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyActiveUsers?: NullableStringFieldUpdateOperationsInput | string | null
+    arrMrr?: NullableStringFieldUpdateOperationsInput | string | null
+    growthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    customerGeography?: NullableStringFieldUpdateOperationsInput | string | null
+    businessPlanUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    financialModelUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    onePagerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    investorReadinessScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    marketScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    riskScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    moatScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    executionScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    keywords?: StartupUpdatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: NullableFloatFieldUpdateOperationsInput | number | null
+    recommendedInvestors?: StartupUpdaterecommendedInvestorsInput | string[]
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    roundType?: NullableStringFieldUpdateOperationsInput | string | null
+    fixedValuation?: NullableStringFieldUpdateOperationsInput | string | null
+    valuationCap?: NullableStringFieldUpdateOperationsInput | string | null
+    equityOffered?: NullableStringFieldUpdateOperationsInput | string | null
+    minTicket?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: NullableStringFieldUpdateOperationsInput | string | null
+    roundStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    targetCloseDate?: NullableStringFieldUpdateOperationsInput | string | null
+    mrr?: NullableStringFieldUpdateOperationsInput | string | null
+    arr?: NullableStringFieldUpdateOperationsInput | string | null
+    mrrGrowthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    burnRate?: NullableStringFieldUpdateOperationsInput | string | null
+    cashInBank?: NullableStringFieldUpdateOperationsInput | string | null
+    runway?: NullableStringFieldUpdateOperationsInput | string | null
+    priorFundingRaised?: NullableStringFieldUpdateOperationsInput | string | null
+    priorNotableInvestors?: NullableStringFieldUpdateOperationsInput | string | null
+    tam?: NullableStringFieldUpdateOperationsInput | string | null
+    sam?: NullableStringFieldUpdateOperationsInput | string | null
+    som?: NullableStringFieldUpdateOperationsInput | string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: NullableStringFieldUpdateOperationsInput | string | null
+    coreProblem?: NullableStringFieldUpdateOperationsInput | string | null
+    whyNow?: NullableStringFieldUpdateOperationsInput | string | null
+    uniqueInsight?: NullableStringFieldUpdateOperationsInput | string | null
+    proposedSolution?: NullableStringFieldUpdateOperationsInput | string | null
+    technicalApproach?: NullableStringFieldUpdateOperationsInput | string | null
+    techStack?: NullableStringFieldUpdateOperationsInput | string | null
+    demoLink?: NullableStringFieldUpdateOperationsInput | string | null
+    validationActivity?: NullableStringFieldUpdateOperationsInput | string | null
+    validationDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    willingnessToPaySignal?: NullableStringFieldUpdateOperationsInput | string | null
+    whyThisTeam?: NullableStringFieldUpdateOperationsInput | string | null
+    differentiation?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAssets?: NullableStringFieldUpdateOperationsInput | string | null
+    keyMilestone?: NullableStringFieldUpdateOperationsInput | string | null
+    vision?: NullableStringFieldUpdateOperationsInput | string | null
+    founderProfile?: FounderUpdateOneWithoutStartupsNestedInput
+    analysisRuns?: AnalysisRunUpdateManyWithoutStartupNestedInput
+    analyticsEvents?: StartupAnalyticsEventUpdateManyWithoutStartupNestedInput
+    escalations?: EscalationUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUpdateManyWithoutStartupNestedInput
+  }
+
+  export type StartupUncheckedUpdateWithoutCollaboratorsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tagline?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    valuation?: StringFieldUpdateOperationsInput | string
+    targetAmount?: StringFieldUpdateOperationsInput | string
+    raisedAmount?: StringFieldUpdateOperationsInput | string
+    founder?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    traction?: StringFieldUpdateOperationsInput | string
+    pitchDeckUrl?: StringFieldUpdateOperationsInput | string
+    verified?: BoolFieldUpdateOperationsInput | boolean
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    videoFormat?: StringFieldUpdateOperationsInput | string
+    founderId?: NullableStringFieldUpdateOperationsInput | string | null
+    industry?: NullableStringFieldUpdateOperationsInput | string | null
+    subIndustry?: NullableStringFieldUpdateOperationsInput | string | null
+    businessModel?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    teamSize?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyBurn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyRevenue?: NullableStringFieldUpdateOperationsInput | string | null
+    ebitda?: NullableStringFieldUpdateOperationsInput | string | null
+    grossMargin?: NullableStringFieldUpdateOperationsInput | string | null
+    problemText?: NullableStringFieldUpdateOperationsInput | string | null
+    solutionText?: NullableStringFieldUpdateOperationsInput | string | null
+    payingCustomers?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyActiveUsers?: NullableStringFieldUpdateOperationsInput | string | null
+    arrMrr?: NullableStringFieldUpdateOperationsInput | string | null
+    growthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    customerGeography?: NullableStringFieldUpdateOperationsInput | string | null
+    businessPlanUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    financialModelUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    onePagerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    investorReadinessScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    marketScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    riskScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    moatScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    executionScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    keywords?: StartupUpdatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: NullableFloatFieldUpdateOperationsInput | number | null
+    recommendedInvestors?: StartupUpdaterecommendedInvestorsInput | string[]
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    roundType?: NullableStringFieldUpdateOperationsInput | string | null
+    fixedValuation?: NullableStringFieldUpdateOperationsInput | string | null
+    valuationCap?: NullableStringFieldUpdateOperationsInput | string | null
+    equityOffered?: NullableStringFieldUpdateOperationsInput | string | null
+    minTicket?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: NullableStringFieldUpdateOperationsInput | string | null
+    roundStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    targetCloseDate?: NullableStringFieldUpdateOperationsInput | string | null
+    mrr?: NullableStringFieldUpdateOperationsInput | string | null
+    arr?: NullableStringFieldUpdateOperationsInput | string | null
+    mrrGrowthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    burnRate?: NullableStringFieldUpdateOperationsInput | string | null
+    cashInBank?: NullableStringFieldUpdateOperationsInput | string | null
+    runway?: NullableStringFieldUpdateOperationsInput | string | null
+    priorFundingRaised?: NullableStringFieldUpdateOperationsInput | string | null
+    priorNotableInvestors?: NullableStringFieldUpdateOperationsInput | string | null
+    tam?: NullableStringFieldUpdateOperationsInput | string | null
+    sam?: NullableStringFieldUpdateOperationsInput | string | null
+    som?: NullableStringFieldUpdateOperationsInput | string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: NullableStringFieldUpdateOperationsInput | string | null
+    coreProblem?: NullableStringFieldUpdateOperationsInput | string | null
+    whyNow?: NullableStringFieldUpdateOperationsInput | string | null
+    uniqueInsight?: NullableStringFieldUpdateOperationsInput | string | null
+    proposedSolution?: NullableStringFieldUpdateOperationsInput | string | null
+    technicalApproach?: NullableStringFieldUpdateOperationsInput | string | null
+    techStack?: NullableStringFieldUpdateOperationsInput | string | null
+    demoLink?: NullableStringFieldUpdateOperationsInput | string | null
+    validationActivity?: NullableStringFieldUpdateOperationsInput | string | null
+    validationDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    willingnessToPaySignal?: NullableStringFieldUpdateOperationsInput | string | null
+    whyThisTeam?: NullableStringFieldUpdateOperationsInput | string | null
+    differentiation?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAssets?: NullableStringFieldUpdateOperationsInput | string | null
+    keyMilestone?: NullableStringFieldUpdateOperationsInput | string | null
+    vision?: NullableStringFieldUpdateOperationsInput | string | null
+    analysisRuns?: AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput
+    analyticsEvents?: StartupAnalyticsEventUncheckedUpdateManyWithoutStartupNestedInput
+    escalations?: EscalationUncheckedUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput
+  }
+
+  export type StartupCreateWithoutHandoffNotesInput = {
+    id?: string
+    name: string
+    tagline: string
+    category: string
+    stage: string
+    valuation: string
+    targetAmount: string
+    raisedAmount: string
+    founder: string
+    location: string
+    traction: string
+    pitchDeckUrl?: string
+    verified?: boolean
+    isPublished?: boolean
+    videoFormat?: string
+    industry?: string | null
+    subIndustry?: string | null
+    businessModel?: string | null
+    country?: string | null
+    state?: string | null
+    city?: string | null
+    teamSize?: string | null
+    monthlyBurn?: string | null
+    monthlyRevenue?: string | null
+    ebitda?: string | null
+    grossMargin?: string | null
+    problemText?: string | null
+    solutionText?: string | null
+    payingCustomers?: string | null
+    monthlyActiveUsers?: string | null
+    arrMrr?: string | null
+    growthRate?: string | null
+    customerGeography?: string | null
+    businessPlanUrl?: string | null
+    financialModelUrl?: string | null
+    onePagerUrl?: string | null
+    investorReadinessScore?: number | null
+    marketScore?: number | null
+    riskScore?: number | null
+    moatScore?: number | null
+    executionScore?: number | null
+    aiSummary?: string | null
+    keywords?: StartupCreatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: number | null
+    recommendedInvestors?: StartupCreaterecommendedInvestorsInput | string[]
+    logoUrl?: string | null
+    websiteUrl?: string | null
+    linkedinUrl?: string | null
+    twitterUrl?: string | null
+    roundType?: string | null
+    fixedValuation?: string | null
+    valuationCap?: string | null
+    equityOffered?: string | null
+    minTicket?: string | null
+    interestRate?: string | null
+    roundStatus?: string | null
+    targetCloseDate?: string | null
+    mrr?: string | null
+    arr?: string | null
+    mrrGrowthRate?: string | null
+    burnRate?: string | null
+    cashInBank?: string | null
+    runway?: string | null
+    priorFundingRaised?: string | null
+    priorNotableInvestors?: string | null
+    tam?: string | null
+    sam?: string | null
+    som?: string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: string | null
+    coreProblem?: string | null
+    whyNow?: string | null
+    uniqueInsight?: string | null
+    proposedSolution?: string | null
+    technicalApproach?: string | null
+    techStack?: string | null
+    demoLink?: string | null
+    validationActivity?: string | null
+    validationDetail?: string | null
+    willingnessToPaySignal?: string | null
+    whyThisTeam?: string | null
+    differentiation?: string | null
+    ipAssets?: string | null
+    keyMilestone?: string | null
+    vision?: string | null
+    founderProfile?: FounderCreateNestedOneWithoutStartupsInput
+    analysisRuns?: AnalysisRunCreateNestedManyWithoutStartupInput
+    analyticsEvents?: StartupAnalyticsEventCreateNestedManyWithoutStartupInput
+    escalations?: EscalationCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorCreateNestedManyWithoutStartupInput
+  }
+
+  export type StartupUncheckedCreateWithoutHandoffNotesInput = {
+    id?: string
+    name: string
+    tagline: string
+    category: string
+    stage: string
+    valuation: string
+    targetAmount: string
+    raisedAmount: string
+    founder: string
+    location: string
+    traction: string
+    pitchDeckUrl?: string
+    verified?: boolean
+    isPublished?: boolean
+    videoFormat?: string
+    founderId?: string | null
+    industry?: string | null
+    subIndustry?: string | null
+    businessModel?: string | null
+    country?: string | null
+    state?: string | null
+    city?: string | null
+    teamSize?: string | null
+    monthlyBurn?: string | null
+    monthlyRevenue?: string | null
+    ebitda?: string | null
+    grossMargin?: string | null
+    problemText?: string | null
+    solutionText?: string | null
+    payingCustomers?: string | null
+    monthlyActiveUsers?: string | null
+    arrMrr?: string | null
+    growthRate?: string | null
+    customerGeography?: string | null
+    businessPlanUrl?: string | null
+    financialModelUrl?: string | null
+    onePagerUrl?: string | null
+    investorReadinessScore?: number | null
+    marketScore?: number | null
+    riskScore?: number | null
+    moatScore?: number | null
+    executionScore?: number | null
+    aiSummary?: string | null
+    keywords?: StartupCreatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: number | null
+    recommendedInvestors?: StartupCreaterecommendedInvestorsInput | string[]
+    logoUrl?: string | null
+    websiteUrl?: string | null
+    linkedinUrl?: string | null
+    twitterUrl?: string | null
+    roundType?: string | null
+    fixedValuation?: string | null
+    valuationCap?: string | null
+    equityOffered?: string | null
+    minTicket?: string | null
+    interestRate?: string | null
+    roundStatus?: string | null
+    targetCloseDate?: string | null
+    mrr?: string | null
+    arr?: string | null
+    mrrGrowthRate?: string | null
+    burnRate?: string | null
+    cashInBank?: string | null
+    runway?: string | null
+    priorFundingRaised?: string | null
+    priorNotableInvestors?: string | null
+    tam?: string | null
+    sam?: string | null
+    som?: string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: string | null
+    coreProblem?: string | null
+    whyNow?: string | null
+    uniqueInsight?: string | null
+    proposedSolution?: string | null
+    technicalApproach?: string | null
+    techStack?: string | null
+    demoLink?: string | null
+    validationActivity?: string | null
+    validationDetail?: string | null
+    willingnessToPaySignal?: string | null
+    whyThisTeam?: string | null
+    differentiation?: string | null
+    ipAssets?: string | null
+    keyMilestone?: string | null
+    vision?: string | null
+    analysisRuns?: AnalysisRunUncheckedCreateNestedManyWithoutStartupInput
+    analyticsEvents?: StartupAnalyticsEventUncheckedCreateNestedManyWithoutStartupInput
+    escalations?: EscalationUncheckedCreateNestedManyWithoutStartupInput
+    collaborators?: VentureCollaboratorUncheckedCreateNestedManyWithoutStartupInput
+  }
+
+  export type StartupCreateOrConnectWithoutHandoffNotesInput = {
+    where: StartupWhereUniqueInput
+    create: XOR<StartupCreateWithoutHandoffNotesInput, StartupUncheckedCreateWithoutHandoffNotesInput>
+  }
+
+  export type StartupUpsertWithoutHandoffNotesInput = {
+    update: XOR<StartupUpdateWithoutHandoffNotesInput, StartupUncheckedUpdateWithoutHandoffNotesInput>
+    create: XOR<StartupCreateWithoutHandoffNotesInput, StartupUncheckedCreateWithoutHandoffNotesInput>
+    where?: StartupWhereInput
+  }
+
+  export type StartupUpdateToOneWithWhereWithoutHandoffNotesInput = {
+    where?: StartupWhereInput
+    data: XOR<StartupUpdateWithoutHandoffNotesInput, StartupUncheckedUpdateWithoutHandoffNotesInput>
+  }
+
+  export type StartupUpdateWithoutHandoffNotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tagline?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    valuation?: StringFieldUpdateOperationsInput | string
+    targetAmount?: StringFieldUpdateOperationsInput | string
+    raisedAmount?: StringFieldUpdateOperationsInput | string
+    founder?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    traction?: StringFieldUpdateOperationsInput | string
+    pitchDeckUrl?: StringFieldUpdateOperationsInput | string
+    verified?: BoolFieldUpdateOperationsInput | boolean
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    videoFormat?: StringFieldUpdateOperationsInput | string
+    industry?: NullableStringFieldUpdateOperationsInput | string | null
+    subIndustry?: NullableStringFieldUpdateOperationsInput | string | null
+    businessModel?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    teamSize?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyBurn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyRevenue?: NullableStringFieldUpdateOperationsInput | string | null
+    ebitda?: NullableStringFieldUpdateOperationsInput | string | null
+    grossMargin?: NullableStringFieldUpdateOperationsInput | string | null
+    problemText?: NullableStringFieldUpdateOperationsInput | string | null
+    solutionText?: NullableStringFieldUpdateOperationsInput | string | null
+    payingCustomers?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyActiveUsers?: NullableStringFieldUpdateOperationsInput | string | null
+    arrMrr?: NullableStringFieldUpdateOperationsInput | string | null
+    growthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    customerGeography?: NullableStringFieldUpdateOperationsInput | string | null
+    businessPlanUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    financialModelUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    onePagerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    investorReadinessScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    marketScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    riskScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    moatScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    executionScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    keywords?: StartupUpdatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: NullableFloatFieldUpdateOperationsInput | number | null
+    recommendedInvestors?: StartupUpdaterecommendedInvestorsInput | string[]
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    roundType?: NullableStringFieldUpdateOperationsInput | string | null
+    fixedValuation?: NullableStringFieldUpdateOperationsInput | string | null
+    valuationCap?: NullableStringFieldUpdateOperationsInput | string | null
+    equityOffered?: NullableStringFieldUpdateOperationsInput | string | null
+    minTicket?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: NullableStringFieldUpdateOperationsInput | string | null
+    roundStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    targetCloseDate?: NullableStringFieldUpdateOperationsInput | string | null
+    mrr?: NullableStringFieldUpdateOperationsInput | string | null
+    arr?: NullableStringFieldUpdateOperationsInput | string | null
+    mrrGrowthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    burnRate?: NullableStringFieldUpdateOperationsInput | string | null
+    cashInBank?: NullableStringFieldUpdateOperationsInput | string | null
+    runway?: NullableStringFieldUpdateOperationsInput | string | null
+    priorFundingRaised?: NullableStringFieldUpdateOperationsInput | string | null
+    priorNotableInvestors?: NullableStringFieldUpdateOperationsInput | string | null
+    tam?: NullableStringFieldUpdateOperationsInput | string | null
+    sam?: NullableStringFieldUpdateOperationsInput | string | null
+    som?: NullableStringFieldUpdateOperationsInput | string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: NullableStringFieldUpdateOperationsInput | string | null
+    coreProblem?: NullableStringFieldUpdateOperationsInput | string | null
+    whyNow?: NullableStringFieldUpdateOperationsInput | string | null
+    uniqueInsight?: NullableStringFieldUpdateOperationsInput | string | null
+    proposedSolution?: NullableStringFieldUpdateOperationsInput | string | null
+    technicalApproach?: NullableStringFieldUpdateOperationsInput | string | null
+    techStack?: NullableStringFieldUpdateOperationsInput | string | null
+    demoLink?: NullableStringFieldUpdateOperationsInput | string | null
+    validationActivity?: NullableStringFieldUpdateOperationsInput | string | null
+    validationDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    willingnessToPaySignal?: NullableStringFieldUpdateOperationsInput | string | null
+    whyThisTeam?: NullableStringFieldUpdateOperationsInput | string | null
+    differentiation?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAssets?: NullableStringFieldUpdateOperationsInput | string | null
+    keyMilestone?: NullableStringFieldUpdateOperationsInput | string | null
+    vision?: NullableStringFieldUpdateOperationsInput | string | null
+    founderProfile?: FounderUpdateOneWithoutStartupsNestedInput
+    analysisRuns?: AnalysisRunUpdateManyWithoutStartupNestedInput
+    analyticsEvents?: StartupAnalyticsEventUpdateManyWithoutStartupNestedInput
+    escalations?: EscalationUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUpdateManyWithoutStartupNestedInput
+  }
+
+  export type StartupUncheckedUpdateWithoutHandoffNotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    tagline?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    stage?: StringFieldUpdateOperationsInput | string
+    valuation?: StringFieldUpdateOperationsInput | string
+    targetAmount?: StringFieldUpdateOperationsInput | string
+    raisedAmount?: StringFieldUpdateOperationsInput | string
+    founder?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    traction?: StringFieldUpdateOperationsInput | string
+    pitchDeckUrl?: StringFieldUpdateOperationsInput | string
+    verified?: BoolFieldUpdateOperationsInput | boolean
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    videoFormat?: StringFieldUpdateOperationsInput | string
+    founderId?: NullableStringFieldUpdateOperationsInput | string | null
+    industry?: NullableStringFieldUpdateOperationsInput | string | null
+    subIndustry?: NullableStringFieldUpdateOperationsInput | string | null
+    businessModel?: NullableStringFieldUpdateOperationsInput | string | null
+    country?: NullableStringFieldUpdateOperationsInput | string | null
+    state?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    teamSize?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyBurn?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyRevenue?: NullableStringFieldUpdateOperationsInput | string | null
+    ebitda?: NullableStringFieldUpdateOperationsInput | string | null
+    grossMargin?: NullableStringFieldUpdateOperationsInput | string | null
+    problemText?: NullableStringFieldUpdateOperationsInput | string | null
+    solutionText?: NullableStringFieldUpdateOperationsInput | string | null
+    payingCustomers?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyActiveUsers?: NullableStringFieldUpdateOperationsInput | string | null
+    arrMrr?: NullableStringFieldUpdateOperationsInput | string | null
+    growthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    customerGeography?: NullableStringFieldUpdateOperationsInput | string | null
+    businessPlanUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    financialModelUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    onePagerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    investorReadinessScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    marketScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    riskScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    moatScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    executionScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    aiSummary?: NullableStringFieldUpdateOperationsInput | string | null
+    keywords?: StartupUpdatekeywordsInput | string[]
+    embedding?: NullableJsonNullValueInput | InputJsonValue
+    fundingProbability?: NullableFloatFieldUpdateOperationsInput | number | null
+    recommendedInvestors?: StartupUpdaterecommendedInvestorsInput | string[]
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    websiteUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    linkedinUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    twitterUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    roundType?: NullableStringFieldUpdateOperationsInput | string | null
+    fixedValuation?: NullableStringFieldUpdateOperationsInput | string | null
+    valuationCap?: NullableStringFieldUpdateOperationsInput | string | null
+    equityOffered?: NullableStringFieldUpdateOperationsInput | string | null
+    minTicket?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: NullableStringFieldUpdateOperationsInput | string | null
+    roundStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    targetCloseDate?: NullableStringFieldUpdateOperationsInput | string | null
+    mrr?: NullableStringFieldUpdateOperationsInput | string | null
+    arr?: NullableStringFieldUpdateOperationsInput | string | null
+    mrrGrowthRate?: NullableStringFieldUpdateOperationsInput | string | null
+    burnRate?: NullableStringFieldUpdateOperationsInput | string | null
+    cashInBank?: NullableStringFieldUpdateOperationsInput | string | null
+    runway?: NullableStringFieldUpdateOperationsInput | string | null
+    priorFundingRaised?: NullableStringFieldUpdateOperationsInput | string | null
+    priorNotableInvestors?: NullableStringFieldUpdateOperationsInput | string | null
+    tam?: NullableStringFieldUpdateOperationsInput | string | null
+    sam?: NullableStringFieldUpdateOperationsInput | string | null
+    som?: NullableStringFieldUpdateOperationsInput | string | null
+    useOfFunds?: NullableJsonNullValueInput | InputJsonValue
+    teamRoster?: NullableJsonNullValueInput | InputJsonValue
+    gatedFields?: NullableJsonNullValueInput | InputJsonValue
+    ideaStage?: NullableStringFieldUpdateOperationsInput | string | null
+    coreProblem?: NullableStringFieldUpdateOperationsInput | string | null
+    whyNow?: NullableStringFieldUpdateOperationsInput | string | null
+    uniqueInsight?: NullableStringFieldUpdateOperationsInput | string | null
+    proposedSolution?: NullableStringFieldUpdateOperationsInput | string | null
+    technicalApproach?: NullableStringFieldUpdateOperationsInput | string | null
+    techStack?: NullableStringFieldUpdateOperationsInput | string | null
+    demoLink?: NullableStringFieldUpdateOperationsInput | string | null
+    validationActivity?: NullableStringFieldUpdateOperationsInput | string | null
+    validationDetail?: NullableStringFieldUpdateOperationsInput | string | null
+    willingnessToPaySignal?: NullableStringFieldUpdateOperationsInput | string | null
+    whyThisTeam?: NullableStringFieldUpdateOperationsInput | string | null
+    differentiation?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAssets?: NullableStringFieldUpdateOperationsInput | string | null
+    keyMilestone?: NullableStringFieldUpdateOperationsInput | string | null
+    vision?: NullableStringFieldUpdateOperationsInput | string | null
+    analysisRuns?: AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput
+    analyticsEvents?: StartupAnalyticsEventUncheckedUpdateManyWithoutStartupNestedInput
+    escalations?: EscalationUncheckedUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput
+  }
+
   export type AnalysisRunCreateManyStartupInput = {
     id?: string
     investorId?: string | null
@@ -51248,6 +55410,29 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     teamId?: string | null
+  }
+
+  export type VentureCollaboratorCreateManyStartupInput = {
+    id?: string
+    userEmail: string
+    role?: $Enums.VentureRole
+    invitedBy: string
+    status?: $Enums.CollaboratorStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type HandoffNoteCreateManyStartupInput = {
+    id?: string
+    createdBy: string
+    assignedTo?: string | null
+    title: string
+    context: string
+    pendingActions?: string | null
+    keyDecisions?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AnalysisRunUpdateWithoutStartupInput = {
@@ -51370,6 +55555,75 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     teamId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type VentureCollaboratorUpdateWithoutStartupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VentureCollaboratorUncheckedUpdateWithoutStartupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VentureCollaboratorUncheckedUpdateManyWithoutStartupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userEmail?: StringFieldUpdateOperationsInput | string
+    role?: EnumVentureRoleFieldUpdateOperationsInput | $Enums.VentureRole
+    invitedBy?: StringFieldUpdateOperationsInput | string
+    status?: EnumCollaboratorStatusFieldUpdateOperationsInput | $Enums.CollaboratorStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HandoffNoteUpdateWithoutStartupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HandoffNoteUncheckedUpdateWithoutStartupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HandoffNoteUncheckedUpdateManyWithoutStartupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    assignedTo?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: StringFieldUpdateOperationsInput | string
+    context?: StringFieldUpdateOperationsInput | string
+    pendingActions?: NullableStringFieldUpdateOperationsInput | string | null
+    keyDecisions?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AnalysisRunCreateManyInvestorInput = {
@@ -51823,6 +56077,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunUpdateManyWithoutStartupNestedInput
     analyticsEvents?: StartupAnalyticsEventUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupUncheckedUpdateWithoutFounderProfileInput = {
@@ -51917,6 +56173,8 @@ export namespace Prisma {
     analysisRuns?: AnalysisRunUncheckedUpdateManyWithoutStartupNestedInput
     analyticsEvents?: StartupAnalyticsEventUncheckedUpdateManyWithoutStartupNestedInput
     escalations?: EscalationUncheckedUpdateManyWithoutStartupNestedInput
+    collaborators?: VentureCollaboratorUncheckedUpdateManyWithoutStartupNestedInput
+    handoffNotes?: HandoffNoteUncheckedUpdateManyWithoutStartupNestedInput
   }
 
   export type StartupUncheckedUpdateManyWithoutFounderProfileInput = {

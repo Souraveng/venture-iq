@@ -118,6 +118,8 @@ model Startup {
   analysisRuns AnalysisRun[]
   analyticsEvents StartupAnalyticsEvent[]
   escalations  Escalation[]
+  collaborators   VentureCollaborator[]
+  handoffNotes    HandoffNote[]
 }
 
 model Investor {
@@ -617,5 +619,53 @@ model TeamMember {
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userEmail])
+}
+
+// ── Venture-scoped Collaboration (GCP IAM-style) ──
+
+enum VentureRole {
+  OWNER    // Co-founder level: full access including team management & danger zone
+  EDITOR   // Key contributor: can edit venture data, view analytics, attend meetings
+  VIEWER   // Observer: read-only access to dashboards, validation history, profile
+}
+
+enum CollaboratorStatus {
+  PENDING   // Invitation sent, not yet accepted
+  ACTIVE    // Accepted and actively collaborating
+  REVOKED   // Access was revoked by an owner
+}
+
+model VentureCollaborator {
+  id          String              @id @default(uuid())
+  startupId   String
+  userEmail   String
+  role        VentureRole         @default(VIEWER)
+  invitedBy   String
+  status      CollaboratorStatus  @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  startup     Startup             @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  @@unique([startupId, userEmail])
+  @@index([userEmail])
+}
+
+model HandoffNote {
+  id             String   @id @default(uuid())
+  startupId      String
+  createdBy      String
+  assignedTo     String?
+  title          String
+  context        String   @db.Text
+  pendingActions String?  @db.Text
+  keyDecisions   String?  @db.Text
+  status         String   @default("OPEN")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  startup        Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  @@index([startupId, assignedTo])
 }
 
