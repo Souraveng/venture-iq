@@ -108,8 +108,8 @@ export default function Sidebar({
   const isFounderPanel = pathname.startsWith("/founder") || role === "founder";
 
   const founderNavItems = [
-    { name: "Dashboard", href: "/founder/fundraising", icon: LayoutDashboard },
     { name: "My Startup", href: "/founder/projects", icon: Rocket },
+    { name: "Dashboard", href: "/founder/fundraising", icon: LayoutDashboard },
     { name: "Pitch Setup", href: "/founder/pitch-setup", icon: Video },
     { name: "Connect Hub", href: "/founder/connect", icon: TrendingUp },
     { name: "Meetings", href: "/founder/meetings", icon: Users },

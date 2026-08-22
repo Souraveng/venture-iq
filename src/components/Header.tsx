@@ -64,6 +64,7 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
   const isFounder = pathname.startsWith("/founder") || role === "founder";
 
   const [startups, setStartups] = useState<any[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
     if (isFounder && userName) {
@@ -78,18 +79,31 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
               category: item.category || "Project"
             }));
             setStartups(formatted);
+            setHasFetched(true);
           }
         })
         .catch((err) => console.error("Failed to load startups for header:", err));
     }
   }, [isFounder, pathname, userName]);
 
-  // Auto-select the first startup if none is active
+  // Sync active startup with available startups after fetch
   useEffect(() => {
-    if (isFounder && startups.length > 0 && (!activeStartup || !activeStartup.name)) {
-      setActiveStartup(startups[0]);
+    if (isFounder && hasFetched) {
+      if (startups.length === 0) {
+        if (activeStartup?.name) {
+          setActiveStartup({ name: "", verified: false });
+        }
+      } else {
+        const exists = activeStartup?.name 
+          ? startups.find(s => s.id === activeStartup.id || s.name === activeStartup.name)
+          : null;
+          
+        if (!exists) {
+          setActiveStartup(startups[0]);
+        }
+      }
     }
-  }, [isFounder, startups, activeStartup, setActiveStartup]);
+  }, [isFounder, hasFetched, startups, activeStartup, setActiveStartup]);
 
   // Hide top header on transactional login / role selection page
   if (pathname === "/" || pathname === "/founder/home" || pathname.startsWith("/login")) {
