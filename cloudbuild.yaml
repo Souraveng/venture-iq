@@ -1,16 +1,28 @@
 steps:
-  # 1. Build the container image
+  # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$BUILD_ID',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:latest',
-      '.'
-    ]
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/ventureiq-app:$COMMIT_SHA', '.']
 
-  # 2. Push the container image to Artifact Registry
+  # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '--all-tags', 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app']
+    args: ['push', 'gcr.io/$PROJECT_ID/ventureiq-app:$COMMIT_SHA']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'ventureiq-app'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/ventureiq-app:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      # Here is how you can inject secrets from Google Secret Manager into Cloud Run environment variables.
+      # Make sure the Cloud Run service agent has the 'Secret Manager Secret Accessor' role.
+      - '--set-secrets'
+      - 'DATABASE_URL=DATABASE_URL:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,AZURE_AD_CLIENT_ID=AZURE_AD_CLIENT_ID:latest,AZURE_AD_CLIENT_SECRET=AZURE_AD_CLIENT_SECRET:latest,AZURE_AD_TENANT_ID=AZURE_AD_TENANT_ID:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,NIM_API_KEY_1=NIM_API_KEY_1:latest,NIM_API_KEY_2=NIM_API_KEY_2:latest,NIM_API_KEY_3=NIM_API_KEY_3:latest,NIM_API_KEY_4=NIM_API_KEY_4:latest,TAVILY_API_KEY=TAVILY_API_KEY:latest,AZURE_COSMOS_ENDPOINT=AZURE_COSMOS_ENDPOINT:latest,AZURE_COSMOS_KEY=AZURE_COSMOS_KEY:latest,AZURE_COSMOS_DB_NAME=AZURE_COSMOS_DB_NAME:latest,AZURE_COSMOS_CONTAINER_NAME=AZURE_COSMOS_CONTAINER_NAME:latest'
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/venture-iq-repo/venture-iq-app:$BUILD_ID'
+  - 'gcr.io/$PROJECT_ID/ventureiq-app:$COMMIT_SHA'

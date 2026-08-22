@@ -1,40 +1,46 @@
-# 1. Install dependencies only when needed
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on package-lock.json
+# Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# 2. Rebuild the source code only when needed
-FROM node:20-alpine AS builder
+# Rebuild the source code only when needed
+FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN mkdir -p public
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED=1
+# Generate Prisma client before building
+RUN npx prisma generate
 
+# Next.js telemetry is disabled by default in CI, but you can explicitly disable it
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# If using Secret Manager for build-time secrets, they need to be injected here.
+# Since user mentioned runtime secrets in Secret Manager, we assume build succeeds without runtime secrets.
 RUN npm run build
 
-# 3. Production image, copy all the files and run next
-FROM node:20-alpine AS runner
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
+
+COPY --from=builder /app/public ./public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
@@ -45,8 +51,9 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV PORT 3000
+# set hostname to localhost
+ENV HOSTNAME "0.0.0.0"
 
 # server.js is created by next build from the standalone output
 CMD ["node", "server.js"]

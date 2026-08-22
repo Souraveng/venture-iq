@@ -1,0 +1,15 @@
+name = "ventureiq-worker"
+main = "src/worker.ts"
+compatibility_date = "2023-10-16"
+compatibility_flags = ["nodejs_compat"]
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "ventureiq-media"
+
+[ai]
+binding = "AI"
+
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "startup-embeddings"
