@@ -300,6 +300,13 @@ export default function StartupDiscoveryFeedReplicatedPage() {
   };
 
   const handleNext = () => {
+    if (currentIndex === startups.length - 1) {
+      // Refresh feed when scrolling down past the last startup
+      showToastNotification("Loading fresh startups...", "success");
+      loadFeed();
+      setCurrentIndex(0);
+      return;
+    }
     setCurrentIndex((prev) => (prev + 1) % startups.length);
     if (cardRef.current) {
       gsap.fromTo(
@@ -311,6 +318,12 @@ export default function StartupDiscoveryFeedReplicatedPage() {
   };
 
   const handlePrev = () => {
+    if (currentIndex === 0) {
+      // Refresh feed when pulling down on the first startup
+      showToastNotification("Refreshing feed...", "success");
+      loadFeed();
+      return;
+    }
     setCurrentIndex((prev) => (prev - 1 + startups.length) % startups.length);
     if (cardRef.current) {
       gsap.fromTo(
