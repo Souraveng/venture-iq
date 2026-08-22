@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { getUserVentureRole, isPrimaryFounder } from "@/lib/permissions";
+
+async function getAuthEmail(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) return session.user.email;
+  return req.headers.get("x-user-email");
+}
 
 /**
  * PATCH /api/ventures/collaborators/[collaboratorId]
@@ -14,7 +22,7 @@ export async function PATCH(
   { params }: { params: Promise<{ collaboratorId: string }> }
 ) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -24,7 +32,6 @@ export async function PATCH(
     const { role, status } = body as { role?: string; status?: string };
 
     // Find the collaborator
-    // @ts-ignore - Prisma client out of sync
     const collaborator = await prisma.ventureCollaborator.findUnique({
       where: { id: collaboratorId },
     });
@@ -51,7 +58,6 @@ export async function PATCH(
         );
       }
 
-      // @ts-ignore - Prisma client out of sync
       const updated = await prisma.ventureCollaborator.update({
         where: { id: collaboratorId },
         data: { status: status as any },
@@ -96,7 +102,6 @@ export async function PATCH(
       );
     }
 
-    // @ts-ignore - Prisma client out of sync
     const updated = await prisma.ventureCollaborator.update({
       where: { id: collaboratorId },
       data: { role: role as any },
@@ -125,7 +130,7 @@ export async function DELETE(
   { params }: { params: Promise<{ collaboratorId: string }> }
 ) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -133,7 +138,6 @@ export async function DELETE(
     const { collaboratorId } = await params;
 
     // Find the collaborator
-    // @ts-ignore - Prisma client out of sync
     const collaborator = await prisma.ventureCollaborator.findUnique({
       where: { id: collaboratorId },
     });
@@ -176,7 +180,6 @@ export async function DELETE(
       }
     }
 
-    // @ts-ignore - Prisma client out of sync
     await prisma.ventureCollaborator.delete({
       where: { id: collaboratorId },
     });

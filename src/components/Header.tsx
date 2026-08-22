@@ -20,7 +20,10 @@ import {
   Plus,
   MoreVertical,
   FolderDot,
-  Building
+  Building,
+  FileText,
+  Clock,
+  ClipboardList
 } from "lucide-react";
 
 interface HeaderProps {
@@ -53,6 +56,67 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
   const [gcpSearchQuery, setGcpSearchQuery] = useState("");
   const [gcpActiveTab, setGcpActiveTab] = useState<"recent" | "starred" | "all">("recent");
   const [starredProjects, setStarredProjects] = useState<Set<string>>(new Set());
+
+  // Handoff Notes states
+  const [notesDropdownOpen, setNotesDropdownOpen] = useState(false);
+  const [handoffNotes, setHandoffNotes] = useState<any[]>([]);
+  const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
+  const notesDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const fetchHandoffNotes = async () => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch("/api/user/handoff-notes", {
+        headers: { "x-user-email": userEmail }
+      });
+      const json = (await res.json()) as any;
+      if (json.success) {
+        setHandoffNotes(json.notes || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch handoff notes:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchHandoffNotes();
+    const interval = setInterval(fetchHandoffNotes, 15000);
+    return () => clearInterval(interval);
+  }, [userEmail]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notesDropdownRef.current && !notesDropdownRef.current.contains(event.target as Node)) {
+        setNotesDropdownOpen(false);
+      }
+    };
+    if (notesDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [notesDropdownOpen]);
+
+  const handleAcknowledgeNote = async (noteId: string) => {
+    try {
+      const res = await fetch("/api/user/handoff-notes", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-email": userEmail || ""
+        },
+        body: JSON.stringify({ noteId, status: "ACKNOWLEDGED" })
+      });
+      const json = (await res.json()) as any;
+      if (json.success) {
+        setHandoffNotes(prev => prev.filter(n => n.id !== noteId));
+        if (expandedNoteId === noteId) setExpandedNoteId(null);
+      }
+    } catch (err) {
+      console.error("Failed to acknowledge handoff note:", err);
+    }
+  };
 
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -252,6 +316,97 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
 
       {/* Right User Actions (Shared) */}
       <div className="flex items-center justify-end gap-2 sm:gap-4 shrink-0">
+        {/* Handoff Notes Dropdown */}
+        {userEmail && (
+          <div ref={notesDropdownRef} className="relative">
+            <button
+              onClick={() => setNotesDropdownOpen(!notesDropdownOpen)}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all flex items-center justify-center relative"
+              title="Handoff Notes"
+            >
+              <ClipboardList className="w-5 h-5" />
+              {handoffNotes.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ccf063] text-[10px] font-extrabold text-black animate-pulse">
+                  {handoffNotes.length}
+                </span>
+              )}
+            </button>
+
+            {notesDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-[#1f1f1f] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-xs text-white max-h-[400px] overflow-y-auto">
+                <div className="p-3 border-b border-white/5 bg-black/20 flex justify-between items-center">
+                  <span className="font-bold tracking-tight">Handoff Notes ({handoffNotes.length})</span>
+                  <span className="text-[10px] text-white/40">Assigned to you</span>
+                </div>
+                {handoffNotes.length === 0 ? (
+                  <div className="p-4 text-center text-white/40 italic">
+                    No active handoff notes assigned to you.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-white/5">
+                    {handoffNotes.map((note) => {
+                      const isExpanded = expandedNoteId === note.id;
+                      return (
+                        <div key={note.id} className="p-3 hover:bg-white/[0.01] transition-colors">
+                          <button
+                            onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                            className="w-full text-left flex justify-between items-start gap-2"
+                          >
+                            <div className="text-left">
+                              <div className="font-bold text-white leading-snug">{note.title}</div>
+                              <div className="text-[10px] text-[#ccf063] font-semibold mt-0.5">{note.startup?.name}</div>
+                              <div className="text-[9px] text-white/30 mt-0.5 flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5" />
+                                {new Date(note.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <span className="text-[9px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/25 px-1.5 py-0.5 rounded font-mono uppercase shrink-0">
+                              {note.status}
+                            </span>
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className="mt-3 space-y-2 pt-2 border-t border-white/5 text-white/70">
+                              <div>
+                                <span className="text-[9px] uppercase tracking-wider font-bold text-white/40 block mb-0.5">Context</span>
+                                <pre className="bg-black/20 p-2 rounded border border-white/5 text-[11px] font-sans leading-relaxed whitespace-pre-wrap">
+                                  {note.context}
+                                </pre>
+                              </div>
+                              {note.pendingActions && (
+                                <div>
+                                  <span className="text-[9px] uppercase tracking-wider font-bold text-white/40 block mb-0.5">Pending Actions</span>
+                                  <pre className="bg-black/20 p-2 rounded border border-white/5 text-[11px] font-sans leading-relaxed whitespace-pre-wrap text-yellow-300/80">
+                                    {note.pendingActions}
+                                  </pre>
+                                </div>
+                              )}
+                              {note.keyDecisions && (
+                                <div>
+                                  <span className="text-[9px] uppercase tracking-wider font-bold text-white/40 block mb-0.5">Key Decisions</span>
+                                  <pre className="bg-black/20 p-2 rounded border border-white/5 text-[11px] font-sans leading-relaxed whitespace-pre-wrap text-emerald-300/80">
+                                    {note.keyDecisions}
+                                  </pre>
+                                </div>
+                              )}
+                              <button
+                                onClick={() => handleAcknowledgeNote(note.id)}
+                                className="w-full mt-2 py-1.5 rounded-lg bg-[#ccf063] hover:bg-[#b0d449] text-black font-extrabold text-[11px] transition-colors"
+                              >
+                                Acknowledge & Archive
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Sliding Theme Toggle */}
         {mounted && (
           <button

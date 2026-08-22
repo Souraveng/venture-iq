@@ -78,10 +78,22 @@ export async function GET(request: NextRequest) {
     }
 
     const founder = searchParams.get("founder");
+    const founderEmail = searchParams.get("founderEmail");
 
     const whereClause: any = {};
     if (founder) {
       whereClause.founder = { equals: founder, mode: 'insensitive' as any };
+    } else if (founderEmail) {
+      const user = await prisma.user.findUnique({ where: { email: founderEmail } });
+      const founderProfiles = await prisma.founder.findMany({
+        where: {
+          OR: [
+            { email: { equals: founderEmail, mode: 'insensitive' as any } },
+            ...(user?.name ? [{ fullName: { equals: user.name, mode: 'insensitive' as any } }] : [])
+          ]
+        }
+      });
+      whereClause.founderId = { in: founderProfiles.map(f => f.id) };
     } else {
       whereClause.isPublished = true;
     }
@@ -92,9 +104,18 @@ export async function GET(request: NextRequest) {
         founderProfile: true
       }
     });
+    
+    // The frontend collaboration page expects `data.startups` when searching by `founderEmail`, but currently returns `data: startups` for other cases. Let's make it compatible with the frontend which expects `data.startups`. Or wait, the frontend does: `const data = await res.json(); setVentures(data.startups);`.
+    // Wait, the frontend code is:
+    // const res = await fetch("/api/startups?founderEmail=" + encodeURIComponent(userEmail));
+    // const data = (await res.json()) as any;
+    // if (data.startups && data.startups.length > 0) { ... }
+    // Let's modify the response to include `startups: startups` alongside `data: startups`.
+    
     return NextResponse.json({
       success: true,
       data: startups,
+      startups: startups,
       count: startups.length,
       timestamp: new Date().toISOString(),
     });
@@ -114,23 +135,47 @@ export async function POST(req: Request) {
     const body = (await req.json()) as any;
     const { id, founder, name, tagline, targetAmount, valuation, category, location, traction, roundType, stage, isPublished, introVideoUrl, ...rest } = body;
 
-    let founderProfile = await prisma.founder.findFirst({
-      where: { fullName: founder }
-    });
+    // Strict founder profile resolution: prefer email match over name match
+    // This prevents creating duplicate profiles when the user's display name has typos
+    const founderEmail = body.founderEmail; // passed from frontend with session email
+    let founderProfile = null;
     
+    // 1. Try to find by email first (most reliable)
+    if (founderEmail) {
+      founderProfile = await prisma.founder.findUnique({
+        where: { email: founderEmail }
+      });
+    }
+    
+    // 2. Fallback: find by name (case-insensitive)
+    if (!founderProfile && founder) {
+      founderProfile = await prisma.founder.findFirst({
+        where: { fullName: { equals: founder, mode: 'insensitive' as any } }
+      });
+    }
+    
+    // 3. Create new profile only if neither match exists — and always set email
     if (!founderProfile) {
       founderProfile = await prisma.founder.create({
         data: {
           fullName: founder,
+          email: founderEmail || null,
           introVideoUrl: introVideoUrl || "https://vimeo.com/123456789",
           startupName: name,
         }
       });
-    } else if (introVideoUrl) {
-      founderProfile = await prisma.founder.update({
-        where: { id: founderProfile.id },
-        data: { introVideoUrl }
-      });
+    } else {
+      // Update existing profile if needed
+      const updateData: any = {};
+      if (introVideoUrl) updateData.introVideoUrl = introVideoUrl;
+      // Ensure email is always set if available
+      if (founderEmail && !founderProfile.email) updateData.email = founderEmail;
+      if (Object.keys(updateData).length > 0) {
+        founderProfile = await prisma.founder.update({
+          where: { id: founderProfile.id },
+          data: updateData
+        });
+      }
     }
 
     const data = {

@@ -64,15 +64,17 @@ export default function FounderEditProfilePage() {
   const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
   const [invitationsLoading, setInvitationsLoading] = useState(false);
 
-  // Fetch ventures the user has access to
+  // Fetch ventures the user has access to (owned + collaborating)
   const fetchVentures = useCallback(async () => {
     if (!userEmail) return;
     try {
-      const res = await fetch("/api/startups?founderEmail=" + encodeURIComponent(userEmail));
+      const res = await fetch("/api/user/ventures", {
+        headers: { "x-user-email": userEmail }
+      });
       const data = (await res.json()) as any;
-      if (data.startups && data.startups.length > 0) {
-        setVentures(data.startups);
-        if (!selectedVenture) setSelectedVenture(data.startups[0]);
+      if (data.success && data.ventures && data.ventures.length > 0) {
+        setVentures(data.ventures);
+        if (!selectedVenture) setSelectedVenture(data.ventures[0]);
       }
     } catch (err) {
       console.error("Failed to fetch ventures:", err);

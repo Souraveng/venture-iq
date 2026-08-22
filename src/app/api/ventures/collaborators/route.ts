@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { getUserVentureRole, isPrimaryFounder } from "@/lib/permissions";
+
+/**
+ * Helper: Extract authenticated user email from session (preferred) or header (fallback).
+ */
+async function getAuthEmail(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) return session.user.email;
+  // Fallback: x-user-email header (for backward compatibility)
+  return req.headers.get("x-user-email");
+}
 
 /**
  * GET /api/ventures/collaborators?startupId=xxx[&checkRole=true]
@@ -8,7 +20,7 @@ import { getUserVentureRole, isPrimaryFounder } from "@/lib/permissions";
  */
 export async function GET(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -34,7 +46,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch all collaborators
-    // @ts-ignore - Prisma client out of sync
     const collaborators = await prisma.ventureCollaborator.findMany({
       where: { startupId },
       orderBy: [{ role: "asc" }, { createdAt: "asc" }],
@@ -47,28 +58,46 @@ export async function GET(req: NextRequest) {
         founderProfile: {
           select: { email: true, fullName: true, avatarUrl: true },
         },
+        founder: true,
       },
     });
 
-    const primaryFounderEmail = startup?.founderProfile?.email || null;
+    const founderEmail =
+      startup?.founderProfile?.email ||
+      (startup?.founder ? `${startup.founder.toLowerCase().replace(/\s+/g, '')}@ventureiq.internal` : null);
 
-    const response: any = {
-      success: true,
-      collaborators,
-      primaryFounderEmail,
-      primaryFounderName: startup?.founderProfile?.fullName || null,
-      primaryFounderAvatar: startup?.founderProfile?.avatarUrl || null,
-    };
+    const result = collaborators.map((c: any) => ({
+      id: c.id,
+      email: c.userEmail,
+      role: c.role,
+      status: c.status,
+      invitedBy: c.invitedBy,
+      createdAt: c.createdAt,
+      isPrimaryFounder: c.userEmail === founderEmail,
+    }));
 
-    if (checkRole) {
-      response.currentUserRole = callerRole;
+    // If primary founder has no collaborator row, prepend them
+    if (founderEmail && !result.some((r: any) => r.email === founderEmail)) {
+      result.unshift({
+        id: "primary-founder",
+        email: founderEmail,
+        role: "OWNER",
+        status: "ACTIVE",
+        invitedBy: "system",
+        createdAt: new Date().toISOString(),
+        isPrimaryFounder: true,
+      });
     }
 
-    return NextResponse.json(response);
+    return NextResponse.json({
+      success: true,
+      collaborators: result,
+      callerRole,
+    });
   } catch (err: any) {
     console.error("Error fetching collaborators:", err);
     return NextResponse.json(
-      { success: false, error: err.message },
+      { error: "Failed to fetch collaborators" },
       { status: 500 }
     );
   }
@@ -76,23 +105,23 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/ventures/collaborators
- * Invite a new collaborator to a venture.
- * Body: { startupId, email, role }
- * Requires OWNER role on the venture.
+ * Invite a collaborator to a venture.
+ * Body: { startupId, email, role: "OWNER" | "EDITOR" | "VIEWER" }
+ * Caller must be OWNER of the venture.
  */
 export async function POST(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { startupId, email, role } = body as {
-      startupId: string;
-      email: string;
+    const body = (await req.json()) as {
+      startupId?: string;
+      email?: string;
       role?: string;
     };
+    const { startupId, email, role } = body;
 
     if (!startupId || !email) {
       return NextResponse.json(
@@ -101,7 +130,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Only OWNERs can invite
+    // Caller must be an OWNER
     const callerRole = await getUserVentureRole(userEmail, startupId);
     if (callerRole !== "OWNER") {
       return NextResponse.json(
@@ -110,19 +139,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Cannot invite yourself
-    if (email === userEmail) {
-      return NextResponse.json(
-        { error: "You cannot invite yourself" },
-        { status: 400 }
-      );
-    }
-
-    // Check that the invitee has a Venture IQ account
-    const invitee = await prisma.user.findUnique({
+    // Check if the user being invited exists in the system
+    const targetUser = await prisma.user.findUnique({
       where: { email },
+      select: { id: true, email: true, name: true },
     });
-    if (!invitee) {
+
+    if (!targetUser) {
       return NextResponse.json(
         {
           error:
@@ -133,7 +156,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if already a collaborator
-    // @ts-ignore - Prisma client out of sync
     const existing = await prisma.ventureCollaborator.findUnique({
       where: { startupId_userEmail: { startupId, userEmail: email } },
     });
@@ -160,7 +182,6 @@ export async function POST(req: NextRequest) {
     const validRoles = ["OWNER", "EDITOR", "VIEWER"];
     const assignRole = role && validRoles.includes(role) ? role : "VIEWER";
 
-    // @ts-ignore - Prisma client out of sync
     const collaborator = await prisma.ventureCollaborator.create({
       data: {
         startupId,

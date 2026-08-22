@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+
+async function getAuthEmail(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) return session.user.email;
+  return req.headers.get("x-user-email");
+}
 
 /**
  * GET /api/user/invitations
@@ -7,12 +15,11 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // @ts-ignore - Prisma client out of sync
     const invitations = await prisma.ventureCollaborator.findMany({
       where: {
         userEmail,

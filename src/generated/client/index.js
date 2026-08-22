@@ -726,7 +726,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\venture-iq\\src\\generated\\client",
+      "value": "D:\\CODING\\Venture IQ\\venture-iq\\src\\generated\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -740,11 +740,12 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\venture-iq\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\CODING\\Venture IQ\\venture-iq\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": "../../../.env",
+    "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
   "clientVersion": "6.19.3",

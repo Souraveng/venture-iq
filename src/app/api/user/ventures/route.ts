@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+
+async function getAuthEmail(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) return session.user.email;
+  return req.headers.get("x-user-email");
+}
 
 /**
  * GET /api/user/ventures
@@ -8,27 +16,30 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Find user's profile to get their own startups
-    const founder = await prisma.founder.findUnique({
-      where: { email: userEmail },
-      include: {
-        startups: {
-          select: {
-            id: true,
-            name: true,
-            verified: true,
-          },
-        },
+    // Find the user to get their name
+    const user = await prisma.user.findUnique({ where: { email: userEmail } });
+
+    // Find startups they own: either by founderProfile email, OR by user name match
+    const ownStartups = await prisma.startup.findMany({
+      where: {
+        OR: [
+          { founderProfile: { email: { equals: userEmail, mode: 'insensitive' as any } } },
+          ...(user?.name ? [{ founder: { equals: user.name, mode: 'insensitive' as any } }] : [])
+        ]
       },
+      select: {
+        id: true,
+        name: true,
+        verified: true,
+      }
     });
 
     // Find startups they are collaborating on
-    // @ts-ignore - Prisma client out of sync
     const collaborations = await prisma.ventureCollaborator.findMany({
       where: {
         userEmail,
@@ -45,7 +56,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const ownStartups = founder?.startups || [];
     const collabStartups = collaborations.map((c: any) => c.startup);
 
     // Merge and deduplicate just in case

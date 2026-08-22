@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { getUserVentureRole } from "@/lib/permissions";
+
+async function getAuthEmail(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) return session.user.email;
+  return req.headers.get("x-user-email");
+}
 
 /**
  * GET /api/ventures/handoff-notes?startupId=xxx
@@ -8,7 +16,7 @@ import { getUserVentureRole } from "@/lib/permissions";
  */
 export async function GET(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -33,7 +41,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch all notes for the venture
-    // @ts-ignore - Prisma client out of sync
     const notes = await prisma.handoffNote.findMany({
       where: { startupId },
       orderBy: { createdAt: "desc" },
@@ -57,7 +64,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -90,7 +97,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Create the handoff note
-    // @ts-ignore - Prisma client out of sync
     const note = await prisma.handoffNote.create({
       data: {
         startupId,

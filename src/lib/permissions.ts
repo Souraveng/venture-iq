@@ -90,17 +90,27 @@ export async function getUserVentureRole(
   const startup = await prisma.startup.findUnique({
     where: { id: startupId },
     select: {
+      founder: true,
       founderId: true,
       founderProfile: { select: { email: true } },
     },
   });
 
+  // Direct email match on founder profile
   if (startup?.founderProfile?.email === userEmail) {
     return "OWNER";
   }
 
+  // Fallback: check if the startup's "founder" name field matches the user's account name
+  // This handles cases where founderId points to a profile without an email
+  if (startup?.founder) {
+    const user = await prisma.user.findUnique({ where: { email: userEmail } });
+    if (user?.name && user.name.toLowerCase() === startup.founder.toLowerCase()) {
+      return "OWNER";
+    }
+  }
+
   // Check VentureCollaborator table
-  // @ts-ignore
   const collaborator = await prisma.ventureCollaborator.findUnique({
     where: {
       startupId_userEmail: { startupId, userEmail },
@@ -153,7 +163,6 @@ export async function getUserVentures(userEmail: string) {
   });
 
   // Ventures where user is a collaborator
-  // @ts-ignore
   const collaborations = await prisma.ventureCollaborator.findMany({
     where: {
       userEmail,

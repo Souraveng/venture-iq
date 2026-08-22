@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { getUserVentureRole } from "@/lib/permissions";
+
+async function getAuthEmail(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.email) return session.user.email;
+  return req.headers.get("x-user-email");
+}
 
 /**
  * POST /api/ventures/handoff-notes/generate
@@ -10,7 +18,7 @@ import { getUserVentureRole } from "@/lib/permissions";
  */
 export async function POST(req: NextRequest) {
   try {
-    const userEmail = req.headers.get("x-user-email");
+    const userEmail = await getAuthEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -64,6 +72,7 @@ export async function POST(req: NextRequest) {
         verified: true,
         investorReadinessScore: true,
         aiSummary: true,
+        founderProfile: { select: { email: true } },
       },
     });
 
@@ -74,9 +83,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Recent validations
+    // 2. Recent validations (query by startup founder's email, not the caller)
+    const founderEmail = startup?.founderProfile?.email || userEmail;
     const validations = await prisma.validation.findMany({
-      where: { userEmail },
+      where: { userEmail: founderEmail },
       orderBy: { createdAt: "desc" },
       take: 3,
       select: {
@@ -117,7 +127,6 @@ export async function POST(req: NextRequest) {
     });
 
     // 5. Collaborators
-    // @ts-ignore - Prisma client out of sync
     const collaborators = await prisma.ventureCollaborator.findMany({
       where: { startupId, status: "ACTIVE" },
       select: { userEmail: true, role: true },
@@ -203,7 +212,6 @@ export async function POST(req: NextRequest) {
     const title = `Handoff Note — ${startup.name} — ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
 
     // Create the handoff note
-    // @ts-ignore - Prisma client out of sync
     const note = await prisma.handoffNote.create({
       data: {
         startupId,
