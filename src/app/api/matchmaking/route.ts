@@ -77,7 +77,7 @@ export async function POST(req: Request) {
 
     let investorVector: number[];
     try {
-      const [v] = await vertexAiEmbed([investorQueryText]);
+      const [v] = await vertexAiEmbed([investorQueryText], { taskType: "RETRIEVAL_QUERY" });
       if (!v || v.length === 0) {
         throw new Error("Empty vector returned from Vertex AI Embedding service.");
       }
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
               `Solution: ${s.solutionText || ""}`,
             ].filter(Boolean).join(". ");
 
-            const [newEmb] = await vertexAiEmbed([startupText]);
+            const [newEmb] = await vertexAiEmbed([startupText], { taskType: "RETRIEVAL_DOCUMENT", title: s.name });
             if (newEmb) {
               embedding = newEmb;
               await prisma.startup.update({

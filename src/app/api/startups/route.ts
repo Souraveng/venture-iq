@@ -182,7 +182,7 @@ export async function POST(req: Request) {
     // Generate and persist vector embedding via Vertex AI (gemini-embedding-2) in the background
     try {
       const textToEmbed = buildStartupEmbeddingText(startup, body);
-      vertexAiEmbed([textToEmbed])
+      vertexAiEmbed([textToEmbed], { taskType: "RETRIEVAL_DOCUMENT", title: body.name || startup.name || "Startup Profile" })
         .then(async (embeddings) => {
           if (embeddings && embeddings[0]) {
             await prisma.startup.update({

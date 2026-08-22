@@ -112,7 +112,7 @@ export async function POST(req: Request) {
 
       if (!currentVector || currentVector.length === 0) {
         const queryText = `Thesis: ${investor.thesis || ""}. Focus: ${(investor.focusSectors || []).join(", ")}. Stages: ${(investor.preferredStages || []).join(", ")}`;
-        const [generated] = await vertexAiEmbed([queryText]);
+        const [generated] = await vertexAiEmbed([queryText], { taskType: "RETRIEVAL_QUERY" });
         currentVector = generated;
       }
 

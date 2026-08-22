@@ -198,7 +198,7 @@ export const VERTEX_MODELS = {
   /** Roadmap & Report (Deep Reasoning) */
   roadmap: "google/gemini-3.1-pro-preview",
   /** Multimodal & High-Density Embeddings for Vector Store (RAG) */
-  embed: "google/gemini-embedding-2",
+  embed: "google/text-embedding-004",
 
   // Legacy mappings for backward compatibility of other modules
   nemotron: "google/gemini-3.7-flash",
@@ -487,10 +487,34 @@ export async function vertexAiCallJSON<T>(options: VertexCallOptions): Promise<T
 }
 export const nimCallJSON = vertexAiCallJSON;
 
-export async function vertexAiEmbed(input: string[]): Promise<number[][]> {
+export interface EmbedOptions {
+  taskType?: "RETRIEVAL_QUERY" | "RETRIEVAL_DOCUMENT" | "SEMANTIC_SIMILARITY" | "CLASSIFICATION" | "CLUSTERING";
+  title?: string;
+}
+
+export async function vertexAiEmbed(input: string[], options?: EmbedOptions): Promise<number[][]> {
   const rawModelId = VERTEX_MODELS.embed.replace(/^google\//, "");
   const apiKey = await getAccessToken();
   const isGemini = rawModelId.includes("gemini");
+  
+  // Format inputs based on Gemini task prefixes
+  const formattedInputs = input.map(txt => {
+    if (isGemini && options?.taskType) {
+      if (options.taskType === "RETRIEVAL_QUERY") {
+        return `task: search result | query: ${txt}`;
+      } else if (options.taskType === "RETRIEVAL_DOCUMENT") {
+        const title = options.title ? options.title : "none";
+        return `title: ${title} | text: ${txt}`;
+      } else if (options.taskType === "SEMANTIC_SIMILARITY") {
+        return `task: sentence similarity | query: ${txt}`;
+      } else if (options.taskType === "CLASSIFICATION") {
+        return `task: classification | query: ${txt}`;
+      } else if (options.taskType === "CLUSTERING") {
+        return `task: clustering | query: ${txt}`;
+      }
+    }
+    return txt;
+  });
   
   // Use v1beta1 and embedContent for Gemini, v1 and predict for legacy text models
   const apiVersion = isGemini ? "v1beta1" : "v1";
@@ -499,7 +523,7 @@ export async function vertexAiEmbed(input: string[]): Promise<number[][]> {
   
   // Fallback for gemini: process all inputs concurrently
   if (isGemini) {
-    const embeddings = await Promise.all(input.map(async (txt) => {
+    const embeddings = await Promise.all(formattedInputs.map(async (txt) => {
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < RETRY_CONFIG.maxAttempts; attempt++) {
         try {
@@ -560,7 +584,16 @@ export async function vertexAiEmbed(input: string[]): Promise<number[][]> {
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          instances: input.map((txt) => ({ content: txt })),
+          instances: input.map((txt) => {
+            const instance: any = { content: txt };
+            if (options?.taskType) {
+              instance.task_type = options.taskType;
+            }
+            if (options?.title) {
+              instance.title = options.title;
+            }
+            return instance;
+          }),
         }),
       });
 

@@ -84,7 +84,7 @@ export async function cacheFacts(sector: string, geography: string, facts: Extra
 
   // Generate embeddings for all claims
   const claims = facts.map((f) => f.claim);
-  const embeddings = await vertexAiEmbed(claims);
+  const embeddings = await vertexAiEmbed(claims, { taskType: "RETRIEVAL_DOCUMENT" });
 
   let uploadedCount = 0;
   for (let i = 0; i < facts.length; i++) {
@@ -134,7 +134,7 @@ export async function getCachedFacts(sector: string, geography: string, idea: st
   }
 
   // Embed the current startup idea
-  const queryEmbeddings = await vertexAiEmbed([idea]);
+  const queryEmbeddings = await vertexAiEmbed([idea], { taskType: "RETRIEVAL_QUERY" });
   const queryEmbedding = queryEmbeddings[0];
 
   // Calculate 3 months ago for staleness check
