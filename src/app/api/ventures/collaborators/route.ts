@@ -65,34 +65,30 @@ export async function GET(req: NextRequest) {
     const founderEmail =
       startup?.founderProfile?.email ||
       (startup?.founder ? `${startup.founder.toLowerCase().replace(/\s+/g, '')}@ventureiq.internal` : null);
+    const founderName = startup?.founderProfile?.fullName || startup?.founder || "Primary Founder";
 
-    const result = collaborators.map((c: any) => ({
-      id: c.id,
-      email: c.userEmail,
-      role: c.role,
-      status: c.status,
-      invitedBy: c.invitedBy,
-      createdAt: c.createdAt,
-      isPrimaryFounder: c.userEmail === founderEmail,
-    }));
-
-    // If primary founder has no collaborator row, prepend them
-    if (founderEmail && !result.some((r: any) => r.email === founderEmail)) {
-      result.unshift({
-        id: "primary-founder",
-        email: founderEmail,
-        role: "OWNER",
-        status: "ACTIVE",
-        invitedBy: "system",
-        createdAt: new Date().toISOString(),
-        isPrimaryFounder: true,
-      });
-    }
+    // Format collaborators excluding the primary founder to avoid duplicates in UI
+    const result = collaborators
+      .filter((c: any) => c.userEmail?.toLowerCase() !== founderEmail?.toLowerCase())
+      .map((c: any) => ({
+        id: c.id,
+        email: c.userEmail,
+        userEmail: c.userEmail,
+        role: c.role,
+        status: c.status,
+        invitedBy: c.invitedBy,
+        createdAt: c.createdAt,
+        isPrimaryFounder: false,
+      }));
 
     return NextResponse.json({
       success: true,
       collaborators: result,
+      primaryFounderEmail: founderEmail,
+      primaryFounderName: founderName,
+      primaryFounderAvatar: startup?.founderProfile?.avatarUrl || null,
       callerRole,
+      currentUserRole: callerRole,
     });
   } catch (err: any) {
     console.error("Error fetching collaborators:", err);
@@ -119,13 +115,14 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as {
       startupId?: string;
       email?: string;
+      emails?: string[] | string;
       role?: string;
     };
-    const { startupId, email, role } = body;
+    const { startupId, role } = body;
 
-    if (!startupId || !email) {
+    if (!startupId) {
       return NextResponse.json(
-        { error: "startupId and email are required" },
+        { error: "startupId is required" },
         { status: 400 }
       );
     }
@@ -139,41 +136,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if the user being invited exists in the system
-    const targetUser = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true, email: true, name: true },
-    });
-
-    if (!targetUser) {
-      return NextResponse.json(
-        {
-          error:
-            "This email is not registered on Venture IQ. Only existing users can be invited.",
-        },
-        { status: 400 }
-      );
+    // Parse list of emails
+    let rawEmails: string[] = [];
+    if (Array.isArray(body.emails)) {
+      rawEmails = body.emails;
+    } else if (Array.isArray(body.email)) {
+      rawEmails = body.email;
+    } else if (typeof body.email === "string") {
+      rawEmails = body.email.split(/[,;\s\n]+/);
+    } else if (typeof body.emails === "string") {
+      rawEmails = body.emails.split(/[,;\s\n]+/);
     }
 
-    // Check if already a collaborator
-    const existing = await prisma.ventureCollaborator.findUnique({
-      where: { startupId_userEmail: { startupId, userEmail: email } },
-    });
-    if (existing) {
-      return NextResponse.json(
-        { error: "This user is already a collaborator on this venture" },
-        { status: 400 }
-      );
-    }
+    const emailList = Array.from(
+      new Set(
+        rawEmails
+          .map((e) => e.trim().toLowerCase())
+          .filter((e) => e.length > 0 && e.includes("@"))
+      )
+    );
 
-    // Check if invitee is the primary founder (they don't need an invite)
-    const isFounder = await isPrimaryFounder(email, startupId);
-    if (isFounder) {
+    if (emailList.length === 0) {
       return NextResponse.json(
-        {
-          error:
-            "This user is the primary founder and already has full access",
-        },
+        { success: false, error: "Please provide at least one valid email address." },
         { status: 400 }
       );
     }
@@ -182,38 +167,118 @@ export async function POST(req: NextRequest) {
     const validRoles = ["OWNER", "EDITOR", "VIEWER"];
     const assignRole = role && validRoles.includes(role) ? role : "VIEWER";
 
-    const collaborator = await prisma.ventureCollaborator.create({
-      data: {
-        startupId,
-        userEmail: email,
-        role: assignRole as any,
-        invitedBy: userEmail,
-        status: "PENDING", // Wait for the invitee to accept
-      },
+    const startup = await prisma.startup.findUnique({
+      where: { id: startupId },
+      select: { name: true }
     });
 
-    // Create a notification for the invitee
-    try {
-      await prisma.notification.create({
-        data: {
-          userEmail: email,
-          type: "COLLABORATION_INVITE",
-          title: "You've been added to a venture team",
-          message: `${userEmail} added you as ${assignRole} to their venture.`,
-          category: "collaboration",
-          metadata: {
+    const results: any[] = [];
+
+    for (const email of emailList) {
+      try {
+        // Check if invitee is the primary founder
+        const isFounder = await isPrimaryFounder(email, startupId);
+        if (isFounder) {
+          results.push({
+            email,
+            status: "is_primary_founder",
+            message: `${email} is the primary founder and already has full access.`
+          });
+          continue;
+        }
+
+        // Check if already a collaborator
+        const existing = await prisma.ventureCollaborator.findFirst({
+          where: {
             startupId,
-            role: assignRole,
-            invitedBy: userEmail,
+            userEmail: { equals: email, mode: "insensitive" }
           },
-        },
-      });
-    } catch (notifErr) {
-      // Don't fail the invite if notification creation fails
-      console.error("Failed to create invite notification:", notifErr);
+        });
+
+        if (existing) {
+          if (existing.status === "ACTIVE") {
+            results.push({ email, status: "already_active", message: `${email} is already an active collaborator.` });
+            continue;
+          }
+
+          // Reset status to PENDING and update role
+          const updated = await prisma.ventureCollaborator.update({
+            where: { id: existing.id },
+            data: {
+              role: assignRole as any,
+              status: "PENDING",
+              invitedBy: userEmail,
+            }
+          });
+
+          // Send notification
+          try {
+            await prisma.notification.create({
+              data: {
+                userEmail: email,
+                type: "COLLABORATION_INVITE",
+                title: "Venture Team Invite",
+                message: `${userEmail} invited you as ${assignRole} to "${startup?.name || 'venture'}".`,
+                category: "collaboration",
+                metadata: {
+                  startupId,
+                  role: assignRole,
+                  invitedBy: userEmail,
+                },
+              },
+            });
+          } catch (notifErr) {
+            console.error("Failed to create invite notification:", notifErr);
+          }
+
+          results.push({ email, status: "re_invited", collaborator: updated });
+          continue;
+        }
+
+        const collaborator = await prisma.ventureCollaborator.create({
+          data: {
+            startupId,
+            userEmail: email,
+            role: assignRole as any,
+            invitedBy: userEmail,
+            status: "PENDING",
+          },
+        });
+
+        // Create notification
+        try {
+          await prisma.notification.create({
+            data: {
+              userEmail: email,
+              type: "COLLABORATION_INVITE",
+              title: "You've been added to a venture team",
+              message: `${userEmail} added you as ${assignRole} to "${startup?.name || 'venture'}".`,
+              category: "collaboration",
+              metadata: {
+                startupId,
+                role: assignRole,
+                invitedBy: userEmail,
+              },
+            },
+          });
+        } catch (notifErr) {
+          console.error("Failed to create invite notification:", notifErr);
+        }
+
+        results.push({ email, status: "invited", collaborator });
+      } catch (itemErr: any) {
+        results.push({ email, status: "error", error: itemErr.message });
+      }
     }
 
-    return NextResponse.json({ success: true, collaborator });
+    const hasSuccess = results.some((r) => r.status === "invited" || r.status === "re_invited" || r.status === "already_active");
+
+    return NextResponse.json({
+      success: hasSuccess,
+      message: `Processed ${results.length} invitation(s).`,
+      results,
+      collaborator: results.find((r) => r.collaborator)?.collaborator || null,
+    });
   } catch (err: any) {
     console.error("Error inviting collaborator:", err);
     return NextResponse.json(
