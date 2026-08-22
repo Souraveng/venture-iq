@@ -55,8 +55,10 @@ export async function proxy(req: NextRequest) {
 
   const isAuth = !!token;
 
-  // Extract user roles from JWT
-  const activeRole = (token?.role as string) || null;
+  // Extract user roles from cookie and JWT
+  const cookieRole = req.cookies.get("ventureiq_role")?.value;
+  const tokenRole = (token?.role as string) || null;
+  const activeRole = cookieRole || tokenRole || null;
   const userRoles: string[] =
     (token?.roles as string[]) ||
     (activeRole ? [activeRole] : []);
@@ -105,55 +107,71 @@ export async function proxy(req: NextRequest) {
 
   // ──────────────────────────────────────────────────────────────────
   // 3. STRICT RBAC — block cross-role URL manipulation
-  //    A founder typing /investor/* is BLOCKED and sent to login.
-  //    No silent role-switching. No auto-escalation.
   // ──────────────────────────────────────────────────────────────────
   if (isFounderRoute) {
-    if (activeRole !== "founder" && activeRole !== "admin") {
-      // User is authenticated but their active role is NOT founder
-      if (userRoles.includes("founder")) {
-        // They have the founder role but it is not active — redirect to switch
-        return NextResponse.redirect(
-          buildUrl(req, "/api/auth/switch-role", {
-            role: "founder",
-            callbackUrl: pathname,
-          })
-        );
-      }
-      // They do NOT have the founder role at all — block completely
+    const hasFounderAccess =
+      activeRole === "founder" ||
+      activeRole === "admin" ||
+      userRoles.includes("founder") ||
+      tokenRole === "founder";
+
+    if (!hasFounderAccess) {
       return NextResponse.redirect(
         buildUrl(req, "/login/founder", { error: "role_required" })
       );
+    }
+
+    // Set cookie if needed to keep active role in sync seamlessly without redirect loop
+    const response = NextResponse.next();
+    if (cookieRole !== "founder") {
+      response.cookies.set("ventureiq_role", "founder", {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 30 * 24 * 60 * 60,
+      });
     }
 
     // Founder must be onboarded
     if (!isOnboarded && !hasSkippedOnboarding) {
       return NextResponse.redirect(buildUrl(req, "/onboarding/founder"));
     }
+
+    return response;
   }
 
   if (isInvestorRoute) {
-    if (activeRole !== "investor" && activeRole !== "admin") {
-      // User is authenticated but their active role is NOT investor
-      if (userRoles.includes("investor")) {
-        // They have the investor role but it is not active — redirect to switch
-        return NextResponse.redirect(
-          buildUrl(req, "/api/auth/switch-role", {
-            role: "investor",
-            callbackUrl: pathname,
-          })
-        );
-      }
-      // They do NOT have the investor role at all — block completely
+    const hasInvestorAccess =
+      activeRole === "investor" ||
+      activeRole === "admin" ||
+      userRoles.includes("investor") ||
+      tokenRole === "investor";
+
+    if (!hasInvestorAccess) {
       return NextResponse.redirect(
         buildUrl(req, "/login/investor", { error: "role_required" })
       );
+    }
+
+    // Set cookie if needed to keep active role in sync seamlessly without redirect loop
+    const response = NextResponse.next();
+    if (cookieRole !== "investor") {
+      response.cookies.set("ventureiq_role", "investor", {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 30 * 24 * 60 * 60,
+      });
     }
 
     // Investor must be onboarded
     if (!isOnboarded) {
       return NextResponse.redirect(buildUrl(req, "/onboarding/investor"));
     }
+
+    return response;
   }
 
   return NextResponse.next();

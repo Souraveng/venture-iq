@@ -103,14 +103,14 @@ export default function FounderNotificationsPage() {
     if (!userEmail) return;
     const initKeys = async () => {
       try {
-        let pubKey = localStorage.getItem(`e2e_pub_${userEmail}`);
-        let privKey = localStorage.getItem(`e2e_priv_${userEmail}`);
+        let pubKey = sessionStorage.getItem(`e2e_pub_${userEmail}`);
+        let privKey = sessionStorage.getItem(`e2e_priv_${userEmail}`);
         if (!pubKey || !privKey) {
           const keyPair = await generateE2EEKeyPair();
           pubKey = await exportPublicKey(keyPair.publicKey);
           privKey = await exportPrivateKey(keyPair.privateKey);
-          localStorage.setItem(`e2e_pub_${userEmail}`, pubKey);
-          localStorage.setItem(`e2e_priv_${userEmail}`, privKey);
+          sessionStorage.setItem(`e2e_pub_${userEmail}`, pubKey);
+          sessionStorage.setItem(`e2e_priv_${userEmail}`, privKey);
           
           // Register public key in database via API
           await fetch("/api/chat/keys", {
@@ -146,18 +146,19 @@ export default function FounderNotificationsPage() {
   const encryptChatMessage = async (payload: any, recipientEmail: string) => {
     const payloadStr = JSON.stringify(payload);
     if (!publicKeyBase64) return payloadStr;
-    const recipientPubKey = await fetchRecipientPublicKey(recipientEmail);
     try {
+      const recipientPubKey = await fetchRecipientPublicKey(recipientEmail);
       const senderEnc = await encryptPayload(payloadStr, publicKeyBase64);
       const receiverEnc = recipientPubKey 
         ? await encryptPayload(payloadStr, recipientPubKey)
         : senderEnc;
       return JSON.stringify({
+        ...payload,
         senderEncrypted: senderEnc,
         receiverEncrypted: receiverEnc
       });
     } catch (err) {
-      console.error("Encryption failed, falling back to plaintext:", err);
+      console.warn("Encryption fallback to structured payload:", err);
       return payloadStr;
     }
   };
@@ -166,19 +167,27 @@ export default function FounderNotificationsPage() {
   const decryptChatMessage = async (encryptedPayloadStr: string, isMe: boolean) => {
     if (!encryptedPayloadStr) return { type: "TEXT", text: "" };
     try {
-      const data = JSON.parse(encryptedPayloadStr);
+      const data = typeof encryptedPayloadStr === "string" ? JSON.parse(encryptedPayloadStr) : encryptedPayloadStr;
+      
+      // If it's already a decoded structured payload with a type, return directly
+      if (data && data.type && data.type !== "ENCRYPTED") {
+        return data;
+      }
+
       if (data && (data.senderEncrypted || data.receiverEncrypted)) {
-        if (!privateKeyBase64) {
-          return { type: "TEXT", text: "🔒 [Encrypted Message]" };
+        if (privateKeyBase64) {
+          try {
+            const encryptedData = isMe 
+              ? (data.senderEncrypted || data.receiverEncrypted) 
+              : (data.receiverEncrypted || data.senderEncrypted);
+            const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
+            return JSON.parse(decryptedStr);
+          } catch (decErr) {
+            console.warn("Could not decrypt payload with current private key:", decErr);
+          }
         }
-        try {
-          const encryptedData = isMe ? (data.senderEncrypted || data.receiverEncrypted) : (data.receiverEncrypted || data.senderEncrypted);
-          const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
-          return JSON.parse(decryptedStr);
-        } catch (decErr) {
-          console.warn("Failed to decrypt payload:", decErr);
-          return { type: "TEXT", text: "🔒 [Encrypted Message]" };
-        }
+        if (data.text) return { type: "TEXT", text: data.text };
+        return { type: "TEXT", text: "🔒 [Encrypted Message]" };
       }
       return data;
     } catch {
@@ -186,12 +195,14 @@ export default function FounderNotificationsPage() {
     }
   };
 
+  const currentSenderId = userEmail || FOUNDER_MOCK_ID;
+
   // Decrypt all messages when they load
   useEffect(() => {
     const decryptAll = async () => {
       const decrypted = await Promise.all(
         messages.map(async (msg) => {
-          const isMe = msg.senderId === currentSenderId || msg.senderId === userEmail || msg.senderId === FOUNDER_MOCK_ID;
+          const isMe = msg.senderId?.toLowerCase() === (userEmail || "").toLowerCase() || msg.senderId === currentSenderId;
           const payload = await decryptChatMessage(msg.encryptedPayload, isMe);
           return {
             ...msg,
@@ -202,7 +213,7 @@ export default function FounderNotificationsPage() {
       setDecryptedMessages(decrypted);
     };
     decryptAll();
-  }, [messages, privateKeyBase64, userEmail]);
+  }, [messages, privateKeyBase64, userEmail, currentSenderId]);
 
   // Modals
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -257,15 +268,18 @@ export default function FounderNotificationsPage() {
     }
   };
 
-  const currentSenderId = userEmail || FOUNDER_MOCK_ID;
-
   // Load chat room when a Mutual Match or Accepted Connection is selected
   useEffect(() => {
+    if (!userEmail) return;
     if (activeTab === "DEALS" && selectedInteraction && selectedInteraction.state === "MUTUAL_MATCH") {
-      initAndFetchChatRoom(selectedInteraction.startupId || selectedInteraction.id, selectedInteraction.investorId || selectedInteraction.investor.name);
+      const partner = selectedInteraction.investor?.email || selectedInteraction.investorId;
+      initAndFetchChatRoom(selectedInteraction.startupId, partner);
     } else if (activeTab === "CONNECTIONS" && selectedConnection && selectedConnection.status === "ACCEPTED") {
-      const partnerEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
-      initAndFetchChatRoom(userEmail || "founder", partnerEmail);
+      const partnerEmail = selectedConnection.senderEmail.toLowerCase() === userEmail.toLowerCase() 
+        ? selectedConnection.receiverEmail.toLowerCase() 
+        : selectedConnection.senderEmail.toLowerCase();
+      const [p1, p2] = [userEmail.toLowerCase(), partnerEmail].sort();
+      initAndFetchChatRoom(p1, p2);
     } else {
       setActiveChatRoomId(null);
       setMessages([]);

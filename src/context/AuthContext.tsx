@@ -99,10 +99,12 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
   const [userInvestorTeams, setUserInvestorTeams] = useState<InvestorTeam[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>(defaultMeetings);
 
-  // Restore active startup and active team from localStorage on mount
+  // Restore active startup and active team from sessionStorage on mount/session update
   useEffect(() => {
+    if (typeof window === "undefined" || !userEmail) return;
     try {
-      const savedStartup = localStorage.getItem("ventureiq_active_startup");
+      const emailKey = userEmail.toLowerCase().trim();
+      const savedStartup = sessionStorage.getItem(`ventureiq_${emailKey}_active_startup`);
       if (savedStartup) {
         const parsed = JSON.parse(savedStartup);
         if (parsed && parsed.name) {
@@ -110,7 +112,7 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      const savedTeam = localStorage.getItem("ventureiq_active_investor_team");
+      const savedTeam = sessionStorage.getItem(`ventureiq_${emailKey}_active_investor_team`);
       if (savedTeam) {
         const parsedTeam = JSON.parse(savedTeam);
         if (parsedTeam && parsedTeam.id) {
@@ -118,33 +120,37 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     } catch (e) {
-      console.error("Failed to load active workspace from storage:", e);
+      console.error("Failed to load active workspace from sessionStorage:", e);
     }
-  }, []);
+  }, [userEmail]);
 
   const setActiveStartup = (startup: Startup) => {
     setActiveStartupState(startup);
+    if (typeof window === "undefined" || !userEmail) return;
     try {
+      const emailKey = userEmail.toLowerCase().trim();
       if (startup && startup.name) {
-        localStorage.setItem("ventureiq_active_startup", JSON.stringify(startup));
+        sessionStorage.setItem(`ventureiq_${emailKey}_active_startup`, JSON.stringify(startup));
       } else {
-        localStorage.removeItem("ventureiq_active_startup");
+        sessionStorage.removeItem(`ventureiq_${emailKey}_active_startup`);
       }
     } catch (e) {
-      console.error("Failed to save active startup to storage:", e);
+      console.error("Failed to save active startup to sessionStorage:", e);
     }
   };
 
   const setActiveInvestorTeam = (team: InvestorTeam | null) => {
     setActiveInvestorTeamState(team);
+    if (typeof window === "undefined" || !userEmail) return;
     try {
+      const emailKey = userEmail.toLowerCase().trim();
       if (team && team.id) {
-        localStorage.setItem("ventureiq_active_investor_team", JSON.stringify(team));
+        sessionStorage.setItem(`ventureiq_${emailKey}_active_investor_team`, JSON.stringify(team));
       } else {
-        localStorage.removeItem("ventureiq_active_investor_team");
+        sessionStorage.removeItem(`ventureiq_${emailKey}_active_investor_team`);
       }
     } catch (e) {
-      console.error("Failed to save active investor team to storage:", e);
+      console.error("Failed to save active investor team to sessionStorage:", e);
     }
   };
 
@@ -248,9 +254,10 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = () => {
     try {
-      localStorage.removeItem("ventureiq_active_startup");
-      localStorage.removeItem("ventureiq_active_investor_team");
-      // Force clear any stranded custom NextAuth cookies from previous misconfigurations
+      if (typeof window !== "undefined") {
+        sessionStorage.clear();
+      }
+      // Force clear session cookies
       document.cookie = "next-auth.session-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       document.cookie = "__Secure-next-auth.session-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       document.cookie = "ventureiq_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";

@@ -13,22 +13,73 @@ export async function POST(req: Request) {
       );
     }
 
-    // Try to find an existing room matching either participant direction
-    let chatRoom = await prisma.chatRoom.findFirst({
+    const fNorm = founderId.trim();
+    const iNorm = investorId.trim();
+
+    // Collect all alias identifiers for founderId & investorId
+    const founderAliases = new Set<string>([fNorm, fNorm.toLowerCase()]);
+    const investorAliases = new Set<string>([iNorm, iNorm.toLowerCase()]);
+
+    // Check if founderId is a startup ID or startup Name
+    const startup = await prisma.startup.findFirst({
       where: {
         OR: [
-          { founderId, investorId },
-          { founderId: investorId, investorId: founderId },
+          { id: fNorm },
+          { name: { equals: fNorm, mode: "insensitive" } },
+          { id: iNorm },
+          { name: { equals: iNorm, mode: "insensitive" } },
+        ],
+      },
+      include: { founderProfile: true },
+    });
+
+    if (startup) {
+      founderAliases.add(startup.id);
+      founderAliases.add(startup.name);
+      if (startup.founderProfile?.email) {
+        founderAliases.add(startup.founderProfile.email.toLowerCase());
+      }
+      if (startup.founder) {
+        founderAliases.add(startup.founder);
+      }
+    }
+
+    // Check if investor is an Investor model or User model
+    const investor = await prisma.investor.findFirst({
+      where: {
+        OR: [
+          { email: { in: Array.from(investorAliases), mode: "insensitive" } },
+          { name: { in: Array.from(investorAliases), mode: "insensitive" } },
+          { id: { in: Array.from(investorAliases) } },
         ],
       },
     });
 
-    // If it doesn't exist, create it
+    if (investor) {
+      investorAliases.add(investor.id);
+      investorAliases.add(investor.email.toLowerCase());
+      investorAliases.add(investor.name);
+    }
+
+    const fArray = Array.from(founderAliases);
+    const iArray = Array.from(investorAliases);
+
+    // Try to find an existing room matching any combination of aliases
+    let chatRoom = await prisma.chatRoom.findFirst({
+      where: {
+        OR: [
+          { founderId: { in: fArray }, investorId: { in: iArray } },
+          { founderId: { in: iArray }, investorId: { in: fArray } },
+        ],
+      },
+    });
+
+    // If it doesn't exist, create it using canonical IDs
     if (!chatRoom) {
       chatRoom = await prisma.chatRoom.create({
         data: {
-          founderId,
-          investorId,
+          founderId: startup ? startup.id : fNorm,
+          investorId: investor ? investor.email.toLowerCase() : iNorm,
         },
       });
     }

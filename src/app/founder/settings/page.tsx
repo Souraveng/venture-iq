@@ -84,7 +84,11 @@ export default function FounderEditProfilePage() {
       const data = (await res.json()) as any;
       if (data.success && data.ventures && data.ventures.length > 0) {
         setVentures(data.ventures);
-        if (!selectedVenture) setSelectedVenture(data.ventures[0]);
+        const emailKey = userEmail.toLowerCase().trim();
+        const savedId = typeof window !== "undefined" ? sessionStorage.getItem(`ventureiq_${emailKey}_active_venture`) : null;
+        const matched = savedId ? data.ventures.find((v: any) => v.id === savedId) : null;
+        const target = matched || data.ventures[0];
+        setSelectedVenture((prev: any) => (prev?.id === target.id ? prev : target));
       }
     } catch (err) {
       console.error("Failed to fetch ventures:", err);
@@ -148,6 +152,39 @@ export default function FounderEditProfilePage() {
     setInvitationsLoading(false);
   }, [userEmail]);
 
+  // Handle accepting or declining collaboration invites
+  const handleInviteResponse = async (invitationId: string, newStatus: "ACTIVE" | "REVOKED") => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch("/api/user/invitations", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-user-email": userEmail },
+        body: JSON.stringify({ invitationId, status: newStatus }),
+      });
+      const data = (await res.json()) as any;
+      if (data.success) {
+        fetchPendingInvitations();
+        const vRes = await fetch("/api/user/ventures", { headers: { "x-user-email": userEmail } });
+        const vData = (await vRes.json()) as any;
+        if (vData.success && vData.ventures && vData.ventures.length > 0) {
+          setVentures(vData.ventures);
+          if (newStatus === "ACTIVE") {
+            const matched = vData.ventures.find((v: any) => v.id === data.startupId) || vData.ventures[0];
+            setSelectedVenture(matched);
+            if (typeof window !== "undefined" && matched) {
+              const emailKey = userEmail.toLowerCase().trim();
+              sessionStorage.setItem(`ventureiq_${emailKey}_active_venture`, matched.id);
+            }
+          }
+        }
+      } else {
+        alert(data.error || "Failed to update invitation.");
+      }
+    } catch (err) {
+      console.error("Failed to respond to invitation:", err);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "collaboration") {
       fetchVentures();
@@ -159,8 +196,12 @@ export default function FounderEditProfilePage() {
     if (selectedVenture && activeTab === "collaboration") {
       fetchCollaborators();
       fetchHandoffNotes();
+      if (typeof window !== "undefined" && selectedVenture.id && userEmail) {
+        const emailKey = userEmail.toLowerCase().trim();
+        sessionStorage.setItem(`ventureiq_${emailKey}_active_venture`, selectedVenture.id);
+      }
     }
-  }, [selectedVenture, activeTab, fetchCollaborators, fetchHandoffNotes]);
+  }, [selectedVenture, activeTab, fetchCollaborators, fetchHandoffNotes, userEmail]);
 
   // Click outside to close founder search dropdown
   useEffect(() => {
@@ -288,27 +329,6 @@ export default function FounderEditProfilePage() {
       }
     } catch (err) {
       alert("Network error");
-    }
-  };
-
-  const handleInviteResponse = async (id: string, status: "ACTIVE" | "REVOKED") => {
-    try {
-      const res = await fetch(`/api/ventures/collaborators/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", "x-user-email": userEmail || "" },
-        body: JSON.stringify({ status })
-      });
-      const data = (await res.json()) as any;
-      if (data.success) {
-        fetchPendingInvitations();
-        if (status === "ACTIVE") {
-          fetchVentures(); // Refresh ventures list since they just accepted
-        }
-      } else {
-        alert(data.error || "Failed to update invitation");
-      }
-    } catch (err) {
-      console.error("Failed to update invitation status", err);
     }
   };
 
@@ -1382,6 +1402,25 @@ export default function FounderEditProfilePage() {
                         {inviteError && <p className="text-xs text-rose-400 mt-1 font-semibold">⚠️ {inviteError}</p>}
                         {inviteSuccess && <p className="text-xs text-emerald-400 mt-1 font-semibold">{inviteSuccess}</p>}
                       </form>
+                    </div>
+                  )}
+
+                  {/* Informative notice for non-owner collaborators */}
+                  {currentUserRole && currentUserRole !== "OWNER" && (
+                    <div className="bg-[#ccf063]/10 border border-[#ccf063]/30 rounded-2xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-[#ccf063]/20 flex items-center justify-center text-[#ccf063] shrink-0">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-white">
+                            You are a collaborator ({currentUserRole}) on {selectedVenture?.name}
+                          </div>
+                          <div className="text-[10px] text-white/50">
+                            Only venture Owners can invite new team members or alter collaborator permissions.
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 

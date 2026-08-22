@@ -12,51 +12,48 @@ export async function GET(req: Request) {
       secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
     });
 
-    const targetEmail =
-      emailParam ||
-      token?.email ||
-      "himanshu25b@gmail.com";
+    const targetEmail = emailParam || token?.email;
+
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email parameter or active session is required." },
+        { status: 401 }
+      );
+    }
 
     const emailClean = targetEmail.toLowerCase().trim();
 
-    // Query Founder profile from Azure PostgreSQL
-    let founder = await prisma.founder.findUnique({
-      where: { email: emailClean },
+    // Query Founder profile
+    let founder = await prisma.founder.findFirst({
+      where: { email: { equals: emailClean, mode: "insensitive" } },
     });
 
     // Auto-create or fetch from User if not found
     if (!founder) {
-      const dbUser = await prisma.user.findUnique({
-        where: { email: emailClean },
+      const dbUser = await prisma.user.findFirst({
+        where: { email: { equals: emailClean, mode: "insensitive" } },
       });
 
       founder = await prisma.founder.create({
         data: {
           email: emailClean,
-          fullName: dbUser?.name || "",
+          fullName: dbUser?.name || emailClean.split("@")[0],
           avatarUrl: dbUser?.image || "",
-          roleTitle: "",
+          roleTitle: "Founder",
           location: "",
           linkedinUrl: "",
-          commitment: "",
-          equityStake: "",
+          commitment: "Full-Time",
+          equityStake: "100%",
           startupName: "",
           aboutQuote: "",
           aboutText: "",
           domainExpertise: [],
           keySkills: [],
-          teamSize: "",
+          teamSize: "1-5",
           verificationBadge: "",
           background: [],
         },
       });
-    }
-
-    if (!founder) {
-      return NextResponse.json(
-        { success: false, error: "No founder profile found in database." },
-        { status: 404 }
-      );
     }
 
     return NextResponse.json({
@@ -74,15 +71,28 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const token = await getToken({
+      req: req as any,
+      secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
+    });
+
     const body = (await req.json()) as any;
     const { email, ...updateData } = body;
 
-    const targetEmail = (email || "himanshu25b@gmail.com").toLowerCase().trim();
+    const targetEmail = email || token?.email;
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email or active session is required." },
+        { status: 401 }
+      );
+    }
 
-    // Upsert Founder Profile in Azure PostgreSQL
+    const emailClean = targetEmail.toLowerCase().trim();
+
+    // Upsert Founder Profile
     const existing = await prisma.founder.findFirst({
       where: {
-        email: targetEmail,
+        email: { equals: emailClean, mode: "insensitive" },
       },
     });
 
@@ -95,8 +105,8 @@ export async function POST(req: Request) {
     } else {
       updatedFounder = await prisma.founder.create({
         data: {
-          email: targetEmail,
-          fullName: updateData.fullName || "Himanshu",
+          email: emailClean,
+          fullName: updateData.fullName || emailClean.split("@")[0],
           ...updateData,
         },
       });
@@ -104,7 +114,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Founder profile saved successfully to PostgreSQL database!",
+      message: "Founder profile saved successfully!",
       data: updatedFounder,
     });
   } catch (error) {

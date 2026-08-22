@@ -153,37 +153,66 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const role = searchParams.get("role"); 
-    const email = searchParams.get("email"); 
+    const role = searchParams.get("role");
+    const email = searchParams.get("email");
+    const startupId = searchParams.get("startupId");
+    const founderEmail = searchParams.get("founderEmail");
+
+    let startupIds: string[] = [];
+    if (startupId) {
+      startupIds.push(startupId);
+    }
+
+    if (founderEmail) {
+      const normalizedFounder = founderEmail.trim().toLowerCase();
+      const founderStartups = await prisma.startup.findMany({
+        where: {
+          OR: [
+            { founderProfile: { email: { equals: normalizedFounder, mode: "insensitive" } } },
+            {
+              collaborators: {
+                some: {
+                  userEmail: { equals: normalizedFounder, mode: "insensitive" },
+                  status: "ACTIVE",
+                },
+              },
+            },
+          ],
+        },
+        select: { id: true },
+      });
+      founderStartups.forEach((s) => {
+        if (!startupIds.includes(s.id)) startupIds.push(s.id);
+      });
+    }
 
     // Find all teams the user belongs to (if email is provided)
     let userTeamIds: string[] = [];
     if (email) {
       const userTeams = await prisma.teamMember.findMany({
         where: { userEmail: email },
-        select: { teamId: true }
+        select: { teamId: true },
       });
-      userTeamIds = userTeams.map(t => t.teamId);
+      userTeamIds = userTeams.map((t) => t.teamId);
     }
 
-    // Build the query: Escalated to this role, OR created by this user, OR belongs to a team the user is in (with granular checks).
     const whereClause: any = { OR: [] };
-    
+
+    if (startupIds.length > 0) {
+      whereClause.OR.push({ startupId: { in: startupIds } });
+    }
+
     if (role) whereClause.OR.push({ escalatedToRole: role });
     if (email) whereClause.OR.push({ escalatedBy: email });
-    
+
     // Sharing logic: User is in the team AND (shareWithAll is true OR user email is in sharedWithEmails)
     if (userTeamIds.length > 0 && email) {
       whereClause.OR.push({
         teamId: { in: userTeamIds },
-        OR: [
-          { shareWithAll: true },
-          { sharedWithEmails: { has: email } }
-        ]
+        OR: [{ shareWithAll: true }, { sharedWithEmails: { has: email } }],
       });
     }
 
-    // Fallback if no filters are provided, just return all (or we could return empty)
     if (whereClause.OR.length === 0) {
       delete whereClause.OR;
     }
@@ -195,8 +224,8 @@ export async function GET(req: Request) {
           select: { id: true, name: true, category: true, stage: true },
         },
         team: {
-          select: { name: true }
-        }
+          select: { name: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

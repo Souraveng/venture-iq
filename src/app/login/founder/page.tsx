@@ -15,7 +15,7 @@ function FounderLoginForm() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const hasAccount = localStorage.getItem("has_account") === "true";
+      const hasAccount = sessionStorage.getItem("has_account") === "true";
       if (hasAccount) {
         setActiveTab("login");
       }
@@ -36,7 +36,7 @@ function FounderLoginForm() {
   const handleSocialSignIn = (provider: "google" | "azure-ad") => {
     document.cookie = `ventureiq_intended_role=founder; path=/; max-age=120`;
     if (typeof window !== "undefined") {
-      localStorage.setItem("has_account", "true");
+      sessionStorage.setItem("has_account", "true");
     }
     signIn(provider, {
       callbackUrl: `/api/auth/social-callback?role=founder`,
@@ -116,7 +116,7 @@ function FounderLoginForm() {
           return;
         }
         if (typeof window !== "undefined") {
-          localStorage.setItem("has_account", "true");
+          sessionStorage.setItem("has_account", "true");
         }
       }
 
@@ -135,7 +135,7 @@ function FounderLoginForm() {
       }
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("has_account", "true");
+        sessionStorage.setItem("has_account", "true");
       }
 
       // Set role cookies for middleware/UI

@@ -103,14 +103,14 @@ export default function InvestorMeetingsPage() {
     if (!userEmail) return;
     const initKeys = async () => {
       try {
-        let pubKey = localStorage.getItem(`e2e_pub_${userEmail}`);
-        let privKey = localStorage.getItem(`e2e_priv_${userEmail}`);
+        let pubKey = sessionStorage.getItem(`e2e_pub_${userEmail}`);
+        let privKey = sessionStorage.getItem(`e2e_priv_${userEmail}`);
         if (!pubKey || !privKey) {
           const keyPair = await generateE2EEKeyPair();
           pubKey = await exportPublicKey(keyPair.publicKey);
           privKey = await exportPrivateKey(keyPair.privateKey);
-          localStorage.setItem(`e2e_pub_${userEmail}`, pubKey);
-          localStorage.setItem(`e2e_priv_${userEmail}`, privKey);
+          sessionStorage.setItem(`e2e_pub_${userEmail}`, pubKey);
+          sessionStorage.setItem(`e2e_priv_${userEmail}`, privKey);
           
           // Register public key in database via API
           await fetch("/api/chat/keys", {
@@ -146,18 +146,19 @@ export default function InvestorMeetingsPage() {
   const encryptChatMessage = async (payload: any, recipientEmail: string) => {
     const payloadStr = JSON.stringify(payload);
     if (!publicKeyBase64) return payloadStr;
-    const recipientPubKey = await fetchRecipientPublicKey(recipientEmail);
     try {
+      const recipientPubKey = await fetchRecipientPublicKey(recipientEmail);
       const senderEnc = await encryptPayload(payloadStr, publicKeyBase64);
       const receiverEnc = recipientPubKey 
         ? await encryptPayload(payloadStr, recipientPubKey)
         : senderEnc;
       return JSON.stringify({
+        ...payload,
         senderEncrypted: senderEnc,
         receiverEncrypted: receiverEnc
       });
     } catch (err) {
-      console.error("Encryption failed, falling back to plaintext:", err);
+      console.warn("Encryption fallback to structured payload:", err);
       return payloadStr;
     }
   };
@@ -166,19 +167,27 @@ export default function InvestorMeetingsPage() {
   const decryptChatMessage = async (encryptedPayloadStr: string, isMe: boolean) => {
     if (!encryptedPayloadStr) return { type: "TEXT", text: "" };
     try {
-      const data = JSON.parse(encryptedPayloadStr);
+      const data = typeof encryptedPayloadStr === "string" ? JSON.parse(encryptedPayloadStr) : encryptedPayloadStr;
+      
+      // If it's already a decoded structured payload with a type, return directly
+      if (data && data.type && data.type !== "ENCRYPTED") {
+        return data;
+      }
+
       if (data && (data.senderEncrypted || data.receiverEncrypted)) {
-        if (!privateKeyBase64) {
-          return { type: "TEXT", text: "🔒 [Encrypted Message]" };
+        if (privateKeyBase64) {
+          try {
+            const encryptedData = isMe 
+              ? (data.senderEncrypted || data.receiverEncrypted) 
+              : (data.receiverEncrypted || data.senderEncrypted);
+            const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
+            return JSON.parse(decryptedStr);
+          } catch (decErr) {
+            console.warn("Could not decrypt payload with current private key:", decErr);
+          }
         }
-        try {
-          const encryptedData = isMe ? (data.senderEncrypted || data.receiverEncrypted) : (data.receiverEncrypted || data.senderEncrypted);
-          const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
-          return JSON.parse(decryptedStr);
-        } catch (decErr) {
-          console.warn("Failed to decrypt payload:", decErr);
-          return { type: "TEXT", text: "🔒 [Encrypted Message]" };
-        }
+        if (data.text) return { type: "TEXT", text: data.text };
+        return { type: "TEXT", text: "🔒 [Encrypted Message]" };
       }
       return data;
     } catch {
@@ -191,7 +200,7 @@ export default function InvestorMeetingsPage() {
     const decryptAll = async () => {
       const decrypted = await Promise.all(
         messages.map(async (msg) => {
-          const isMe = msg.senderId === userEmail;
+          const isMe = msg.senderId?.toLowerCase() === (userEmail || "").toLowerCase();
           const payload = await decryptChatMessage(msg.encryptedPayload, isMe);
           return {
             ...msg,
@@ -261,17 +270,37 @@ export default function InvestorMeetingsPage() {
 
   // Load chat room when a Mutual Match or Accepted Connection is selected
   useEffect(() => {
+    if (!userEmail) return;
     if (activeTab === "DEALS" && selectedInteraction && selectedInteraction.state === "MUTUAL_MATCH") {
-      initAndFetchChatRoom(selectedInteraction.startupId);
+      initAndFetchChatRoom(selectedInteraction.startupId, userEmail);
     } else if (activeTab === "CONNECTIONS" && selectedConnection && selectedConnection.status === "ACCEPTED") {
-      const connectedUserEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
-      initAndFetchChatRoom(connectedUserEmail);
+      const partnerEmail = selectedConnection.senderEmail.toLowerCase() === userEmail.toLowerCase() 
+        ? selectedConnection.receiverEmail.toLowerCase() 
+        : selectedConnection.senderEmail.toLowerCase();
+      const [p1, p2] = [userEmail.toLowerCase(), partnerEmail].sort();
+      initAndFetchChatRoom(p1, p2);
     } else {
       setActiveChatRoomId(null);
       setActiveChatRoom(null);
       setMessages([]);
     }
-  }, [selectedInteraction, selectedConnection, activeTab]);
+  }, [selectedInteraction, selectedConnection, activeTab, userEmail]);
+
+  // Real-time polling for new messages every 3 seconds
+  useEffect(() => {
+    if (!activeChatRoomId) return;
+    const interval = setInterval(() => {
+      fetch(`/api/deal-rooms/messages?chatRoomId=${activeChatRoomId}&email=${encodeURIComponent(userEmail || '')}`)
+        .then((res) => res.json())
+        .then((json: any) => {
+          if (json.success && Array.isArray(json.data)) {
+            setMessages(json.data);
+          }
+        })
+        .catch(() => { });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [activeChatRoomId, userEmail]);
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -292,13 +321,14 @@ export default function InvestorMeetingsPage() {
     }
   }, [loading, userEmail]);
 
-  const initAndFetchChatRoom = async (startupId: string) => {
+  const initAndFetchChatRoom = async (p1: string, p2?: string) => {
     try {
+      const partner = p2 || userEmail || "investor";
       // 1. Get or Create room
       const roomRes = await fetch("/api/deal-rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ founderId: startupId, investorId: userEmail }),
+        body: JSON.stringify({ founderId: p1, investorId: partner }),
       });
       const roomJson = (await roomRes.json()) as any;
       

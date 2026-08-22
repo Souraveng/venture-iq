@@ -86,6 +86,9 @@ export async function getUserVentureRole(
   userEmail: string,
   startupId: string
 ): Promise<VentureRoleType | null> {
+  if (!userEmail || !startupId) return null;
+  const normalizedEmail = userEmail.trim().toLowerCase();
+
   // Check if user is the primary founder (protected — always OWNER)
   const startup = await prisma.startup.findUnique({
     where: { id: startupId },
@@ -96,24 +99,26 @@ export async function getUserVentureRole(
     },
   });
 
-  // Direct email match on founder profile
-  if (startup?.founderProfile?.email === userEmail) {
+  // Direct email match on founder profile (case-insensitive)
+  if (startup?.founderProfile?.email?.trim().toLowerCase() === normalizedEmail) {
     return "OWNER";
   }
 
   // Fallback: check if the startup's "founder" name field matches the user's account name
-  // This handles cases where founderId points to a profile without an email
   if (startup?.founder) {
-    const user = await prisma.user.findUnique({ where: { email: userEmail } });
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: "insensitive" } },
+    });
     if (user?.name && user.name.toLowerCase() === startup.founder.toLowerCase()) {
       return "OWNER";
     }
   }
 
-  // Check VentureCollaborator table
-  const collaborator = await prisma.ventureCollaborator.findUnique({
+  // Check VentureCollaborator table (case-insensitive)
+  const collaborator = await prisma.ventureCollaborator.findFirst({
     where: {
-      startupId_userEmail: { startupId, userEmail },
+      startupId,
+      userEmail: { equals: normalizedEmail, mode: "insensitive" },
     },
     select: { role: true, status: true },
   });
@@ -133,6 +138,7 @@ export async function isPrimaryFounder(
   userEmail: string,
   startupId: string
 ): Promise<boolean> {
+  if (!userEmail || !startupId) return false;
   const startup = await prisma.startup.findUnique({
     where: { id: startupId },
     select: {
@@ -140,17 +146,28 @@ export async function isPrimaryFounder(
     },
   });
 
-  return startup?.founderProfile?.email === userEmail;
+  return startup?.founderProfile?.email?.trim().toLowerCase() === userEmail.trim().toLowerCase();
 }
 
 /**
  * Get all ventures a user has access to (as primary founder or collaborator).
  */
 export async function getUserVentures(userEmail: string) {
+  if (!userEmail) return [];
+  const normalizedEmail = userEmail.trim().toLowerCase();
+
+  // Find user to get name
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: normalizedEmail, mode: "insensitive" } }
+  });
+
   // Ventures where user is the primary founder
   const ownedStartups = await prisma.startup.findMany({
     where: {
-      founderProfile: { email: userEmail },
+      OR: [
+        { founderProfile: { email: { equals: normalizedEmail, mode: "insensitive" } } },
+        ...(user?.name ? [{ founder: { equals: user.name, mode: "insensitive" as any } }] : [])
+      ]
     },
     select: {
       id: true,
@@ -165,7 +182,7 @@ export async function getUserVentures(userEmail: string) {
   // Ventures where user is a collaborator
   const collaborations = await prisma.ventureCollaborator.findMany({
     where: {
-      userEmail,
+      userEmail: { equals: normalizedEmail, mode: "insensitive" },
       status: "ACTIVE",
     },
     include: {
@@ -182,10 +199,12 @@ export async function getUserVentures(userEmail: string) {
     },
   });
 
-  const collabStartups = collaborations.map((c) => ({
-    ...c.startup,
-    collaboratorRole: c.role,
-  }));
+  const collabStartups = collaborations
+    .filter((c: any) => !!c.startup)
+    .map((c: any) => ({
+      ...c.startup,
+      collaboratorRole: c.role,
+    }));
 
   // Merge and deduplicate (primary founder is always OWNER)
   const allVentures = ownedStartups.map((s) => ({
