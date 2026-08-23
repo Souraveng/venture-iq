@@ -4463,7 +4463,7 @@ export default function VentureValidationDashboardPage() {
 
               {activeTab === "dashboard" ? (
                 <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-200 dark:border-white/10 pb-4 gap-4">
+                  <div className="sticky top-0 bg-white/95 dark:bg-black/90 backdrop-blur-md z-20 pt-4 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 border-b border-zinc-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div>
                       <h2 className="text-3xl font-serif text-zinc-900 dark:text-white italic">Validation Overview</h2>
                       <p className="text-xs text-zinc-500 dark:text-white/50 mt-1">Audit score summary for: &quot;{query.substring(0, 40)}...&quot;</p>
@@ -4479,7 +4479,7 @@ export default function VentureValidationDashboardPage() {
                       { title: "Technical Feasibility", val: `${metrics.technicalFeasibility}%`, desc: "Integrations optimal" },
                       { title: "Runway Efficiency", val: metrics.financialPlanning, desc: "Estimated to profit" }
                     ].map((stat, idx) => (
-                      <div key={idx} className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl space-y-2">
+                      <div key={idx} className="bg-white/80 dark:bg-white/[0.03] backdrop-blur-md border border-zinc-200 dark:border-white/5 p-4 rounded-xl space-y-2">
                         <p className="text-sm uppercase tracking-wider text-zinc-600 dark:text-white/60 font-mono font-bold">{stat.title}</p>
                         <p className="text-xl font-bold text-zinc-900 dark:text-white">{stat.val}</p>
                         <p className="text-sm text-[#b0d449] dark:text-[#ccf063]">{stat.desc}</p>
@@ -4487,7 +4487,86 @@ export default function VentureValidationDashboardPage() {
                     ))}
                   </div>
 
-                  <div className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/5 p-4 rounded-xl space-y-2.5">
+                  {/* The 7 Dimensions Analytics Console */}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-200 dark:border-white/10 pb-2 gap-2">
+                      <div>
+                        <h3 className="text-lg font-serif italic text-zinc-900 dark:text-white">Dimension Analytics Console</h3>
+                        <p className="text-[11px] text-zinc-500 dark:text-white/40">Select any dimension card below to view detailed agent analysis and visualizations</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-[#ccf063]/10 border border-[#ccf063]/25 px-2.5 py-1 rounded-full self-start sm:self-auto">
+                        <Sparkles className="w-3.5 h-3.5 text-[#ccf063]" />
+                        <span className="text-[9px] font-bold text-[#ccf063] uppercase tracking-wider font-mono">7 Engines Active</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {agentList.map((agent) => {
+                        const AgentIcon = agent.icon;
+                        const report = reports[agent.id];
+
+                        return (
+                          <div
+                            key={agent.id}
+                            onClick={() => setActiveTab(agent.id)}
+                            className="bg-white/80 dark:bg-white/[0.03] backdrop-blur-md border border-zinc-200 dark:border-white/5 hover:border-[#ccf063]/30 transition-all rounded-xl p-4.5 cursor-pointer group flex flex-col justify-between space-y-3 relative overflow-hidden"
+                          >
+                            {/* Glassmorphism Hover Overlay */}
+                            <div className="absolute inset-0 bg-[#ccf063]/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                            <div className="space-y-2.5">
+                              {/* Card Header */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="p-1.5 rounded-lg bg-[#ccf063]/10 border border-[#ccf063]/20 text-[#ccf063] inline-block">
+                                    <AgentIcon className="w-4 h-4" />
+                                  </span>
+                                  <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-zinc-500 dark:text-white/40">
+                                    {agent.label}
+                                  </span>
+                                </div>
+                                {report?.confidenceScore && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 dark:text-white/40 border border-white/5">
+                                    Conf: {report.confidenceScore}%
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Title & Summary */}
+                              <div className="space-y-1">
+                                <h4 className="font-serif italic text-sm text-zinc-900 dark:text-white font-semibold line-clamp-1 group-hover:text-[#ccf063] transition-colors">
+                                  {report?.title || `${agent.label} Report`}
+                                </h4>
+                                <p className="text-xs text-zinc-500 dark:text-white/60 line-clamp-3 leading-relaxed">
+                                  {report?.summary || `No ${agent.label.toLowerCase()} analysis available yet.`}
+                                </p>
+                              </div>
+
+                              {/* Highlight Bullet Points */}
+                              {report?.dataPoints && report.dataPoints.length > 0 && (
+                                <div className="space-y-1 pt-2 border-t border-zinc-150 dark:border-white/5">
+                                  {report.dataPoints.slice(0, 2).map((pt, idx) => (
+                                    <div key={idx} className="flex items-start gap-1 text-[10px] text-zinc-400 dark:text-white/40 line-clamp-1">
+                                      <span className="text-[#ccf063] font-bold shrink-0 mt-0.5">•</span>
+                                      <span>{pt}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* View link indicator at bottom */}
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 dark:text-white/40 group-hover:text-[#ccf063] transition-colors pt-2 select-none self-end">
+                              <span>Analyze details</span>
+                              <span className="transform group-hover:translate-x-1 transition-transform">&rarr;</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="bg-white/80 dark:bg-white/[0.03] backdrop-blur-md border border-zinc-200 dark:border-white/5 p-4 rounded-xl space-y-2.5">
                     <h4 className="font-bold text-zinc-900 dark:text-white text-xs uppercase tracking-wider font-mono flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#b0d449]" /> Multi-Agent Verification Status
                     </h4>
