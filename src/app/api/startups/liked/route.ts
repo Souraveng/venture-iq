@@ -5,25 +5,35 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const email = searchParams.get("email");
+    const teamId = searchParams.get("teamId");
 
     if (!email) {
       return NextResponse.json({ success: false, error: "Unauthorized: User email required" }, { status: 401 });
     }
 
-    const dbInvestor = await prisma.investor.findUnique({
-      where: { email: email }
-    });
+    let queryInvestorIds: string[] = [];
 
-    if (!dbInvestor) {
-      return NextResponse.json({ success: true, data: [] });
+    if (teamId && teamId !== "null" && teamId !== "undefined") {
+      queryInvestorIds = [teamId, `team:${teamId}`];
+    } else {
+      const dbInvestor = await prisma.investor.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } }
+      });
+      const dbUser = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" } }
+      });
+
+      queryInvestorIds = [
+        email,
+        ...(dbInvestor ? [dbInvestor.id] : []),
+        ...(dbUser ? [dbUser.id] : [])
+      ];
     }
 
-    const investorId = dbInvestor.id;
-
-    // Fetch interactions where the user liked/shortlisted/requested intro/matched
+    // Fetch interactions where the user or team liked/shortlisted/requested intro/matched
     const interactions = await prisma.dealInteraction.findMany({
       where: {
-        investorId: investorId,
+        investorId: { in: queryInvestorIds },
         state: {
           in: ["EXPLORED", "SHORTLISTED", "INTRO_REQUESTED", "MUTUAL_MATCH"]
         }

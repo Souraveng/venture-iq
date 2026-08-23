@@ -14,11 +14,12 @@ import {
   Check
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 
 function DiligenceContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { userEmail } = useAuth();
+  const { userEmail, activeInvestorTeam } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [rankings, setRankings] = useState<any[]>([]);
@@ -46,13 +47,14 @@ function DiligenceContent() {
       .then(res => res.json())
       .then((data: any) => {
         if (data.success && data.teams.length > 0) {
-          const team = data.teams[0];
+          const matchedTeam = activeInvestorTeam ? data.teams.find((t: any) => t.id === activeInvestorTeam.id) : data.teams[0];
+          const team = matchedTeam || data.teams[0];
           setUserTeamId(team.id);
           setTeamMembers(team.members.filter((m: any) => m.userEmail !== userEmail));
         }
       })
       .catch(console.error);
-  }, [userEmail]);
+  }, [userEmail, activeInvestorTeam]);
 
   useEffect(() => {
     if (!userEmail) return;
@@ -61,7 +63,8 @@ function DiligenceContent() {
     if (!ids) {
       // Enter selection mode
       setMode("loading");
-      fetch(`/api/startups/liked?email=${encodeURIComponent(userEmail)}`)
+      const teamQuery = activeInvestorTeam?.id ? `&teamId=${encodeURIComponent(activeInvestorTeam.id)}` : "";
+      fetch(`/api/startups/liked?email=${encodeURIComponent(userEmail)}${teamQuery}`)
         .then(res => res.json())
         .then((json: any) => {
           if (json.success) {
@@ -220,16 +223,19 @@ function DiligenceContent() {
         <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-violet-600/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen" />
         
         <div className="relative z-10 max-w-4xl mx-auto py-12 px-6">
-          <div className="flex items-center gap-4 mb-8">
-            <button onClick={() => router.back()} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/70 hover:text-white">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h2 className="text-3xl font-bold text-white font-serif flex items-center gap-2">
-                Select Deals for AI Diligence
-              </h2>
-              <p className="text-[#c5c9b2] mt-1 text-sm">Choose from your shortlisted pipeline to run a deep-dive analysis.</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <button onClick={() => router.back()} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/70 hover:text-white">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div>
+                <h2 className="text-3xl font-bold text-white font-serif flex items-center gap-2">
+                  Select Deals for AI Diligence
+                </h2>
+                <p className="text-[#c5c9b2] mt-1 text-sm">Choose from your shortlisted pipeline to run a deep-dive analysis.</p>
+              </div>
             </div>
+            <WorkspaceSwitcher compact />
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

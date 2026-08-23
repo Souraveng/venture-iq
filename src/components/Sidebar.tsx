@@ -32,6 +32,7 @@ import {
   Building,
   AlertTriangle
 } from "lucide-react";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -211,7 +212,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Switch Toggle (Validation vs. Investment) */}
+        {/* Switch Toggle (Validation vs. Investment) for Founders */}
         {isFounderPanel && (
           !isCollapsed ? (
             <div className="bg-white/5 border border-white/5 p-1 rounded-xl flex gap-1 text-[10px] font-bold uppercase tracking-wider mb-4 shrink-0">
@@ -237,6 +238,13 @@ export default function Sidebar({
               <ArrowLeftRight className="w-5 h-5 text-[#ccf063]" />
             </button>
           )
+        )}
+
+        {/* Workspace Context Switcher for Investors */}
+        {!isFounderPanel && !isCollapsed && (
+          <div className="mb-4 w-full">
+            <WorkspaceSwitcher />
+          </div>
         )}
 
         {/* Navigation Items */}

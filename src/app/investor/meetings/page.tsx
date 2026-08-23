@@ -542,10 +542,10 @@ export default function InvestorMeetingsPage() {
 
   // Message Renderer
   const renderMessageBubble = (msg: any) => {
-    const isMe = msg.senderId === userEmail;
+    const isMe = (msg.senderId || "").toLowerCase().trim() === (userEmail || "").toLowerCase().trim();
     const timeString = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    const payload = msg.parsedPayload || { type: "TEXT", text: "Decrypting..." };
+    const payload = msg.parsedPayload || (typeof msg.encryptedPayload === "string" ? { type: "TEXT", text: msg.encryptedPayload } : { type: "TEXT", text: "..." });
 
     const wrapperClass = `flex items-end gap-2.5 max-w-[85%] mb-4 ${isMe ? "ml-auto flex-row-reverse" : ""}`;
     const bubbleClass = `p-3 rounded-2xl leading-relaxed relative group ${
