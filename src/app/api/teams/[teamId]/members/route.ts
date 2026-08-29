@@ -56,6 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
     const results: any[] = [];
     const targetRole = role || "VIEWER";
 
+
     for (const email of emailList) {
       try {
         // Check if member already exists in team
@@ -77,7 +78,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
             where: { id: existing.id },
             data: {
               role: targetRole,
-              modulePermissions: modulePermissions || { aiDiligence: "VIEWER", shortlist: "VIEWER" },
               status: "PENDING"
             }
           });
@@ -108,7 +108,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
             teamId,
             userEmail: email,
             role: targetRole,
-            modulePermissions: modulePermissions || { aiDiligence: "VIEWER", shortlist: "VIEWER" },
             status: "PENDING"
           }
         });
@@ -132,6 +131,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
         results.push({ email, status: "invited", member: newMember });
       } catch (itemErr: any) {
         results.push({ email, status: "error", error: itemErr.message });
+
       }
     }
 

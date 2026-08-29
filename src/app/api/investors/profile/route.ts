@@ -83,13 +83,13 @@ export async function POST(req: Request) {
       const isTaken = await prisma.investor.findFirst({
         where: {
           username: updateData.username,
-          email: { not: emailClean },
+          email: { not: targetEmail },
         }
       });
       const isTakenFounder = await prisma.founder.findFirst({
         where: {
           username: updateData.username,
-          email: { not: emailClean },
+          email: { not: targetEmail },
         }
       });
       if (isTaken || isTakenFounder) {
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Upsert Investor Profile
+    // Upsert Investor Profile into Azure PostgreSQL
     const existing = await prisma.investor.findFirst({
       where: {
         email: { equals: emailClean, mode: "insensitive" },
