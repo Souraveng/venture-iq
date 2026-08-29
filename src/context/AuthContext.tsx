@@ -12,6 +12,15 @@ interface Startup {
   role?: string; // added to track role in the UI if needed
 }
 
+interface Team {
+  id: string;
+  name: string;
+  description?: string | null;
+  teamType: string;
+  memberRole?: string;
+  modulePermissions?: any;
+}
+
 interface Meeting {
   name: string;
   firm: string;
@@ -33,6 +42,10 @@ interface AuthContextType {
   setActiveStartup: (startup: Startup) => void;
   userVentures: Startup[];
   fetchUserVentures: () => Promise<void>;
+  userTeams: Team[];
+  activeTeam: Team | null;
+  setActiveTeam: (team: Team | null) => void;
+  fetchUserTeams: () => Promise<void>;
   meetings: Meeting[];
   addMeeting: (meeting: Meeting) => void;
   loginAsFounder: (email: string, name?: string) => void;
@@ -55,6 +68,10 @@ const AuthContext = createContext<AuthContextType>({
   setActiveStartup: () => {},
   userVentures: [],
   fetchUserVentures: async () => {},
+  userTeams: [],
+  activeTeam: null,
+  setActiveTeam: () => {},
+  fetchUserTeams: async () => {},
   meetings: defaultMeetings,
   addMeeting: () => {},
   loginAsFounder: () => {},
@@ -79,6 +96,8 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [activeStartup, setActiveStartupState] = useState<Startup>(defaultStartup);
   const [userVentures, setUserVentures] = useState<Startup[]>([]);
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
+  const [activeTeamState, setActiveTeamState] = useState<Team | null>(null);
   const [meetings, setMeetings] = useState<Meeting[]>(defaultMeetings);
 
   // Restore active startup from localStorage on mount
@@ -130,6 +149,71 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Restore active team from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ventureiq_active_team");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.name) {
+          setActiveTeamState(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load active team from storage:", e);
+    }
+  }, []);
+
+  const setActiveTeam = (team: Team | null) => {
+    setActiveTeamState(team);
+    try {
+      if (team && team.id) {
+        localStorage.setItem("ventureiq_active_team", JSON.stringify(team));
+      } else {
+        localStorage.removeItem("ventureiq_active_team");
+      }
+      
+      // Save history to backend asynchronously if userEmail is set
+      if (userEmail) {
+        fetch("/api/user/preferences", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-user-email": userEmail },
+          body: JSON.stringify({ activeTeamId: team?.id || null }),
+        }).catch(console.error);
+      }
+    } catch (e) {
+      console.error("Failed to save active team to storage:", e);
+    }
+  };
+
+  const fetchUserTeams = async () => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch("/api/user/teams", {
+        headers: { "x-user-email": userEmail },
+      });
+      const data = (await res.json()) as any;
+      if (data.success && data.teams) {
+        setUserTeams(data.teams);
+        
+        if (activeTeamState) {
+          const activeExists = data.teams.find((t: any) => t.id === activeTeamState.id);
+          if (!activeExists) {
+            setActiveTeam(null);
+          }
+        } else if (!localStorage.getItem("ventureiq_active_team") && data.lastActiveTeamId) {
+          // Fall back to database memory if local storage is clean and we have a history
+          const memoryTeam = data.teams.find((t: any) => t.id === data.lastActiveTeamId);
+          if (memoryTeam) {
+            setActiveTeam(memoryTeam);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch user teams:", err);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       setUserEmail(session.user.email || null);
@@ -142,6 +226,8 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
       setUserName(null);
       setUserImage(null);
       setUserVentures([]);
+      setUserTeams([]);
+      setActiveTeamState(null);
     }
   }, [session, status]);
 
@@ -151,6 +237,13 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
       fetchUserVentures();
     }
   }, [userEmail, role]);
+
+  // Fetch teams when email is set
+  useEffect(() => {
+    if (userEmail) {
+      fetchUserTeams();
+    }
+  }, [userEmail]);
 
   const loginAsFounder = (email: string, name?: string) => {
     setRole("founder");
@@ -192,6 +285,10 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
         setActiveStartup,
         userVentures,
         fetchUserVentures,
+        userTeams,
+        activeTeam: activeTeamState,
+        setActiveTeam,
+        fetchUserTeams,
         meetings,
         addMeeting,
         loginAsFounder,

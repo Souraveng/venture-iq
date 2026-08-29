@@ -142,6 +142,7 @@ export default function ConnectHubPage() {
         setPosts(json.posts.map((p: any) => ({
           id: p.id,
           name: p.authorName,
+          username: p.authorUsername,
           role: p.authorRole,
           email: p.authorEmail,
           avatar: p.authorAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
@@ -295,6 +296,7 @@ export default function ConnectHubPage() {
   };
   const filteredPosts = posts.filter(p => 
     p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.username?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.text?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -393,6 +395,7 @@ export default function ConnectHubPage() {
                   <div>
                     <h4 className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-[#ccf063] transition-colors">
                       {post.name}
+                      {post.username && <span className="text-[10px] text-[#c5c9b2]/60 font-mono font-normal">@{post.username}</span>}
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#ccf063] fill-black" />
                       <span className="bg-[#ccf063]/10 border border-[#ccf063]/30 text-[#ccf063] rounded px-1.5 py-0.5 text-[8px] font-bold">
                         {post.match}

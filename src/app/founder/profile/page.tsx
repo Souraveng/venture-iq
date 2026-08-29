@@ -115,6 +115,7 @@ function FounderProfilePage() {
   };
 
   const [profile, setProfile] = useState({
+    username: "",
     fullName: userName || "",
     roleTitle: "",
     avatarUrl: userImage || "",
@@ -148,6 +149,7 @@ function FounderProfilePage() {
         if (result.success && result.data) {
           const data = result.data;
           const loadedData = {
+            username: data.username || "",
             fullName: data.fullName || userName || "",
             roleTitle: data.roleTitle || "",
             avatarUrl: data.avatarUrl || userImage || "",
@@ -202,6 +204,7 @@ function FounderProfilePage() {
     try {
       const payload = {
         email: userEmail,
+        username: editForm.username,
         fullName: editForm.fullName,
         roleTitle: editForm.roleTitle,
         avatarUrl: editForm.avatarUrl,
@@ -351,6 +354,7 @@ function FounderProfilePage() {
           {!isEditing ? (
             <div className="text-center space-y-1">
               <h3 className="text-xl font-bold text-white font-serif">{profile.fullName}</h3>
+              {profile.username && <p className="text-xs text-white/50 italic font-mono mb-1">@{profile.username}</p>}
               <p className="text-[#ccf063] text-sm font-bold uppercase tracking-wider">{profile.roleTitle}</p>
               <div className="flex justify-center items-center gap-3 pt-3 text-[#c5c9b2]">
                 <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" className="hover:text-white transition-colors flex items-center gap-1 text-xs">
@@ -362,6 +366,16 @@ function FounderProfilePage() {
             </div>
           ) : (
             <div className="w-full space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-sm uppercase font-bold text-[#c5c9b2] tracking-wider">Username *</label>
+                <input
+                  type="text"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value.replace(/[^a-zA-Z0-9_]/g, '') })}
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none"
+                  placeholder="founder_name"
+                />
+              </div>
               <div className="space-y-1">
                 <label className="text-sm uppercase font-bold text-[#c5c9b2] tracking-wider">Full Name *</label>
                 <input

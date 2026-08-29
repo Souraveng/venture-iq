@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
 
     const { teamId } = await params;
     const body = (await req.json()) as any;
-    const { email, role } = body;
+    const { email, role, modulePermissions } = body;
 
     // Verify caller is OWNER or EDITOR
     const callerMember = await prisma.teamMember.findUnique({
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
         teamId,
         userEmail: email,
         role: role || "VIEWER",
+        modulePermissions: modulePermissions || { aiDiligence: "VIEWER", shortlist: "VIEWER" },
         status: "PENDING"
       }
     });

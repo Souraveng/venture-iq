@@ -35,6 +35,7 @@ export default function InvestorEditProfilePage() {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Profile Identity & Credentials (TAB 1)
+  const [username, setUsername] = useSessionStorage('inv-username', "");
   const [name, setName] = useSessionStorage('inv-name', "");
   const [firm, setFirm] = useSessionStorage('inv-firm', "");
   const [role, setRole] = useSessionStorage('inv-role', "");
@@ -88,6 +89,7 @@ export default function InvestorEditProfilePage() {
 
         if (result.success && result.data) {
           const data = result.data;
+          setUsername(data.username || "");
           setName(data.name || userName || "");
           setFirm(data.firm || "");
           setRole(data.role || "");
@@ -148,6 +150,7 @@ export default function InvestorEditProfilePage() {
       const activeEmail = userEmail || "himanshu25b@gmail.com";
       const payload = {
         email: activeEmail,
+        username,
         name,
         firm,
         role,
@@ -322,6 +325,17 @@ export default function InvestorEditProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1">
+                  <label className="text-[#c5c9b2] uppercase font-bold tracking-wider text-[9px]">Username *</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                    className="w-full bg-[#131313] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#ccf063] outline-none"
+                    placeholder="e.g. angel_investor"
+                  />
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-[#c5c9b2] uppercase font-bold tracking-wider text-[9px]">Full Name *</label>
                   <input

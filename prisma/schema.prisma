@@ -125,6 +125,7 @@ model Startup {
 model Investor {
   id                   String   @id @default(uuid())
   email                String?  @unique
+  username             String?  @unique
   name                 String
   firm                 String?  @default("Horizon Capital")
   avatarUrl            String?  @default("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250")
@@ -309,6 +310,7 @@ model AnalysisRecommendation {
 model Founder {
   id                String   @id @default(uuid())
   email             String?  @unique
+  username          String?  @unique
   fullName          String   @default("Himanshu")
   roleTitle         String   @default("CEO & Technical Co-Founder")
   avatarUrl         String   @default("https://lh3.googleusercontent.com/aida-public/AB6AXuDaz0vajZVDPtuLJjcSxPL8p5BWx3GiZsjMemx6e_8R9511kM3AJXp1l4vL5dp9CNwHwsgdL0vd0Fi4xbCkKcxduivKJr89MWcpGq2_nDytgxZJ2t4JbrUfVHN_f-UgvO7qGaW5AhM0cRj77HbCy6EiUr4fV_UFPt8WeXW8HwfkA8-kqiThdFmDG57SPwkUQbNTzWTem3yezpexHGnlB1ctN_RhQVb4kIUWh8jxU95PK9XugWpw0qir")
@@ -387,6 +389,7 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
+  username      String?   @unique
   emailVerified DateTime?
   image         String?
   password      String?
@@ -394,8 +397,9 @@ model User {
   sessions      Session[]
   role          String    @default("founder") // active/primary role
   roles         String[]  @default(["founder"]) // list of enabled roles e.g. ["founder", "investor"]
-  onboarded     Boolean   @default(false)
-  publicKey     UserPublicKey?
+  onboarded        Boolean   @default(false)
+  lastActiveTeamId String?
+  publicKey        UserPublicKey?
 }
 
 model VerificationToken {
@@ -489,6 +493,7 @@ model InvestorActivityEvent {
 model Post {
   id          String   @id @default(uuid())
   authorEmail String
+  authorUsername String?
   authorName  String
   authorRole  String   @default("User")
   authorAvatar String?
@@ -625,6 +630,7 @@ model TeamMember {
   teamId    String
   userEmail String
   role      TeamRole     @default(VIEWER)
+  modulePermissions Json?
   status    MemberStatus @default(PENDING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt

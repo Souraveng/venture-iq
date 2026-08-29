@@ -54,12 +54,14 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { role, userName, userEmail, userImage, logout, activeStartup, userVentures, setActiveStartup } = useAuth();
+  const { role, userName, userEmail, userImage, logout, activeStartup, userVentures, setActiveStartup, userTeams, activeTeam, setActiveTeam } = useAuth();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [ventureDropdownOpen, setVentureDropdownOpen] = useState(false);
+  const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const ventureDropdownRef = useRef<HTMLDivElement>(null);
+  const teamDropdownRef = useRef<HTMLDivElement>(null);
 
   // Click outside listener for user dropdown
   useEffect(() => {
@@ -70,14 +72,17 @@ export default function Sidebar({
       if (ventureDropdownRef.current && !ventureDropdownRef.current.contains(event.target as Node)) {
         setVentureDropdownOpen(false);
       }
+      if (teamDropdownRef.current && !teamDropdownRef.current.contains(event.target as Node)) {
+        setTeamDropdownOpen(false);
+      }
     };
-    if (userDropdownOpen) {
+    if (userDropdownOpen || ventureDropdownOpen || teamDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [userDropdownOpen, ventureDropdownOpen]);
+  }, [userDropdownOpen, ventureDropdownOpen, teamDropdownOpen]);
 
   const startResizing = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -119,16 +124,27 @@ export default function Sidebar({
   ];
 
   const investorNavItems = [
-    { name: "Discovery Feed", href: "/investor/feed", icon: Compass },
-    { name: "Shortlisted Deals", href: "/investor/pitch-feed", icon: FileText },
-    { name: "AI Diligence", href: "/investor/diligence", icon: Brain },
-    { name: "Escalations", href: "/investor/escalations", icon: AlertTriangle },
-    { name: "Connect Hub", href: "/investor/connect", icon: TrendingUp },
-    { name: "Meetings", href: "/investor/meetings", icon: Users },
-    { name: "Notifications", href: "/investor/notifications", icon: Bell },
+    { name: "Discovery Feed", href: "/investor/feed", icon: Compass, moduleKey: "discoveryFeed" },
+    { name: "Shortlisted Deals", href: "/investor/pitch-feed", icon: FileText, moduleKey: "shortlist" },
+    { name: "AI Diligence", href: "/investor/diligence", icon: Brain, moduleKey: "aiDiligence" },
+    { name: "Escalations", href: "/investor/escalations", icon: AlertTriangle, moduleKey: "escalations" },
+    { name: "Connect Hub", href: "/investor/connect", icon: TrendingUp, moduleKey: "connectHub" },
+    { name: "Meetings", href: "/investor/meetings", icon: Users, moduleKey: "meetings" },
+    { name: "Notifications", href: "/investor/notifications", icon: Bell, moduleKey: "notifications" },
   ];
 
-  const currentNav = isFounderPanel ? founderNavItems : investorNavItems;
+  let currentNav = isFounderPanel ? founderNavItems : investorNavItems;
+  
+  if (activeTeam && activeTeam.modulePermissions && activeTeam.memberRole !== "OWNER") {
+    currentNav = currentNav.filter(item => {
+      // @ts-ignore
+      if (!item.moduleKey) return true;
+      // @ts-ignore
+      const perm = activeTeam.modulePermissions[item.moduleKey];
+      if (!perm) return true; // Default to allow if not specifically defined in JSON
+      return perm !== "NONE";
+    });
+  }
 
   const handleLogout = () => {
     logout();
@@ -171,6 +187,63 @@ export default function Sidebar({
           </div>
         )}
       <div className="w-full">
+        {/* Workspace Switcher */}
+        {!isCollapsed && (
+          <div ref={teamDropdownRef} className="relative mb-4">
+            <button
+              onClick={() => setTeamDropdownOpen(!teamDropdownOpen)}
+              className="w-full bg-[#1a1a1a] border border-white/10 hover:border-white/20 hover:bg-[#252525] p-2.5 rounded-xl flex items-center justify-between transition-all"
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Building className="w-4 h-4 text-[#ccf063] shrink-0" />
+                <span className="text-sm font-bold text-white truncate text-left">
+                  {activeTeam?.name || "Personal Workspace"}
+                </span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-white/50 shrink-0" />
+            </button>
+            {teamDropdownOpen && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-[#1f1f1f] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                <button
+                  onClick={() => {
+                    setActiveTeam(null);
+                    setTeamDropdownOpen(false);
+                    router.refresh();
+                  }}
+                  className={`w-full text-left p-2.5 text-xs hover:bg-white/5 transition-colors flex items-center justify-between ${
+                    !activeTeam ? "bg-[#ccf063]/10 text-[#ccf063] font-bold" : "text-white/80"
+                  }`}
+                >
+                  <span className="truncate">Personal Workspace</span>
+                </button>
+                {userTeams?.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setActiveTeam(t);
+                      setTeamDropdownOpen(false);
+                      router.refresh();
+                    }}
+                    className={`w-full text-left p-2.5 text-xs hover:bg-white/5 transition-colors flex items-center justify-between ${
+                      activeTeam?.id === t.id ? "bg-[#ccf063]/10 text-[#ccf063] font-bold" : "text-white/80"
+                    }`}
+                  >
+                    <span className="truncate">{t.name}</span>
+                    <span className="text-[9px] uppercase tracking-wider opacity-60 bg-white/10 px-1.5 py-0.5 rounded">Team</span>
+                  </button>
+                ))}
+                <Link
+                  href={isFounderPanel ? "/founder/settings" : "/investor/settings/team"}
+                  onClick={() => setTeamDropdownOpen(false)}
+                  className="w-full text-left p-2.5 text-xs hover:bg-white/5 transition-colors text-white/60 border-t border-white/10 flex items-center gap-2"
+                >
+                  <Settings className="w-3 h-3" /> Manage Teams
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Venture Switcher */}
         {isFounderPanel && !isCollapsed && userVentures && userVentures.length > 0 && (
           <div ref={ventureDropdownRef} className="relative mb-4">

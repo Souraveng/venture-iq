@@ -85,6 +85,27 @@ export async function POST(req: Request) {
 
     const targetEmail = (email || "himanshu25b@gmail.com").toLowerCase().trim();
 
+    if (updateData.username) {
+      const isTaken = await prisma.investor.findFirst({
+        where: {
+          username: updateData.username,
+          email: { not: targetEmail },
+        }
+      });
+      const isTakenFounder = await prisma.founder.findFirst({
+        where: {
+          username: updateData.username,
+          email: { not: targetEmail },
+        }
+      });
+      if (isTaken || isTakenFounder) {
+        return NextResponse.json(
+          { success: false, error: "Username is already taken." },
+          { status: 400 }
+        );
+      }
+    }
+
     // Upsert Investor Profile into Azure PostgreSQL
     const existing = await prisma.investor.findFirst({
       where: {

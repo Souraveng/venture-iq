@@ -5,14 +5,22 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const email = searchParams.get("email");
+    const username = searchParams.get("username");
+    const identifier = searchParams.get("identifier");
 
-    if (!email) {
-      return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
+    if (!email && !username && !identifier) {
+      return NextResponse.json({ success: false, error: "Email, username, or identifier is required" }, { status: 400 });
     }
 
+    const searchCriteria = identifier 
+      ? { OR: [{ email: identifier }, { username: identifier }] }
+      : email 
+        ? { email }
+        : { username: username as string };
+
     // 1. Try to find Investor
-    const investor = await prisma.investor.findUnique({
-      where: { email },
+    const investor = await prisma.investor.findFirst({
+      where: searchCriteria,
     });
 
     if (investor) {
@@ -33,8 +41,8 @@ export async function GET(req: Request) {
     }
 
     // 2. Try to find Founder
-    const founder = await prisma.founder.findUnique({
-      where: { email },
+    const founder = await prisma.founder.findFirst({
+      where: searchCriteria,
       include: {
         startups: true,
       }

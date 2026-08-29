@@ -15,6 +15,8 @@ export default function TeamSettingsPage() {
   const [newTeamDesc, setNewTeamDesc] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("VIEWER");
+  const [inviteAIDiligence, setInviteAIDiligence] = useState("VIEWER");
+  const [inviteShortlist, setInviteShortlist] = useState("VIEWER");
   const [actionLoading, setActionLoading] = useState(false);
 
   // User search
@@ -148,7 +150,14 @@ export default function TeamSettingsPage() {
       const res = await fetch(`/api/teams/${selectedTeam.id}/members`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-user-email": userEmail || "" },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole })
+        body: JSON.stringify({ 
+          email: inviteEmail, 
+          role: inviteRole,
+          modulePermissions: {
+            aiDiligence: inviteRole === "OWNER" ? "EDITOR" : inviteAIDiligence,
+            shortlist: inviteRole === "OWNER" ? "EDITOR" : inviteShortlist
+          }
+        })
       });
       const data = (await res.json()) as any;
       if (data.success) {
@@ -428,10 +437,38 @@ export default function TeamSettingsPage() {
                     onChange={(e) => setInviteRole(e.target.value)}
                     className="bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#ccf063]/50"
                   >
-                    <option value="VIEWER">Viewer (Read Only)</option>
-                    <option value="EDITOR">Editor (Can edit Notes)</option>
+                    <option value="VIEWER">Member (Custom Permissions)</option>
                     <option value="OWNER">Owner (Full Admin)</option>
                   </select>
+                  
+                  {inviteRole !== "OWNER" && (
+                    <div className="flex gap-2 items-center">
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-white/50 mb-1">AI Diligence</label>
+                        <select
+                          value={inviteAIDiligence}
+                          onChange={(e) => setInviteAIDiligence(e.target.value)}
+                          className="bg-black/50 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50"
+                        >
+                          <option value="VIEWER">Viewer</option>
+                          <option value="EDITOR">Editor</option>
+                          <option value="NONE">None</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[10px] text-white/50 mb-1">Shortlisted Deals</label>
+                        <select
+                          value={inviteShortlist}
+                          onChange={(e) => setInviteShortlist(e.target.value)}
+                          className="bg-black/50 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50"
+                        >
+                          <option value="VIEWER">Viewer</option>
+                          <option value="EDITOR">Editor</option>
+                          <option value="NONE">None</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
                   <button
                     type="submit"
                     disabled={actionLoading}

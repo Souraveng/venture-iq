@@ -16,15 +16,29 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { authorEmail, authorName, authorRole, authorAvatar, content, mediaUrl, tags } = body;
+    const { authorEmail, authorUsername, authorName, authorRole, authorAvatar, content, mediaUrl, tags } = body;
 
     if (!authorEmail || !content) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
+    let finalUsername = authorUsername || null;
+    if (!finalUsername) {
+      const founder = await prisma.founder.findUnique({ where: { email: authorEmail }});
+      if (founder && founder.username) {
+        finalUsername = founder.username;
+      } else {
+        const investor = await prisma.investor.findUnique({ where: { email: authorEmail }});
+        if (investor && investor.username) {
+          finalUsername = investor.username;
+        }
+      }
+    }
+
     const post = await prisma.post.create({
       data: {
         authorEmail,
+        authorUsername: finalUsername,
         authorName: authorName || "Unknown",
         authorRole: authorRole || "User",
         authorAvatar: authorAvatar || "",
