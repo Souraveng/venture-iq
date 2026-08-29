@@ -69,28 +69,81 @@ export async function PATCH(req: NextRequest) {
     }
 
     const note = await prisma.handoffNote.findUnique({
-      where: { id: noteId }
+      where: { id: noteId },
     });
 
     if (!note) {
       return NextResponse.json({ error: "Handoff note not found" }, { status: 404 });
     }
 
-    if (note.assignedTo !== userEmail) {
-      return NextResponse.json({ error: "Forbidden: You are not the assignee of this handoff note" }, { status: 403 });
+    if (note.assignedTo && note.assignedTo !== userEmail && note.createdBy !== userEmail) {
+      return NextResponse.json({ error: "Forbidden: You are not authorized to update this handoff note" }, { status: 403 });
     }
 
     const updated = await prisma.handoffNote.update({
       where: { id: noteId },
-      data: { status }
+      data: { status },
     });
 
     return NextResponse.json({ success: true, note: updated });
   } catch (err: any) {
     console.error("Error updating handoff note:", err);
-    return NextResponse.json(
-      { success: false, error: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/user/handoff-notes
+ * Allows creating a handoff note for a startup and assigning to a teammate.
+ * Body: { startupId, title, context, pendingActions, keyDecisions, assignedTo }
+ */
+export async function POST(req: NextRequest) {
+  try {
+    const userEmail = await getAuthEmail(req);
+    if (!userEmail) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = (await req.json()) as any;
+    const { startupId, title, context, pendingActions, keyDecisions, assignedTo } = body;
+
+    if (!startupId || !title || !context) {
+      return NextResponse.json({ error: "startupId, title, and context are required" }, { status: 400 });
+    }
+
+    const note = await prisma.handoffNote.create({
+      data: {
+        startupId,
+        createdBy: userEmail,
+        assignedTo: assignedTo || null,
+        title,
+        context,
+        pendingActions: pendingActions || null,
+        keyDecisions: keyDecisions || null,
+        status: "OPEN",
+      },
+    });
+
+    if (assignedTo && assignedTo !== userEmail) {
+      try {
+        await prisma.notification.create({
+          data: {
+            userEmail: assignedTo,
+            type: "HANDOFF_NOTE",
+            title: `New Handoff Note: ${title}`,
+            message: `${userEmail} assigned a handoff note to you.`,
+            category: "collaboration",
+            metadata: { noteId: note.id, startupId },
+          },
+        });
+      } catch (notifErr) {
+        console.warn("Failed to create handoff notification:", notifErr);
+      }
+    }
+
+    return NextResponse.json({ success: true, note });
+  } catch (err: any) {
+    console.error("Error creating handoff note:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

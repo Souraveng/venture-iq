@@ -13,56 +13,37 @@ export async function GET(req: Request) {
       secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
     });
 
-    const targetEmail =
-      emailParam ||
-      token?.email ||
-      "himanshu25b@gmail.com";
+    const targetEmail = emailParam || token?.email;
+
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email parameter or active session is required." },
+        { status: 401 }
+      );
+    }
 
     const emailClean = targetEmail.toLowerCase().trim();
 
-    // Query Investor profile from Azure PostgreSQL
-    let investor = await prisma.investor.findUnique({
-      where: { email: emailClean },
+    // Query Investor profile
+    let investor = await prisma.investor.findFirst({
+      where: { email: { equals: emailClean, mode: "insensitive" } },
     });
 
     // Auto-create or fetch from User if not found
     if (!investor) {
-      const dbUser = await prisma.user.findUnique({
-        where: { email: emailClean },
+      const dbUser = await prisma.user.findFirst({
+        where: { email: { equals: emailClean, mode: "insensitive" } },
       });
 
-      if (dbUser) {
-        investor = await prisma.investor.create({
-          data: {
-            email: emailClean,
-            name: dbUser.name || "Venture Partner",
-            avatarUrl: dbUser.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
-            investorType: "Individual Angel",
-            role: "Managing Partner",
-          },
-        });
-      }
-    }
-
-    // Fallback if no specific record found
-    if (!investor) {
-      investor = await prisma.investor.findFirst({
-        where: {
-          name: { contains: "Himanshu", mode: "insensitive" }
-        }
+      investor = await prisma.investor.create({
+        data: {
+          email: emailClean,
+          name: dbUser?.name || emailClean.split("@")[0],
+          avatarUrl: dbUser?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+          investorType: "Individual Angel",
+          role: "Managing Partner",
+        },
       });
-    }
-
-    // Ultimate fallback to any investor
-    if (!investor) {
-      investor = await prisma.investor.findFirst();
-    }
-
-    if (!investor) {
-      return NextResponse.json(
-        { success: false, error: "No investor profile found in database." },
-        { status: 404 }
-      );
     }
 
     return NextResponse.json({
@@ -80,22 +61,35 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const token = await getToken({
+      req: req as any,
+      secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
+    });
+
     const body = (await req.json()) as any;
     const { email, ...updateData } = body;
 
-    const targetEmail = (email || "himanshu25b@gmail.com").toLowerCase().trim();
+    const targetEmail = email || token?.email;
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email or active session is required." },
+        { status: 401 }
+      );
+    }
+
+    const emailClean = targetEmail.toLowerCase().trim();
 
     if (updateData.username) {
       const isTaken = await prisma.investor.findFirst({
         where: {
           username: updateData.username,
-          email: { not: targetEmail },
+          email: { not: emailClean },
         }
       });
       const isTakenFounder = await prisma.founder.findFirst({
         where: {
           username: updateData.username,
-          email: { not: targetEmail },
+          email: { not: emailClean },
         }
       });
       if (isTaken || isTakenFounder) {
@@ -106,13 +100,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // Upsert Investor Profile into Azure PostgreSQL
+    // Upsert Investor Profile
     const existing = await prisma.investor.findFirst({
       where: {
-        OR: [
-          { email: targetEmail },
-          { name: { contains: "Himanshu", mode: "insensitive" } },
-        ],
+        email: { equals: emailClean, mode: "insensitive" },
       },
     });
 
@@ -125,8 +116,8 @@ export async function POST(req: Request) {
     } else {
       updatedInvestor = await prisma.investor.create({
         data: {
-          email: targetEmail,
-          name: updateData.name || "Himanshu",
+          email: emailClean,
+          name: updateData.name || emailClean.split("@")[0],
           ...updateData,
         },
       });
@@ -134,7 +125,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Investor profile saved successfully to PostgreSQL database!",
+      message: "Investor profile saved successfully!",
       data: updatedInvestor,
     });
   } catch (error) {

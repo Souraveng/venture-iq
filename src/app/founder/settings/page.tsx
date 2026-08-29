@@ -27,9 +27,12 @@ import {
   ChevronDown,
   Sparkles,
   Clock,
+  Building2,
+  Search,
+  RotateCcw,
+  Check,
   ArrowRight,
-  X,
-  Building2
+  X
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSessionStorage } from "@/hooks/useSessionStorage";
@@ -53,7 +56,7 @@ export default function FounderEditProfilePage() {
   const [handoffNotes, setHandoffNotes] = useState<any[]>([]);
   const [collabLoading, setCollabLoading] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("VIEWER");
+  const [inviteRole, setInviteRole] = useState("EDITOR");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
@@ -63,6 +66,13 @@ export default function FounderEditProfilePage() {
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
   const [invitationsLoading, setInvitationsLoading] = useState(false);
+
+  // Founder Search Dropdown State
+  const [founderSearchResults, setFounderSearchResults] = useState<any[]>([]);
+  const [founderSearchLoading, setFounderSearchLoading] = useState(false);
+  const [showFounderSearchDropdown, setShowFounderSearchDropdown] = useState(false);
+  const founderSearchRef = useRef<HTMLDivElement>(null);
+  const founderSearchTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch ventures the user has access to (owned + collaborating)
   const fetchVentures = useCallback(async () => {
@@ -74,7 +84,11 @@ export default function FounderEditProfilePage() {
       const data = (await res.json()) as any;
       if (data.success && data.ventures && data.ventures.length > 0) {
         setVentures(data.ventures);
-        if (!selectedVenture) setSelectedVenture(data.ventures[0]);
+        const emailKey = userEmail.toLowerCase().trim();
+        const savedId = typeof window !== "undefined" ? sessionStorage.getItem(`ventureiq_${emailKey}_active_venture`) : null;
+        const matched = savedId ? data.ventures.find((v: any) => v.id === savedId) : null;
+        const target = matched || data.ventures[0];
+        setSelectedVenture((prev: any) => (prev?.id === target.id ? prev : target));
       }
     } catch (err) {
       console.error("Failed to fetch ventures:", err);
@@ -138,6 +152,39 @@ export default function FounderEditProfilePage() {
     setInvitationsLoading(false);
   }, [userEmail]);
 
+  // Handle accepting or declining collaboration invites
+  const handleInviteResponse = async (invitationId: string, newStatus: "ACTIVE" | "REVOKED") => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch("/api/user/invitations", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "x-user-email": userEmail },
+        body: JSON.stringify({ invitationId, status: newStatus }),
+      });
+      const data = (await res.json()) as any;
+      if (data.success) {
+        fetchPendingInvitations();
+        const vRes = await fetch("/api/user/ventures", { headers: { "x-user-email": userEmail } });
+        const vData = (await vRes.json()) as any;
+        if (vData.success && vData.ventures && vData.ventures.length > 0) {
+          setVentures(vData.ventures);
+          if (newStatus === "ACTIVE") {
+            const matched = vData.ventures.find((v: any) => v.id === data.startupId) || vData.ventures[0];
+            setSelectedVenture(matched);
+            if (typeof window !== "undefined" && matched) {
+              const emailKey = userEmail.toLowerCase().trim();
+              sessionStorage.setItem(`ventureiq_${emailKey}_active_venture`, matched.id);
+            }
+          }
+        }
+      } else {
+        alert(data.error || "Failed to update invitation.");
+      }
+    } catch (err) {
+      console.error("Failed to respond to invitation:", err);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "collaboration") {
       fetchVentures();
@@ -149,13 +196,98 @@ export default function FounderEditProfilePage() {
     if (selectedVenture && activeTab === "collaboration") {
       fetchCollaborators();
       fetchHandoffNotes();
+      if (typeof window !== "undefined" && selectedVenture.id && userEmail) {
+        const emailKey = userEmail.toLowerCase().trim();
+        sessionStorage.setItem(`ventureiq_${emailKey}_active_venture`, selectedVenture.id);
+      }
     }
-  }, [selectedVenture, activeTab, fetchCollaborators, fetchHandoffNotes]);
+  }, [selectedVenture, activeTab, fetchCollaborators, fetchHandoffNotes, userEmail]);
+
+  // Click outside to close founder search dropdown
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (founderSearchRef.current && !founderSearchRef.current.contains(e.target as Node)) {
+        setShowFounderSearchDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const handleSearchFounder = (value: string) => {
+    setInviteEmail(value);
+    if (founderSearchTimeout.current) clearTimeout(founderSearchTimeout.current);
+
+    const tokens = value.split(/[,;\s]+/);
+    const lastToken = tokens[tokens.length - 1]?.trim() || "";
+
+    if (lastToken.length < 2) {
+      setFounderSearchResults([]);
+      setShowFounderSearchDropdown(false);
+      return;
+    }
+
+    setFounderSearchLoading(true);
+    founderSearchTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/teams/search-users?q=${encodeURIComponent(lastToken)}&type=founder`);
+        const data = (await res.json()) as any;
+        if (data.success) {
+          const existingEmails = new Set(
+            [
+              primaryFounderEmail?.toLowerCase(),
+              userEmail?.toLowerCase(),
+              ...(collaborators?.map((c: any) => (c.email || c.userEmail)?.toLowerCase()) || [])
+            ].filter(Boolean)
+          );
+          setFounderSearchResults(data.users.filter((u: any) => !existingEmails.has(u.email.toLowerCase())));
+          setShowFounderSearchDropdown(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setFounderSearchLoading(false);
+    }, 300);
+  };
+
+  const selectFounder = (founderUser: any) => {
+    const tokens = inviteEmail.split(/[,;\s]+/).map(t => t.trim()).filter(Boolean);
+    tokens.pop();
+    tokens.push(founderUser.email);
+    setInviteEmail(tokens.join(", ") + ", ");
+    setShowFounderSearchDropdown(false);
+    setFounderSearchResults([]);
+  };
+
+  const handleResendInvite = async (targetEmail: string) => {
+    if (!selectedVenture) return;
+    setInviteLoading(true);
+    setInviteError(null);
+    setInviteSuccess(null);
+    try {
+      const res = await fetch("/api/ventures/collaborators", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-user-email": userEmail || "" },
+        body: JSON.stringify({ startupId: selectedVenture.id, email: targetEmail, role: inviteRole }),
+      });
+      const data = (await res.json()) as any;
+      if (data.success) {
+        setInviteSuccess(`Invitation resent to ${targetEmail}`);
+        fetchCollaborators();
+        setTimeout(() => setInviteSuccess(null), 3500);
+      } else {
+        setInviteError(data.error || "Failed to resend invite");
+      }
+    } catch (err) {
+      setInviteError("Network error");
+    }
+    setInviteLoading(false);
+  };
 
   // Invite handler
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail || !selectedVenture) return;
+    if (!inviteEmail.trim() || !selectedVenture) return;
     setInviteLoading(true);
     setInviteError(null);
     setInviteSuccess(null);
@@ -168,9 +300,10 @@ export default function FounderEditProfilePage() {
       const data = (await res.json()) as any;
       if (data.success) {
         setInviteEmail("");
-        setInviteSuccess(`Invitation sent to ${inviteEmail} as ${inviteRole}`);
+        const count = data.results?.filter((r: any) => r.status === "invited" || r.status === "re_invited").length || 1;
+        setInviteSuccess(`✓ Processed ${count} invitation(s) successfully!`);
         fetchCollaborators();
-        setTimeout(() => setInviteSuccess(null), 3000);
+        setTimeout(() => setInviteSuccess(null), 4000);
       } else {
         setInviteError(data.error || "Failed to invite");
       }
@@ -196,27 +329,6 @@ export default function FounderEditProfilePage() {
       }
     } catch (err) {
       alert("Network error");
-    }
-  };
-
-  const handleInviteResponse = async (id: string, status: "ACTIVE" | "REVOKED") => {
-    try {
-      const res = await fetch(`/api/ventures/collaborators/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", "x-user-email": userEmail || "" },
-        body: JSON.stringify({ status })
-      });
-      const data = (await res.json()) as any;
-      if (data.success) {
-        fetchPendingInvitations();
-        if (status === "ACTIVE") {
-          fetchVentures(); // Refresh ventures list since they just accepted
-        }
-      } else {
-        alert(data.error || "Failed to update invitation");
-      }
-    } catch (err) {
-      console.error("Failed to update invitation status", err);
     }
   };
 
@@ -1060,129 +1172,255 @@ export default function FounderEditProfilePage() {
               {/* Collaborators Section */}
               {selectedVenture && (
                 <>
-                  {/* Primary Founder (Protected) */}
+                  {/* Collaborators Section */}
                   <div>
-                    <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-amber-400" /> Team Members
+                    <h4 className="text-sm font-bold text-white mb-3 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-amber-400" /> Team Members & Founders
+                      </span>
+                      <span className="text-xs font-mono text-white/40">
+                        {1 + (collaborators?.filter((c: any) => !c.isPrimaryFounder && c.email?.toLowerCase() !== (primaryFounderEmail || userEmail)?.toLowerCase() && c.id !== "primary-founder")?.length || 0)} Total
+                      </span>
                     </h4>
                     
-                    {/* Primary Founder Row */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between bg-amber-500/[0.04] border border-amber-500/10 p-4 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-600/10 flex items-center justify-center border border-amber-500/20">
+                    {/* Primary Founder Row (Rendered Exactly Once) */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between bg-amber-500/[0.04] border border-amber-500/20 p-4 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500/30 to-amber-600/10 flex items-center justify-center border border-amber-500/30 shrink-0">
                             <Crown className="w-4 h-4 text-amber-400" />
                           </div>
-                          <div>
-                            <div className="text-sm font-bold text-white flex items-center gap-2">
-                              {primaryFounderName || primaryFounderEmail || userEmail}
-                              {primaryFounderEmail === userEmail && <span className="text-[10px] bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full">(You)</span>}
+                          <div className="min-w-0">
+                            <div className="text-sm font-bold text-white flex items-center gap-2 truncate">
+                              <span className="truncate">{primaryFounderName || primaryFounderEmail || userEmail}</span>
+                              {(primaryFounderEmail === userEmail || !primaryFounderEmail) && (
+                                <span className="text-[10px] bg-white/10 text-[#ccf063] font-mono px-1.5 py-0.5 rounded font-bold">
+                                  You
+                                </span>
+                              )}
                             </div>
-                            <div className="text-xs text-white/40 mt-0.5">{primaryFounderEmail || userEmail}</div>
+                            <div className="text-xs text-white/50 mt-0.5 truncate font-mono">{primaryFounderEmail || userEmail}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${roleBadgeColor('OWNER')}`}>
                             Primary Owner
                           </span>
-                          <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-1 rounded-full font-semibold">Protected</span>
+                          <span className="text-[10px] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                            Protected
+                          </span>
                         </div>
                       </div>
 
-                      {/* Collaborator Rows */}
+                      {/* Additional Collaborator & Co-Founder Rows */}
                       {collabLoading ? (
-                        <div className="text-center py-8 text-white/30 text-xs">Loading collaborators...</div>
+                        <div className="text-center py-6 text-white/40 text-xs">Loading team members...</div>
                       ) : (
-                        collaborators.map((c: any) => (
-                          <div key={c.id} className="flex items-center justify-between bg-black/20 border border-white/5 p-4 rounded-xl hover:border-white/10 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10">
-                                <span className="text-white/70 font-bold text-sm">{(c.email || c.userEmail || "?")[0].toUpperCase()}</span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-bold text-white flex items-center gap-2">
-                                  {c.email || c.userEmail}
-                                  {(c.email || c.userEmail) === userEmail && <span className="text-[10px] bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full">(You)</span>}
-                                </div>
-                                <div className="text-xs text-white/30 mt-0.5">Added by {c.invitedBy} • {new Date(c.createdAt).toLocaleDateString()}</div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${statusBadgeColor(c.status)}`}>
-                                {c.status}
-                              </span>
-                              {currentUserRole === "OWNER" ? (
-                                <select
-                                  value={c.role}
-                                  onChange={(e) => handleRoleChange(c.id, e.target.value)}
-                                  className="bg-black/50 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-[#ccf063]/50"
-                                >
-                                  <option value="OWNER">Owner</option>
-                                  <option value="EDITOR">Editor</option>
-                                  <option value="VIEWER">Viewer</option>
-                                </select>
-                              ) : (
-                                <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${roleBadgeColor(c.role)}`}>
-                                  {c.role}
-                                </span>
-                              )}
-                              {currentUserRole === "OWNER" && (
-                                <button
-                                  onClick={() => handleRemoveCollaborator(c.id, c.email || c.userEmail)}
-                                  className="p-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                  title="Remove collaborator"
-                                >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      )}
+                        (() => {
+                          const otherCollaborators = (collaborators || []).filter(
+                            (c: any) =>
+                              !c.isPrimaryFounder &&
+                              c.email?.toLowerCase() !== (primaryFounderEmail || userEmail)?.toLowerCase() &&
+                              c.userEmail?.toLowerCase() !== (primaryFounderEmail || userEmail)?.toLowerCase() &&
+                              c.id !== "primary-founder"
+                          );
 
-                      {collaborators.length === 0 && !collabLoading && (
-                        <div className="text-center py-6 text-white/20 text-xs border border-dashed border-white/5 rounded-xl">
-                          No collaborators yet. Invite team members below.
-                        </div>
+                          if (otherCollaborators.length === 0) {
+                            return (
+                              <div className="text-center py-5 text-white/30 text-xs border border-dashed border-white/10 rounded-xl bg-black/10">
+                                No additional co-founders or team members added yet. Search and invite existing founders below.
+                              </div>
+                            );
+                          }
+
+                          return otherCollaborators.map((c: any) => {
+                            const isSelf = (c.email || c.userEmail)?.toLowerCase() === userEmail?.toLowerCase();
+
+                            return (
+                              <div
+                                key={c.id}
+                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border transition-colors ${
+                                  c.status === "ACTIVE"
+                                    ? "bg-black/20 border-white/10"
+                                    : "bg-amber-950/10 border-amber-500/20"
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center border border-white/15 shrink-0 text-sm font-bold text-white">
+                                    {(c.email || c.userEmail || "?")[0].toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-bold text-white flex items-center gap-2 truncate">
+                                      <span className="truncate">{c.email || c.userEmail}</span>
+                                      {isSelf && (
+                                        <span className="text-[10px] bg-white/10 text-[#ccf063] font-mono px-1.5 py-0.5 rounded font-bold">
+                                          You
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-white/40 mt-0.5 font-mono">
+                                      Added by {c.invitedBy} • {new Date(c.createdAt).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                  {/* Status Badge */}
+                                  <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold border ${statusBadgeColor(c.status)}`}>
+                                    {c.status === "ACTIVE" ? "Active" : c.status === "PENDING" ? "Pending Invite" : c.status}
+                                  </span>
+
+                                  {/* Resend button for pending/revoked */}
+                                  {(c.status === "PENDING" || c.status === "REVOKED") && currentUserRole === "OWNER" && (
+                                    <button
+                                      onClick={() => handleResendInvite(c.email || c.userEmail)}
+                                      className="p-1.5 text-[#ccf063] hover:bg-[#ccf063]/10 border border-[#ccf063]/25 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+                                      title="Resend Invite"
+                                    >
+                                      <RotateCcw className="w-3 h-3" /> Resend
+                                    </button>
+                                  )}
+
+                                  {/* Role changer dropdown */}
+                                  {currentUserRole === "OWNER" && !isSelf ? (
+                                    <select
+                                      value={c.role}
+                                      onChange={(e) => handleRoleChange(c.id, e.target.value)}
+                                      className="bg-black/60 border border-white/20 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-[#ccf063] cursor-pointer"
+                                    >
+                                      <option value="OWNER">Owner</option>
+                                      <option value="EDITOR">Editor</option>
+                                      <option value="VIEWER">Viewer</option>
+                                    </select>
+                                  ) : (
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${roleBadgeColor(c.role)}`}>
+                                      {c.role}
+                                    </span>
+                                  )}
+
+                                  {/* Remove button */}
+                                  {currentUserRole === "OWNER" && !isSelf && (
+                                    <button
+                                      onClick={() => handleRemoveCollaborator(c.id, c.email || c.userEmail)}
+                                      className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                                      title="Remove from venture"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()
                       )}
                     </div>
                   </div>
 
-                  {/* Invite Form (Owner only) */}
+                  {/* Invite Form with Autocomplete Existing Founders Search */}
                   {currentUserRole === "OWNER" && (
-                    <div className="border border-white/10 rounded-xl p-5 bg-black/10">
-                      <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <UserPlus className="w-4 h-4 text-[#ccf063]" /> Invite Collaborator
+                    <div className="border border-white/10 rounded-2xl p-6 bg-black/20 shadow-md">
+                      <h4 className="text-sm font-bold text-white mb-1.5 flex items-center gap-2 font-serif">
+                        <UserPlus className="w-4 h-4 text-[#ccf063]" /> Add Existing Founders & Team Members
                       </h4>
-                      <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
-                        <input
-                          type="email"
-                          placeholder="colleague@email.com"
-                          value={inviteEmail}
-                          onChange={(e) => setInviteEmail(e.target.value)}
-                          className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50 placeholder:text-white/20"
-                          required
-                        />
-                        <select
-                          value={inviteRole}
-                          onChange={(e) => setInviteRole(e.target.value)}
-                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50"
-                        >
-                          <option value="VIEWER">Viewer (Read Only)</option>
-                          <option value="EDITOR">Editor (Can Edit)</option>
-                          <option value="OWNER">Owner (Full Access)</option>
-                        </select>
-                        <button
-                          type="submit"
-                          disabled={inviteLoading}
-                          className="bg-[#ccf063] hover:bg-[#bce650] text-black font-bold px-5 py-2.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 whitespace-nowrap"
-                        >
-                          {inviteLoading ? "Sending..." : <><ArrowRight className="w-3.5 h-3.5" /> Send Invite</>}
-                        </button>
+                      <p className="text-xs text-[#c5c9b2] mb-4">
+                        Search for other registered founders by name or email, or type multiple emails separated by commas.
+                      </p>
+
+                      <form onSubmit={handleInvite} className="space-y-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <div className="flex-1 relative" ref={founderSearchRef}>
+                            <div className="relative">
+                              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                              <input
+                                type="text"
+                                placeholder="Search existing founders by name or email..."
+                                value={inviteEmail}
+                                onChange={(e) => handleSearchFounder(e.target.value)}
+                                onFocus={() => founderSearchResults.length > 0 && setShowFounderSearchDropdown(true)}
+                                className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063] transition-colors placeholder:text-white/30"
+                                required
+                              />
+                            </div>
+
+                            {/* Autocomplete Search Dropdown */}
+                            {showFounderSearchDropdown && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50 max-h-48 overflow-y-auto">
+                                {founderSearchLoading ? (
+                                  <div className="p-3 text-xs text-white/40 text-center">Searching founders...</div>
+                                ) : founderSearchResults.length === 0 ? (
+                                  <div className="p-3 text-xs text-white/40 text-center">
+                                    No registered founders found matching your query (you can still invite them directly).
+                                  </div>
+                                ) : (
+                                  founderSearchResults.map((user: any) => (
+                                    <button
+                                      key={user.id}
+                                      type="button"
+                                      onClick={() => selectFounder(user)}
+                                      className="w-full text-left px-4 py-2.5 hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0 cursor-pointer"
+                                    >
+                                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center border border-white/10 shrink-0">
+                                        {user.image ? (
+                                          <img src={user.image} alt="" className="w-full h-full rounded-full object-cover" />
+                                        ) : (
+                                          <span className="text-white text-xs font-bold font-mono">
+                                            {(user.email || "?")[0].toUpperCase()}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-white font-semibold">{user.name || user.email}</div>
+                                        <div className="text-[10px] text-[#c5c9b2] font-mono">{user.email}</div>
+                                      </div>
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <select
+                            value={inviteRole}
+                            onChange={(e) => setInviteRole(e.target.value)}
+                            className="bg-black/50 border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063] transition-colors shrink-0 cursor-pointer"
+                          >
+                            <option value="OWNER">Owner (Full Admin Access)</option>
+                            <option value="EDITOR">Editor (Can Edit Venture)</option>
+                            <option value="VIEWER">Viewer (Read Only Access)</option>
+                          </select>
+
+                          <button
+                            type="submit"
+                            disabled={inviteLoading}
+                            className="bg-[#ccf063] hover:bg-[#bce650] text-black font-bold px-6 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {inviteLoading ? "Sending..." : <><ArrowRight className="w-3.5 h-3.5" /> Send Invite</>}
+                          </button>
+                        </div>
+
+                        {inviteError && <p className="text-xs text-rose-400 mt-1 font-semibold">⚠️ {inviteError}</p>}
+                        {inviteSuccess && <p className="text-xs text-emerald-400 mt-1 font-semibold">{inviteSuccess}</p>}
                       </form>
-                      {inviteError && <p className="text-xs text-red-400 mt-2">{inviteError}</p>}
-                      {inviteSuccess && <p className="text-xs text-emerald-400 mt-2">✓ {inviteSuccess}</p>}
-                      <p className="text-[10px] text-white/20 mt-2">Only existing Venture IQ users can be invited.</p>
+                    </div>
+                  )}
+
+                  {/* Informative notice for non-owner collaborators */}
+                  {currentUserRole && currentUserRole !== "OWNER" && (
+                    <div className="bg-[#ccf063]/10 border border-[#ccf063]/30 rounded-2xl p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-[#ccf063]/20 flex items-center justify-center text-[#ccf063] shrink-0">
+                          <Shield className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-white">
+                            You are a collaborator ({currentUserRole}) on {selectedVenture?.name}
+                          </div>
+                          <div className="text-[10px] text-white/50">
+                            Only venture Owners can invite new team members or alter collaborator permissions.
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 

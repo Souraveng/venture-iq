@@ -84,15 +84,16 @@ export const authOptions: NextAuthOptions = {
           }
           const intendedRole = rawRole === "investor" ? "investor" : "founder";
 
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
+          const emailClean = user.email.toLowerCase().trim();
+          const existingUser = await prisma.user.findFirst({
+            where: { email: { equals: emailClean, mode: "insensitive" } },
           });
 
           if (!existingUser) {
             await prisma.user.create({
               data: {
-                email: user.email,
-                name: user.name || "Google User",
+                email: emailClean,
+                name: user.name || emailClean.split("@")[0],
                 image: user.image,
                 role: intendedRole, // Default to the intended role
                 roles: [intendedRole],
@@ -110,14 +111,51 @@ export const authOptions: NextAuthOptions = {
               ? existingRoles 
               : Array.from(new Set([...existingRoles, intendedRole]));
 
+            if (!existingRoles.includes(intendedRole)) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { roles: updatedRoles },
+              });
+            }
+
             (user as any).role = intendedRole;
             (user as any).roles = updatedRoles;
             (user as any).onboarded = existingUser.onboarded || false;
           }
+
+          // Auto-provision corresponding profile if missing
+          if (intendedRole === "founder") {
+            const existingFounder = await prisma.founder.findFirst({
+              where: { email: { equals: emailClean, mode: "insensitive" } },
+            });
+            if (!existingFounder) {
+              await prisma.founder.create({
+                data: {
+                  email: emailClean,
+                  fullName: user.name || emailClean.split("@")[0],
+                  avatarUrl: user.image || "",
+                  roleTitle: "Founder",
+                },
+              });
+            }
+          } else if (intendedRole === "investor") {
+            const existingInvestor = await prisma.investor.findFirst({
+              where: { email: { equals: emailClean, mode: "insensitive" } },
+            });
+            if (!existingInvestor) {
+              await prisma.investor.create({
+                data: {
+                  email: emailClean,
+                  name: user.name || emailClean.split("@")[0],
+                  avatarUrl: user.image || "",
+                  investorType: "Individual Angel",
+                  role: "Managing Partner",
+                },
+              });
+            }
+          }
         } catch (error) {
-          console.error("Failed to provision Google OAuth user in database:", error);
-          // We still return true to allow login even if DB insert fails 
-          // (they will remain a "ghost" user until onboarded, but won't be locked out)
+          console.error("Failed to provision user profile in database:", error);
         }
       }
       return true;

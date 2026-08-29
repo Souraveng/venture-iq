@@ -5,11 +5,24 @@ import { generateEscalationHandoffNote } from "@/lib/founder-intelligence/nodes/
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { startupId, escalatedBy, escalatedToRole, analystNote, teamId, shareWithAll = true, sharedWithEmails = [] } = body;
+    const {
+      startupId,
+      escalatedBy,
+      escalatedToRole = "Investment Committee",
+      analystNote,
+      manualNote,
+      title,
+      teamId,
+      shareWithAll = true,
+      sharedWithEmails = [],
+      assignedToEmail,
+      pendingActions,
+      keyDecisions,
+    } = body;
 
-    if (!startupId || !escalatedBy || !escalatedToRole) {
+    if (!startupId || !escalatedBy) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields (startupId, escalatedBy, escalatedToRole)" },
+        { success: false, error: "Missing required fields (startupId, escalatedBy)" },
         { status: 400 }
       );
     }
@@ -23,42 +36,65 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Startup not found" }, { status: 404 });
     }
 
-    // 2. Fetch recent AI diligence findings (if any)
-    const recentRun = await prisma.analysisRun.findFirst({
-      where: { startupId, status: "COMPLETED" },
-      orderBy: { completedAt: "desc" },
-      include: { findings: true },
-    });
+    let finalHandoffNote = manualNote;
 
-    let diligenceSummary = "";
-    if (recentRun && recentRun.findings.length > 0) {
-      diligenceSummary = recentRun.findings
-        .map((f: any) => `- **${f.title}**: ${f.content.substring(0, 200)}...`)
-        .join("\n");
+    // If no manual note provided, synthesize using AI agent
+    if (!finalHandoffNote) {
+      // Fetch recent AI diligence findings (if any)
+      const recentRun = await prisma.analysisRun.findFirst({
+        where: { startupId, status: "COMPLETED" },
+        orderBy: { completedAt: "desc" },
+        include: { findings: true },
+      });
+
+      let diligenceSummary = "";
+      if (recentRun && recentRun.findings.length > 0) {
+        diligenceSummary = recentRun.findings
+          .map((f: any) => `- **${f.title}**: ${f.content.substring(0, 200)}...`)
+          .join("\n");
+      }
+
+      // Generate the Handoff Note using Gemini
+      finalHandoffNote = await generateEscalationHandoffNote({
+        startup,
+        analystNote,
+        escalatedBy,
+        diligenceSummary,
+      });
     }
 
-    // 3. Generate the Handoff Note using Gemini 3.1 Pro
-    const aiHandoffNote = await generateEscalationHandoffNote({
-      startup,
-      analystNote,
-      escalatedBy,
-      diligenceSummary,
-    });
-
-    // 4. Save to Database
+    // 4. Save Escalation to Database
     const escalation = await prisma.escalation.create({
       data: {
         startupId,
         escalatedBy,
         escalatedToRole,
-        analystNote,
-        aiHandoffNote,
+        analystNote: analystNote || null,
+        aiHandoffNote: finalHandoffNote,
         status: "PENDING",
         teamId: teamId || null,
-        shareWithAll,
-        sharedWithEmails,
+        shareWithAll: !!shareWithAll,
+        sharedWithEmails: Array.isArray(sharedWithEmails) ? sharedWithEmails : [],
       },
     });
+
+    // Also persist in HandoffNote table for team tracking
+    try {
+      await prisma.handoffNote.create({
+        data: {
+          startupId,
+          createdBy: escalatedBy,
+          assignedTo: assignedToEmail || (sharedWithEmails.length === 1 ? sharedWithEmails[0] : null),
+          title: title || `IC Handoff: ${startup.name}`,
+          context: finalHandoffNote,
+          pendingActions: pendingActions || null,
+          keyDecisions: keyDecisions || null,
+          status: "OPEN",
+        }
+      });
+    } catch (hnErr) {
+      console.warn("Could not save to HandoffNote table:", hnErr);
+    }
 
     // 5. Notify all relevant team members and shared emails
     const notifyEmails = new Set<string>();
@@ -117,37 +153,66 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const role = searchParams.get("role"); 
-    const email = searchParams.get("email"); 
+    const role = searchParams.get("role");
+    const email = searchParams.get("email");
+    const startupId = searchParams.get("startupId");
+    const founderEmail = searchParams.get("founderEmail");
+
+    let startupIds: string[] = [];
+    if (startupId) {
+      startupIds.push(startupId);
+    }
+
+    if (founderEmail) {
+      const normalizedFounder = founderEmail.trim().toLowerCase();
+      const founderStartups = await prisma.startup.findMany({
+        where: {
+          OR: [
+            { founderProfile: { email: { equals: normalizedFounder, mode: "insensitive" } } },
+            {
+              collaborators: {
+                some: {
+                  userEmail: { equals: normalizedFounder, mode: "insensitive" },
+                  status: "ACTIVE",
+                },
+              },
+            },
+          ],
+        },
+        select: { id: true },
+      });
+      founderStartups.forEach((s) => {
+        if (!startupIds.includes(s.id)) startupIds.push(s.id);
+      });
+    }
 
     // Find all teams the user belongs to (if email is provided)
     let userTeamIds: string[] = [];
     if (email) {
       const userTeams = await prisma.teamMember.findMany({
         where: { userEmail: email },
-        select: { teamId: true }
+        select: { teamId: true },
       });
-      userTeamIds = userTeams.map(t => t.teamId);
+      userTeamIds = userTeams.map((t) => t.teamId);
     }
 
-    // Build the query: Escalated to this role, OR created by this user, OR belongs to a team the user is in (with granular checks).
     const whereClause: any = { OR: [] };
-    
+
+    if (startupIds.length > 0) {
+      whereClause.OR.push({ startupId: { in: startupIds } });
+    }
+
     if (role) whereClause.OR.push({ escalatedToRole: role });
     if (email) whereClause.OR.push({ escalatedBy: email });
-    
+
     // Sharing logic: User is in the team AND (shareWithAll is true OR user email is in sharedWithEmails)
     if (userTeamIds.length > 0 && email) {
       whereClause.OR.push({
         teamId: { in: userTeamIds },
-        OR: [
-          { shareWithAll: true },
-          { sharedWithEmails: { has: email } }
-        ]
+        OR: [{ shareWithAll: true }, { sharedWithEmails: { has: email } }],
       });
     }
 
-    // Fallback if no filters are provided, just return all (or we could return empty)
     if (whereClause.OR.length === 0) {
       delete whereClause.OR;
     }
@@ -159,8 +224,8 @@ export async function GET(req: Request) {
           select: { id: true, name: true, category: true, stage: true },
         },
         team: {
-          select: { name: true }
-        }
+          select: { name: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

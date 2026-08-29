@@ -32,6 +32,7 @@ import {
   Building,
   AlertTriangle
 } from "lucide-react";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -118,6 +119,7 @@ export default function Sidebar({
     { name: "My Startup", href: "/founder/projects", icon: Rocket },
     { name: "Dashboard", href: "/founder/fundraising", icon: LayoutDashboard },
     { name: "Pitch Setup", href: "/founder/pitch-setup", icon: Video },
+    { name: "Escalations", href: "/founder/escalations", icon: AlertTriangle },
     { name: "Connect Hub", href: "/founder/connect", icon: TrendingUp },
     { name: "Meetings", href: "/founder/meetings", icon: Users },
     { name: "Notifications", href: "/founder/notifications", icon: Bell },
@@ -283,7 +285,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Switch Toggle (Validation vs. Investment) */}
+        {/* Switch Toggle (Validation vs. Investment) for Founders */}
         {isFounderPanel && (
           !isCollapsed ? (
             <div className="bg-white/5 border border-white/5 p-1 rounded-xl flex gap-1 text-[10px] font-bold uppercase tracking-wider mb-4 shrink-0">
@@ -309,6 +311,13 @@ export default function Sidebar({
               <ArrowLeftRight className="w-5 h-5 text-[#ccf063]" />
             </button>
           )
+        )}
+
+        {/* Workspace Context Switcher for Investors */}
+        {!isFounderPanel && !isCollapsed && (
+          <div className="mb-4 w-full">
+            <WorkspaceSwitcher />
+          </div>
         )}
 
         {/* Navigation Items */}
@@ -414,7 +423,7 @@ export default function Sidebar({
               <Building className="w-4 h-4 text-white/40" /> Team & Organization
             </Link>
             <Link
-              href="/investor/escalations"
+              href={isFounderPanel ? "/founder/escalations" : "/investor/escalations"}
               onClick={() => setUserDropdownOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 text-white/75 hover:bg-white/5 hover:text-white transition-colors"
             >

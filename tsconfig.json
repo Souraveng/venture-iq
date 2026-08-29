@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@prisma/client": [
+        "./src/generated/client"
       ]
     }
   },
@@ -37,6 +40,7 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/generated"
   ]
 }

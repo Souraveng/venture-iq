@@ -27,6 +27,7 @@ import {
   Bell
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 import {
   generateE2EEKeyPair,
   exportPublicKey,
@@ -74,7 +75,7 @@ export default function InvestorMeetingsPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { userEmail, addMeeting } = useAuth();
+  const { userEmail, addMeeting, activeInvestorTeam } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"DEALS" | "CONNECTIONS">("DEALS");
 
@@ -102,14 +103,14 @@ export default function InvestorMeetingsPage() {
     if (!userEmail) return;
     const initKeys = async () => {
       try {
-        let pubKey = localStorage.getItem(`e2e_pub_${userEmail}`);
-        let privKey = localStorage.getItem(`e2e_priv_${userEmail}`);
+        let pubKey = sessionStorage.getItem(`e2e_pub_${userEmail}`);
+        let privKey = sessionStorage.getItem(`e2e_priv_${userEmail}`);
         if (!pubKey || !privKey) {
           const keyPair = await generateE2EEKeyPair();
           pubKey = await exportPublicKey(keyPair.publicKey);
           privKey = await exportPrivateKey(keyPair.privateKey);
-          localStorage.setItem(`e2e_pub_${userEmail}`, pubKey);
-          localStorage.setItem(`e2e_priv_${userEmail}`, privKey);
+          sessionStorage.setItem(`e2e_pub_${userEmail}`, pubKey);
+          sessionStorage.setItem(`e2e_priv_${userEmail}`, privKey);
           
           // Register public key in database via API
           await fetch("/api/chat/keys", {
@@ -145,37 +146,51 @@ export default function InvestorMeetingsPage() {
   const encryptChatMessage = async (payload: any, recipientEmail: string) => {
     const payloadStr = JSON.stringify(payload);
     if (!publicKeyBase64) return payloadStr;
-    const recipientPubKey = await fetchRecipientPublicKey(recipientEmail);
     try {
+      const recipientPubKey = await fetchRecipientPublicKey(recipientEmail);
       const senderEnc = await encryptPayload(payloadStr, publicKeyBase64);
       const receiverEnc = recipientPubKey 
         ? await encryptPayload(payloadStr, recipientPubKey)
         : senderEnc;
       return JSON.stringify({
+        ...payload,
         senderEncrypted: senderEnc,
         receiverEncrypted: receiverEnc
       });
     } catch (err) {
-      console.error("Encryption failed, falling back to plaintext:", err);
+      console.warn("Encryption fallback to structured payload:", err);
       return payloadStr;
     }
   };
 
   // Helper to decrypt message payload
   const decryptChatMessage = async (encryptedPayloadStr: string, isMe: boolean) => {
-    if (!privateKeyBase64) {
-      try { return JSON.parse(encryptedPayloadStr); } 
-      catch { return { type: "TEXT", text: encryptedPayloadStr }; }
-    }
+    if (!encryptedPayloadStr) return { type: "TEXT", text: "" };
     try {
-      const data = JSON.parse(encryptedPayloadStr);
-      if (data.senderEncrypted && data.receiverEncrypted) {
-        const encryptedData = isMe ? data.senderEncrypted : data.receiverEncrypted;
-        const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
-        return JSON.parse(decryptedStr);
+      const data = typeof encryptedPayloadStr === "string" ? JSON.parse(encryptedPayloadStr) : encryptedPayloadStr;
+      
+      // If it's already a decoded structured payload with a type, return directly
+      if (data && data.type && data.type !== "ENCRYPTED") {
+        return data;
+      }
+
+      if (data && (data.senderEncrypted || data.receiverEncrypted)) {
+        if (privateKeyBase64) {
+          try {
+            const encryptedData = isMe 
+              ? (data.senderEncrypted || data.receiverEncrypted) 
+              : (data.receiverEncrypted || data.senderEncrypted);
+            const decryptedStr = await decryptPayload(encryptedData, privateKeyBase64);
+            return JSON.parse(decryptedStr);
+          } catch (decErr) {
+            console.warn("Could not decrypt payload with current private key:", decErr);
+          }
+        }
+        if (data.text) return { type: "TEXT", text: data.text };
+        return { type: "TEXT", text: "🔒 [Encrypted Message]" };
       }
       return data;
-    } catch (err) {
+    } catch {
       return { type: "TEXT", text: encryptedPayloadStr };
     }
   };
@@ -185,7 +200,7 @@ export default function InvestorMeetingsPage() {
     const decryptAll = async () => {
       const decrypted = await Promise.all(
         messages.map(async (msg) => {
-          const isMe = msg.senderId === userEmail;
+          const isMe = msg.senderId?.toLowerCase() === (userEmail || "").toLowerCase();
           const payload = await decryptChatMessage(msg.encryptedPayload, isMe);
           return {
             ...msg,
@@ -206,11 +221,11 @@ export default function InvestorMeetingsPage() {
   useEffect(() => {
     fetchInteractions();
     if (userEmail) fetchConnections();
-  }, [userEmail]);
+  }, [userEmail, activeInvestorTeam]);
 
   const fetchConnections = async () => {
     try {
-      const res = await fetch(`/api/connections?email=${encodeURIComponent(userEmail)}`);
+      const res = await fetch(`/api/connections?email=${encodeURIComponent(userEmail || '')}`);
       const json = (await res.json()) as any;
       if (json.success) {
         setConnections(json.requests);
@@ -221,8 +236,10 @@ export default function InvestorMeetingsPage() {
   };
 
   const fetchInteractions = async () => {
+    if (!userEmail) return;
     try {
-      const res = await fetch(`/api/interactions/investor?investorEmail=${encodeURIComponent(userEmail)}`);
+      const teamQuery = activeInvestorTeam?.id ? `&teamId=${encodeURIComponent(activeInvestorTeam.id)}` : "";
+      const res = await fetch(`/api/interactions/investor?investorEmail=${encodeURIComponent(userEmail)}${teamQuery}`);
       const json = (await res.json()) as any;
       if (json.success) {
         setInteractions(json.data);
@@ -253,17 +270,37 @@ export default function InvestorMeetingsPage() {
 
   // Load chat room when a Mutual Match or Accepted Connection is selected
   useEffect(() => {
+    if (!userEmail) return;
     if (activeTab === "DEALS" && selectedInteraction && selectedInteraction.state === "MUTUAL_MATCH") {
-      initAndFetchChatRoom(selectedInteraction.startupId);
+      initAndFetchChatRoom(selectedInteraction.startupId, userEmail);
     } else if (activeTab === "CONNECTIONS" && selectedConnection && selectedConnection.status === "ACCEPTED") {
-      const connectedUserEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
-      initAndFetchChatRoom(connectedUserEmail);
+      const partnerEmail = selectedConnection.senderEmail.toLowerCase() === userEmail.toLowerCase() 
+        ? selectedConnection.receiverEmail.toLowerCase() 
+        : selectedConnection.senderEmail.toLowerCase();
+      const [p1, p2] = [userEmail.toLowerCase(), partnerEmail].sort();
+      initAndFetchChatRoom(p1, p2);
     } else {
       setActiveChatRoomId(null);
       setActiveChatRoom(null);
       setMessages([]);
     }
-  }, [selectedInteraction, selectedConnection, activeTab]);
+  }, [selectedInteraction, selectedConnection, activeTab, userEmail]);
+
+  // Real-time polling for new messages every 3 seconds
+  useEffect(() => {
+    if (!activeChatRoomId) return;
+    const interval = setInterval(() => {
+      fetch(`/api/deal-rooms/messages?chatRoomId=${activeChatRoomId}&email=${encodeURIComponent(userEmail || '')}`)
+        .then((res) => res.json())
+        .then((json: any) => {
+          if (json.success && Array.isArray(json.data)) {
+            setMessages(json.data);
+          }
+        })
+        .catch(() => { });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [activeChatRoomId, userEmail]);
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -284,13 +321,14 @@ export default function InvestorMeetingsPage() {
     }
   }, [loading, userEmail]);
 
-  const initAndFetchChatRoom = async (startupId: string) => {
+  const initAndFetchChatRoom = async (p1: string, p2?: string) => {
     try {
+      const partner = p2 || userEmail || "investor";
       // 1. Get or Create room
       const roomRes = await fetch("/api/deal-rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ founderId: startupId, investorId: userEmail }),
+        body: JSON.stringify({ founderId: p1, investorId: partner }),
       });
       const roomJson = (await roomRes.json()) as any;
       
@@ -504,10 +542,10 @@ export default function InvestorMeetingsPage() {
 
   // Message Renderer
   const renderMessageBubble = (msg: any) => {
-    const isMe = msg.senderId === userEmail;
+    const isMe = (msg.senderId || "").toLowerCase().trim() === (userEmail || "").toLowerCase().trim();
     const timeString = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    const payload = msg.parsedPayload || { type: "TEXT", text: "Decrypting..." };
+    const payload = msg.parsedPayload || (typeof msg.encryptedPayload === "string" ? { type: "TEXT", text: msg.encryptedPayload } : { type: "TEXT", text: "..." });
 
     const wrapperClass = `flex items-end gap-2.5 max-w-[85%] mb-4 ${isMe ? "ml-auto flex-row-reverse" : ""}`;
     const bubbleClass = `p-3 rounded-2xl leading-relaxed relative group ${
@@ -684,7 +722,7 @@ export default function InvestorMeetingsPage() {
     <div ref={containerRef} className="max-w-[1400px] mx-auto font-sans h-[calc(100vh-80px)] flex flex-col pb-4 text-white">
       
       {/* Header Section */}
-      <div className="flex justify-between items-end gap-6 border-b border-white/10 pb-4 mb-4 shrink-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/10 pb-4 mb-4 shrink-0">
         <div className="animate-item">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="p-2 rounded-lg bg-[#ccf063]/10 border border-[#ccf063]/30 text-[#ccf063] inline-block">
@@ -695,6 +733,11 @@ export default function InvestorMeetingsPage() {
           <p className="text-[11px] text-[#c5c9b2]">
             Schedule meetings, manage connections, and communicate with founders in secure rooms.
           </p>
+        </div>
+
+        {/* Workspace Switcher */}
+        <div className="animate-item self-end sm:self-auto shrink-0">
+          <WorkspaceSwitcher />
         </div>
       </div>
 

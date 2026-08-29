@@ -21,6 +21,7 @@ import {
 import { useRouter } from "next/navigation";
 import { PitchDetails } from "@/components/PitchDetails";
 import { useAuth } from "@/context/AuthContext";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 
 const PASS_REASONS = [
   "Wrong Sector",
@@ -34,7 +35,7 @@ const PASS_REASONS = [
 ];
 
 export default function InvestorPitchFeedPage() {
-  const { userEmail } = useAuth();
+  const { userEmail, activeInvestorTeam } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [startups, setStartups] = useState<any[]>([]);
@@ -59,7 +60,8 @@ export default function InvestorPitchFeedPage() {
   useEffect(() => {
     if (!userEmail) return;
     setLoading(true);
-    fetch(`/api/startups/liked?email=${encodeURIComponent(userEmail)}`)
+    const teamQuery = activeInvestorTeam?.id ? `&teamId=${encodeURIComponent(activeInvestorTeam.id)}` : "";
+    fetch(`/api/startups/liked?email=${encodeURIComponent(userEmail)}${teamQuery}`)
       .then(res => res.json())
       .then((json: any) => {
         if (json.success) {
@@ -68,10 +70,8 @@ export default function InvestorPitchFeedPage() {
             // Mock a breakdown for UI purposes since we aren't querying the AI engine directly here
             matchBreakdown: {
               thesis: 90,
-              stage: 85,
-              geography: 95,
-              ticketSize: 88,
-              traction: 92,
+              growth: 85,
+              team: 95
             }
           })));
           
@@ -84,11 +84,8 @@ export default function InvestorPitchFeedPage() {
         }
         setLoading(false);
       })
-      .catch(err => {
-        console.error("Failed to fetch startups:", err);
-        setLoading(false);
-      });
-  }, [userEmail]);
+      .catch(() => setLoading(false));
+  }, [userEmail, activeInvestorTeam]);
 
   // GSAP animations
   useEffect(() => {
@@ -104,9 +101,10 @@ export default function InvestorPitchFeedPage() {
     }
   }, [loading, startups]);
 
+  // Handle card actions (Explore, Diligence, Request Intro, Pass)
   const handleAction = async (e: React.MouseEvent, action: string, startup: any) => {
     e.stopPropagation();
-
+    
     if (action === 'explore') {
       setSelectedStartup(startup);
       return;
@@ -117,15 +115,23 @@ export default function InvestorPitchFeedPage() {
       return;
     }
 
-    // Handle Shortlist & Request Intro immediately
+    // Direct API actions (e.g., request intro)
     setIsSubmitting(true);
     try {
       await fetch('/api/interactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startupId: startup.id, action, investorEmail: userEmail })
+        body: JSON.stringify({ 
+          startupId: startup.id, 
+          action,
+          investorEmail: userEmail,
+          teamId: activeInvestorTeam?.id || null
+        })
       });
-      setInteractions(prev => ({ ...prev, [startup.id]: action }));
+
+      if (action === 'request_intro') {
+        setInteractions(prev => ({ ...prev, [startup.id]: 'INTRO_REQUESTED' }));
+      }
     } catch (err) {
       console.error("Action failed:", err);
     } finally {
@@ -145,7 +151,8 @@ export default function InvestorPitchFeedPage() {
           startupId: passModalStartup.id, 
           action: 'pass',
           feedback: passReason,
-          investorEmail: userEmail
+          investorEmail: userEmail,
+          teamId: activeInvestorTeam?.id || null
         })
       });
       setInteractions(prev => ({ ...prev, [passModalStartup.id]: 'PASSED' }));
@@ -398,24 +405,31 @@ export default function InvestorPitchFeedPage() {
     <div ref={containerRef} className="space-y-12 max-w-7xl mx-auto font-sans pb-20 relative">
       
       {/* Header */}
-      <div className="flex justify-between items-end border-b border-white/5 pb-6 pt-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-6 pt-4">
         <div className="animate-item">
-          <span className="text-[#ccf063] font-bold text-xs uppercase tracking-widest block mb-1">Your Pipeline</span>
+          <span className="text-[#ccf063] font-bold text-xs uppercase tracking-widest block mb-1">
+            {activeInvestorTeam ? `${activeInvestorTeam.name} Pipeline` : "Personal Pipeline"}
+          </span>
           <h2 className="text-4xl font-serif text-white">Shortlisted Deals</h2>
         </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setViewMode("grid")}
-            className={`p-2 rounded-lg border transition-colors ${viewMode === "grid" ? "bg-white/10 border-white/20 text-white" : "border-transparent text-white/50 hover:text-white"}`}
-          >
-            <LayoutGrid className="w-5 h-5" />
-          </button>
-          <button 
-            onClick={() => setViewMode("list")}
-            className={`p-2 rounded-lg border transition-colors ${viewMode === "list" ? "bg-white/10 border-white/20 text-white" : "border-transparent text-white/50 hover:text-white"}`}
-          >
-            <ListIcon className="w-5 h-5" />
-          </button>
+        <div className="flex items-center gap-3">
+          <WorkspaceSwitcher compact />
+          <div className="flex gap-1 bg-black/40 border border-white/10 p-1 rounded-xl">
+            <button 
+              onClick={() => setViewMode("grid")}
+              className={`p-2 rounded-lg border transition-colors ${viewMode === "grid" ? "bg-white/10 border-white/20 text-white" : "border-transparent text-white/50 hover:text-white"}`}
+              title="Grid View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setViewMode("list")}
+              className={`p-2 rounded-lg border transition-colors ${viewMode === "list" ? "bg-white/10 border-white/20 text-white" : "border-transparent text-white/50 hover:text-white"}`}
+              title="List View"
+            >
+              <ListIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 

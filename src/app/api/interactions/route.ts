@@ -99,7 +99,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { startupId, action, feedback, investorEmail } = body;
+    const { startupId, action, feedback, investorEmail, teamId } = body;
 
     if (!startupId || !action || !investorEmail) {
       return NextResponse.json(
@@ -108,14 +108,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const dbInvestor = await prisma.investor.findUnique({ where: { email: investorEmail } });
-    if (!dbInvestor) {
-      return NextResponse.json(
-        { success: false, error: "Investor not found." },
-        { status: 404 }
-      );
+    let targetInvestorId: string;
+
+    if (teamId && teamId !== "null" && teamId !== "undefined") {
+      // Validate team membership
+      const member = await prisma.teamMember.findFirst({
+        where: {
+          teamId,
+          userEmail: { equals: investorEmail, mode: "insensitive" },
+          status: "ACTIVE"
+        }
+      });
+      if (!member) {
+        return NextResponse.json({ success: false, error: "Not an active member of this team." }, { status: 403 });
+      }
+      targetInvestorId = teamId;
+    } else {
+      const dbInvestor = await prisma.investor.findUnique({ where: { email: investorEmail } });
+      const dbUser = !dbInvestor ? await prisma.user.findUnique({ where: { email: investorEmail } }) : null;
+      if (!dbInvestor && !dbUser) {
+        return NextResponse.json(
+          { success: false, error: "Investor account not found." },
+          { status: 404 }
+        );
+      }
+      targetInvestorId = dbInvestor ? dbInvestor.id : (dbUser?.id || investorEmail);
     }
-    const investorId = dbInvestor.id;
 
     // Map the string action from frontend to InteractionState enum
     let state: any;
@@ -143,7 +161,7 @@ export async function POST(req: Request) {
     const interaction = await prisma.dealInteraction.upsert({
       where: {
         investorId_startupId: {
-          investorId: investorId,
+          investorId: targetInvestorId,
           startupId: startupId,
         },
       },
@@ -152,7 +170,7 @@ export async function POST(req: Request) {
         feedback: feedback || null,
       },
       create: {
-        investorId: investorId,
+        investorId: targetInvestorId,
         startupId: startupId,
         state: state,
         feedback: feedback || null,
@@ -163,12 +181,13 @@ export async function POST(req: Request) {
       // Learn from rejection by appending the passed reason to the thesis
       const passReason = feedback || "Not aligned with current autonomous preferences";
       const startup = await prisma.startup.findUnique({ where: { id: startupId } });
-      if (startup) {
+      const investorRec = await prisma.investor.findFirst({ where: { email: { equals: investorEmail, mode: "insensitive" } } });
+      if (startup && investorRec) {
         const learningNote = ` [Passed on ${startup.category} startup: ${passReason}]`;
         await prisma.investor.update({
-          where: { id: investorId },
+          where: { id: investorRec.id },
           data: {
-            thesis: (dbInvestor.thesis || "") + learningNote
+            thesis: (investorRec.thesis || "") + learningNote
           }
         });
       }

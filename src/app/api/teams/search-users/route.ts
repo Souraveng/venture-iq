@@ -16,7 +16,10 @@ export async function GET(req: NextRequest) {
     const users = await prisma.user.findMany({
       where: {
         email: { contains: query, mode: "insensitive" },
-        roles: { has: teamType }
+        OR: [
+          { roles: { has: teamType } },
+          { role: { equals: teamType, mode: "insensitive" } }
+        ]
       },
       select: {
         id: true,

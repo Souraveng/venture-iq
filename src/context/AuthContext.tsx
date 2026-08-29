@@ -31,6 +31,14 @@ interface Meeting {
   link?: string;
 }
 
+interface InvestorTeam {
+  id: string;
+  name: string;
+  role: string;
+  teamType?: string;
+  description?: string;
+}
+
 interface AuthContextType {
   role: UserRole;
   userEmail: string | null;
@@ -46,6 +54,10 @@ interface AuthContextType {
   activeTeam: Team | null;
   setActiveTeam: (team: Team | null) => void;
   fetchUserTeams: () => Promise<void>;
+  activeInvestorTeam: InvestorTeam | null;
+  setActiveInvestorTeam: (team: InvestorTeam | null) => void;
+  userInvestorTeams: InvestorTeam[];
+  fetchUserInvestorTeams: () => Promise<void>;
   meetings: Meeting[];
   addMeeting: (meeting: Meeting) => void;
   loginAsFounder: (email: string, name?: string) => void;
@@ -72,6 +84,10 @@ const AuthContext = createContext<AuthContextType>({
   activeTeam: null,
   setActiveTeam: () => {},
   fetchUserTeams: async () => {},
+  activeInvestorTeam: null,
+  setActiveInvestorTeam: () => {},
+  userInvestorTeams: [],
+  fetchUserInvestorTeams: async () => {},
   meetings: defaultMeetings,
   addMeeting: () => {},
   loginAsFounder: () => {},
@@ -98,33 +114,62 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
   const [userVentures, setUserVentures] = useState<Startup[]>([]);
   const [userTeams, setUserTeams] = useState<Team[]>([]);
   const [activeTeamState, setActiveTeamState] = useState<Team | null>(null);
+  const [activeInvestorTeam, setActiveInvestorTeamState] = useState<InvestorTeam | null>(null);
+  const [userInvestorTeams, setUserInvestorTeams] = useState<InvestorTeam[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>(defaultMeetings);
 
-  // Restore active startup from localStorage on mount
+  // Restore active startup and active team from sessionStorage on mount/session update
   useEffect(() => {
+    if (typeof window === "undefined" || !userEmail) return;
     try {
-      const saved = localStorage.getItem("ventureiq_active_startup");
-      if (saved) {
-        const parsed = JSON.parse(saved);
+      const emailKey = userEmail.toLowerCase().trim();
+      const savedStartup = sessionStorage.getItem(`ventureiq_${emailKey}_active_startup`);
+      if (savedStartup) {
+        const parsed = JSON.parse(savedStartup);
         if (parsed && parsed.name) {
           setActiveStartupState(parsed);
         }
       }
+
+      const savedTeam = sessionStorage.getItem(`ventureiq_${emailKey}_active_investor_team`);
+      if (savedTeam) {
+        const parsedTeam = JSON.parse(savedTeam);
+        if (parsedTeam && parsedTeam.id) {
+          setActiveInvestorTeamState(parsedTeam);
+        }
+      }
     } catch (e) {
-      console.error("Failed to load active startup from storage:", e);
+      console.error("Failed to load active workspace from sessionStorage:", e);
     }
-  }, []);
+  }, [userEmail]);
 
   const setActiveStartup = (startup: Startup) => {
     setActiveStartupState(startup);
+    if (typeof window === "undefined" || !userEmail) return;
     try {
+      const emailKey = userEmail.toLowerCase().trim();
       if (startup && startup.name) {
-        localStorage.setItem("ventureiq_active_startup", JSON.stringify(startup));
+        sessionStorage.setItem(`ventureiq_${emailKey}_active_startup`, JSON.stringify(startup));
       } else {
-        localStorage.removeItem("ventureiq_active_startup");
+        sessionStorage.removeItem(`ventureiq_${emailKey}_active_startup`);
       }
     } catch (e) {
-      console.error("Failed to save active startup to storage:", e);
+      console.error("Failed to save active startup to sessionStorage:", e);
+    }
+  };
+
+  const setActiveInvestorTeam = (team: InvestorTeam | null) => {
+    setActiveInvestorTeamState(team);
+    if (typeof window === "undefined" || !userEmail) return;
+    try {
+      const emailKey = userEmail.toLowerCase().trim();
+      if (team && team.id) {
+        sessionStorage.setItem(`ventureiq_${emailKey}_active_investor_team`, JSON.stringify(team));
+      } else {
+        sessionStorage.removeItem(`ventureiq_${emailKey}_active_investor_team`);
+      }
+    } catch (e) {
+      console.error("Failed to save active investor team to sessionStorage:", e);
     }
   };
 
@@ -214,6 +259,39 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const fetchUserInvestorTeams = async () => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch("/api/teams", {
+        headers: { "x-user-email": userEmail }
+      });
+      const data = (await res.json()) as any;
+      if (data.success && data.teams) {
+        const mappedTeams: InvestorTeam[] = data.teams.map((t: any) => {
+          const myMember = t.members?.find((m: any) => m.userEmail?.toLowerCase() === userEmail?.toLowerCase());
+          return {
+            id: t.id,
+            name: t.name,
+            role: myMember?.role || "VIEWER",
+            teamType: t.teamType,
+            description: t.description
+          };
+        });
+        setUserInvestorTeams(mappedTeams);
+
+        // Validate active team is still a valid active membership
+        if (activeInvestorTeam) {
+          const stillExists = mappedTeams.find((t: any) => t.id === activeInvestorTeam.id);
+          if (!stillExists) {
+            setActiveInvestorTeam(null);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch investor teams:", err);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       setUserEmail(session.user.email || null);
@@ -228,13 +306,19 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
       setUserVentures([]);
       setUserTeams([]);
       setActiveTeamState(null);
+      setUserInvestorTeams([]);
+      setActiveInvestorTeam(null);
     }
   }, [session, status]);
 
-  // Fetch ventures when email is set and user is founder
+  // Fetch ventures or teams when email is set
   useEffect(() => {
-    if (userEmail && role === "founder") {
-      fetchUserVentures();
+    if (userEmail) {
+      if (role === "founder") {
+        fetchUserVentures();
+      } else if (role === "investor") {
+        fetchUserInvestorTeams();
+      }
     }
   }, [userEmail, role]);
 
@@ -263,8 +347,10 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = () => {
     try {
-      localStorage.removeItem("ventureiq_active_startup");
-      // Force clear any stranded custom NextAuth cookies from previous misconfigurations
+      if (typeof window !== "undefined") {
+        sessionStorage.clear();
+      }
+      // Force clear session cookies
       document.cookie = "next-auth.session-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       document.cookie = "__Secure-next-auth.session-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       document.cookie = "ventureiq_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -289,6 +375,10 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
         activeTeam: activeTeamState,
         setActiveTeam,
         fetchUserTeams,
+        activeInvestorTeam,
+        setActiveInvestorTeam,
+        userInvestorTeams,
+        fetchUserInvestorTeams,
         meetings,
         addMeeting,
         loginAsFounder,

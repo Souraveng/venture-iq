@@ -29,10 +29,11 @@ import {
 } from "lucide-react";
 import { PitchDetails, RequestDealButton } from "@/components/PitchDetails";
 import { useAuth } from "@/context/AuthContext";
+import WorkspaceSwitcher from "@/components/investor/WorkspaceSwitcher";
 
 export default function StartupDiscoveryFeedReplicatedPage() {
   const router = useRouter();
-  const { userEmail } = useAuth();
+  const { userEmail, activeInvestorTeam } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -343,7 +344,12 @@ export default function StartupDiscoveryFeedReplicatedPage() {
         await fetch('/api/interactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ startupId: current.id, action: 'shortlist', investorEmail: userEmail })
+          body: JSON.stringify({
+            startupId: current.id,
+            action: 'shortlist',
+            investorEmail: userEmail,
+            teamId: activeInvestorTeam?.id
+          })
         });
       } catch (e) {
         console.error("Failed to shortlist", e);
@@ -367,7 +373,12 @@ export default function StartupDiscoveryFeedReplicatedPage() {
         fetch('/api/interactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ startupId, action: 'pass', investorEmail: userEmail })
+          body: JSON.stringify({
+            startupId,
+            action: 'pass',
+            investorEmail: userEmail,
+            teamId: activeInvestorTeam?.id
+          })
         }).catch(() => {});
       } catch (e) {
         console.error("Failed to register pass interaction", e);
@@ -387,13 +398,11 @@ export default function StartupDiscoveryFeedReplicatedPage() {
       if (json.success) {
         setProfileData(json.data);
       } else {
-        const fallback = startups.find(s => s.id === startupId)?.rawStartup;
-        setProfileData(fallback || null);
+        setProfileData(null);
       }
     } catch (e) {
-      console.error("Error fetching startup profile:", e);
-      const fallback = startups.find(s => s.id === startupId)?.rawStartup;
-      setProfileData(fallback || null);
+      console.error(e);
+      setProfileData(null);
     } finally {
       setLoadingProfile(false);
     }
@@ -428,15 +437,18 @@ export default function StartupDiscoveryFeedReplicatedPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto flex items-center justify-center h-[calc(100vh-140px)]">
-        <div className="w-full h-full md:h-[min(660px,calc(100vh-150px))] md:w-auto md:aspect-[9/16] bg-[#131313] border border-white/10 rounded-none md:rounded-3xl animate-pulse flex items-center justify-center text-xs text-[#c5c9b2]">
-          Searching for high-conviction startups via Vertex AI...
+      <div className="flex items-center justify-center min-h-[calc(100vh-140px)] font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-[#ccf063] border-t-transparent animate-spin" />
+          <p className="text-xs text-[#c5c9b2] animate-pulse font-mono tracking-wider uppercase">
+            Loading Live Deals...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!current || startups.length === 0) {
+  if (startups.length === 0 || !current) {
     return (
       <div className="max-w-md mx-auto my-auto flex flex-col items-center justify-center min-h-[calc(100vh-140px)] p-6">
         <div className="w-full bg-[#131313] border border-white/10 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
@@ -465,6 +477,11 @@ export default function StartupDiscoveryFeedReplicatedPage() {
           showFullSpecs ? "max-w-6xl xl:max-w-7xl w-full" : "max-w-6xl w-full"
         }`}
       >
+
+      {/* Top Workspace Switcher Anchor */}
+      <div className="hidden md:flex items-center justify-between px-4 pt-1 pb-2 z-30">
+        <WorkspaceSwitcher compact />
+      </div>
       
       {/* Centered Discovery Area */}
       <div className="flex-1 flex items-center justify-center relative py-0 md:py-4 h-full">

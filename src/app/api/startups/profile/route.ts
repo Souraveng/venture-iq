@@ -12,40 +12,50 @@ export async function GET(req: Request) {
       secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
     });
 
-    const targetEmail =
-      emailParam ||
-      token?.email ||
-      "himanshu25b@gmail.com";
+    const targetEmail = emailParam || token?.email;
+
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email parameter or active session is required." },
+        { status: 401 }
+      );
+    }
 
     const emailClean = targetEmail.toLowerCase().trim();
 
-    // Query Founder first to get founderId
-    const founder = await prisma.founder.findUnique({
-      where: { email: emailClean },
+    // Query Founder first
+    let founder = await prisma.founder.findFirst({
+      where: { email: { equals: emailClean, mode: "insensitive" } },
     });
 
     if (!founder) {
-      return NextResponse.json(
-        { success: false, error: "No founder profile found for this email." },
-        { status: 404 }
-      );
+      const dbUser = await prisma.user.findFirst({
+        where: { email: { equals: emailClean, mode: "insensitive" } },
+      });
+
+      founder = await prisma.founder.create({
+        data: {
+          email: emailClean,
+          fullName: dbUser?.name || emailClean.split("@")[0],
+          avatarUrl: dbUser?.image || "",
+          roleTitle: "Founder",
+        },
+      });
     }
 
-    // Query Startup profile from Azure PostgreSQL
+    // Query Startup profile
     let startup = await prisma.startup.findFirst({
-      where: { founderId: founder.id },
+      where: {
+        OR: [
+          { founderId: founder.id },
+          { founderProfile: { email: { equals: emailClean, mode: "insensitive" } } },
+        ],
+      },
     });
-
-    if (!startup) {
-      return NextResponse.json(
-        { success: false, error: "No startup profile found for this founder." },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({
       success: true,
-      data: startup,
+      data: startup || null,
     });
   } catch (error) {
     console.error("GET /api/startups/profile Error:", error);
@@ -58,26 +68,52 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const token = await getToken({
+      req: req as any,
+      secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
+    });
+
     const body = (await req.json()) as any;
     const { email, ...updateData } = body;
 
-    const targetEmail = (email || "himanshu25b@gmail.com").toLowerCase().trim();
+    const targetEmail = email || token?.email;
+    if (!targetEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email or active session is required." },
+        { status: 401 }
+      );
+    }
 
-    // Find Founder
-    const founder = await prisma.founder.findUnique({
-      where: { email: targetEmail },
+    const emailClean = targetEmail.toLowerCase().trim();
+
+    // Find or create Founder
+    let founder = await prisma.founder.findFirst({
+      where: { email: { equals: emailClean, mode: "insensitive" } },
     });
 
     if (!founder) {
-      return NextResponse.json(
-        { success: false, error: "Founder profile not found." },
-        { status: 404 }
-      );
+      const dbUser = await prisma.user.findFirst({
+        where: { email: { equals: emailClean, mode: "insensitive" } },
+      });
+
+      founder = await prisma.founder.create({
+        data: {
+          email: emailClean,
+          fullName: dbUser?.name || emailClean.split("@")[0],
+          avatarUrl: dbUser?.image || "",
+          roleTitle: "Founder",
+        },
+      });
     }
 
     // Find existing startup
     const existing = await prisma.startup.findFirst({
-      where: { founderId: founder.id },
+      where: {
+        OR: [
+          { founderId: founder.id },
+          { founderProfile: { email: { equals: emailClean, mode: "insensitive" } } },
+        ],
+      },
     });
 
     let updatedStartup;
@@ -93,8 +129,8 @@ export async function POST(req: Request) {
           founder: founder.fullName,
           name: updateData.name || "My Startup",
           tagline: updateData.tagline || "",
-          category: updateData.category || "",
-          stage: updateData.stage || "Idea",
+          category: updateData.category || "Tech",
+          stage: updateData.stage || "Pre-Seed",
           valuation: updateData.valuation || "0",
           targetAmount: updateData.targetAmount || "0",
           raisedAmount: updateData.raisedAmount || "0",
@@ -107,7 +143,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Startup profile saved successfully to PostgreSQL database!",
+      message: "Startup profile saved successfully!",
       data: updatedStartup,
     });
   } catch (error) {

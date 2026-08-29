@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     // Find startups they are collaborating on
     const collaborations = await prisma.ventureCollaborator.findMany({
       where: {
-        userEmail,
+        userEmail: { equals: userEmail, mode: "insensitive" },
         status: "ACTIVE",
       },
       include: {
@@ -50,13 +50,16 @@ export async function GET(req: NextRequest) {
           select: {
             id: true,
             name: true,
+            tagline: true,
+            stage: true,
+            category: true,
             verified: true,
           },
         },
       },
     });
 
-    const collabStartups = collaborations.map((c: any) => c.startup);
+    const collabStartups = collaborations.filter((c: any) => !!c.startup).map((c: any) => c.startup);
 
     // Merge and deduplicate just in case
     const allVenturesMap = new Map();
