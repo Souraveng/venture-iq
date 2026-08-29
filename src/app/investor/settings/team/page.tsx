@@ -33,6 +33,11 @@ export default function TeamSettingsPage() {
   const [inviteRole, setInviteRole] = useState("VIEWER");
   const [inviteAIDiligence, setInviteAIDiligence] = useState("VIEWER");
   const [inviteShortlist, setInviteShortlist] = useState("VIEWER");
+  const [inviteDiscoveryFeed, setInviteDiscoveryFeed] = useState("VIEWER");
+  const [inviteEscalations, setInviteEscalations] = useState("VIEWER");
+  const [inviteConnectHub, setInviteConnectHub] = useState("VIEWER");
+  const [inviteMeetings, setInviteMeetings] = useState("VIEWER");
+  const [inviteNotifications, setInviteNotifications] = useState("VIEWER");
   const [actionLoading, setActionLoading] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
 
@@ -191,7 +196,12 @@ export default function TeamSettingsPage() {
           role: inviteRole,
           modulePermissions: {
             aiDiligence: inviteRole === "OWNER" ? "EDITOR" : inviteAIDiligence,
-            shortlist: inviteRole === "OWNER" ? "EDITOR" : inviteShortlist
+            shortlist: inviteRole === "OWNER" ? "EDITOR" : inviteShortlist,
+            discoveryFeed: inviteRole === "OWNER" ? "EDITOR" : inviteDiscoveryFeed,
+            escalations: inviteRole === "OWNER" ? "EDITOR" : inviteEscalations,
+            connectHub: inviteRole === "OWNER" ? "EDITOR" : inviteConnectHub,
+            meetings: inviteRole === "OWNER" ? "EDITOR" : inviteMeetings,
+            notifications: inviteRole === "OWNER" ? "EDITOR" : inviteNotifications
           }
         })
       });
@@ -684,31 +694,29 @@ export default function TeamSettingsPage() {
                   </div>
 
                   {inviteRole !== "OWNER" && (
-                    <div className="flex gap-2 items-center mt-3">
-                      <div className="flex flex-col">
-                        <label className="text-[10px] text-white/50 mb-1">AI Diligence</label>
-                        <select
-                          value={inviteAIDiligence}
-                          onChange={(e) => setInviteAIDiligence(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50"
-                        >
-                          <option value="VIEWER">Viewer</option>
-                          <option value="EDITOR">Editor</option>
-                          <option value="NONE">None</option>
-                        </select>
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="text-[10px] text-white/50 mb-1">Shortlisted Deals</label>
-                        <select
-                          value={inviteShortlist}
-                          onChange={(e) => setInviteShortlist(e.target.value)}
-                          className="bg-black/50 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50"
-                        >
-                          <option value="VIEWER">Viewer</option>
-                          <option value="EDITOR">Editor</option>
-                          <option value="NONE">None</option>
-                        </select>
-                      </div>
+                    <div className="flex flex-wrap gap-3 mt-3">
+                      {[
+                        { label: "Discovery Feed", val: inviteDiscoveryFeed, setVal: setInviteDiscoveryFeed },
+                        { label: "Shortlisted Deals", val: inviteShortlist, setVal: setInviteShortlist },
+                        { label: "AI Diligence", val: inviteAIDiligence, setVal: setInviteAIDiligence },
+                        { label: "Escalations", val: inviteEscalations, setVal: setInviteEscalations },
+                        { label: "Connect Hub", val: inviteConnectHub, setVal: setInviteConnectHub },
+                        { label: "Meetings", val: inviteMeetings, setVal: setInviteMeetings },
+                        { label: "Notifications", val: inviteNotifications, setVal: setInviteNotifications },
+                      ].map((mod, idx) => (
+                        <div key={idx} className="flex flex-col">
+                          <label className="text-[10px] text-white/50 mb-1">{mod.label}</label>
+                          <select
+                            value={mod.val}
+                            onChange={(e) => mod.setVal(e.target.value)}
+                            className="bg-black/50 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-[#ccf063]/50"
+                          >
+                            <option value="VIEWER">Viewer</option>
+                            <option value="EDITOR">Editor</option>
+                            <option value="NONE">None</option>
+                          </select>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </form>

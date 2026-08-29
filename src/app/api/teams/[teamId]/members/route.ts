@@ -78,6 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
             where: { id: existing.id },
             data: {
               role: targetRole,
+              modulePermissions: modulePermissions || { aiDiligence: "VIEWER", shortlist: "VIEWER", discoveryFeed: "VIEWER", escalations: "VIEWER", connectHub: "VIEWER", meetings: "VIEWER", notifications: "VIEWER" },
               status: "PENDING"
             }
           });
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tea
             teamId,
             userEmail: email,
             role: targetRole,
+            modulePermissions: modulePermissions || { aiDiligence: "VIEWER", shortlist: "VIEWER", discoveryFeed: "VIEWER", escalations: "VIEWER", connectHub: "VIEWER", meetings: "VIEWER", notifications: "VIEWER" },
             status: "PENDING"
           }
         });
