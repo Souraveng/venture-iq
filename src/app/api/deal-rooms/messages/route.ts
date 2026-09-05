@@ -133,11 +133,11 @@ export async function POST(req: Request) {
 
     // Insert using raw SQL — bypasses outdated Prisma client schema
     const newId = crypto.randomUUID();
-    const now = new Date().toISOString();
+    const now = new Date();
 
     const inserted = await prisma.$queryRawUnsafe<any[]>(
       `INSERT INTO "ChatMessage" (id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt")
-       VALUES ($1, $2, $3, $4, $5, $6)
+       VALUES ($1, $2, $3, $4, $5, $6::timestamp)
        RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"`,
       newId,
       chatRoomId,
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
 
     // Update chat room timestamp and initiatedBy
     await prisma.$queryRawUnsafe(
-      `UPDATE "ChatRoom" SET "updatedAt" = $1, "initiatedBy" = COALESCE("initiatedBy", $2) WHERE id = $3`,
+      `UPDATE "ChatRoom" SET "updatedAt" = $1::timestamp, "initiatedBy" = COALESCE("initiatedBy", $2) WHERE id = $3`,
       now,
       senderId,
       chatRoomId
