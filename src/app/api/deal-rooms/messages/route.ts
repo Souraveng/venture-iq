@@ -4,84 +4,89 @@ import { prisma } from "@/lib/prisma";
 // Helper function to check if a user is a valid participant of a chat room
 async function checkIsParticipant(userEmail: string, chatRoom: any): Promise<boolean> {
   if (!userEmail || !chatRoom) return false;
-  const emailLower = userEmail.trim().toLowerCase();
-  const founderLower = (chatRoom.founderId || "").trim().toLowerCase();
-  const investorLower = (chatRoom.investorId || "").trim().toLowerCase();
+  try {
+    const emailLower = userEmail.trim().toLowerCase();
+    const founderLower = (chatRoom.founderId || "").trim().toLowerCase();
+    const investorLower = (chatRoom.investorId || "").trim().toLowerCase();
 
-  // 1. Direct email match
-  if (founderLower === emailLower || investorLower === emailLower) {
-    return true;
-  }
-
-  // 2. Match via User model ID
-  const user = await prisma.user.findFirst({
-    where: { email: { equals: userEmail, mode: "insensitive" } },
-    select: { id: true, name: true }
-  });
-  if (user && (chatRoom.founderId === user.id || chatRoom.investorId === user.id)) {
-    return true;
-  }
-
-  // 3. Match via Investor model
-  const investor = await prisma.investor.findFirst({
-    where: { email: { equals: userEmail, mode: "insensitive" } },
-    select: { id: true, name: true }
-  });
-  if (investor && (chatRoom.investorId === investor.id || chatRoom.investorId === investor.name || chatRoom.founderId === investor.id)) {
-    return true;
-  }
-
-  // 4. Match via Founder model
-  const founder = await prisma.founder.findFirst({
-    where: { email: { equals: userEmail, mode: "insensitive" } },
-    select: { id: true, fullName: true }
-  });
-  if (founder && (chatRoom.founderId === founder.id || chatRoom.founderId === founder.fullName)) {
-    return true;
-  }
-
-  // 5. Match via Startup ownership or collaboration
-  const startup = await prisma.startup.findFirst({
-    where: {
-      OR: [
-        { id: chatRoom.founderId },
-        { id: chatRoom.investorId },
-        { name: chatRoom.founderId },
-        { name: chatRoom.investorId },
-      ],
-      AND: [
-        {
-          OR: [
-            { founderProfile: { email: { equals: userEmail, mode: "insensitive" } } },
-            { founder: { equals: userEmail, mode: "insensitive" } },
-          ]
-        }
-      ]
+    // 1. Direct email match
+    if (founderLower === emailLower || investorLower === emailLower) {
+      return true;
     }
-  });
-  if (startup) return true;
 
-  // 6. Match via Venture Collaborator
-  const collab = await prisma.ventureCollaborator.findFirst({
-    where: {
-      userEmail: { equals: userEmail, mode: "insensitive" },
-      startupId: { in: [chatRoom.founderId, chatRoom.investorId] }
+    // 2. Match via User model ID
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: userEmail, mode: "insensitive" } },
+      select: { id: true, name: true }
+    });
+    if (user && (chatRoom.founderId === user.id || chatRoom.investorId === user.id)) {
+      return true;
     }
-  });
-  if (collab) return true;
 
-  // 7. Match via ConnectionRequest
-  const connection = await prisma.connectionRequest.findFirst({
-    where: {
-      OR: [
-        { senderEmail: { equals: userEmail, mode: "insensitive" } },
-        { receiverEmail: { equals: userEmail, mode: "insensitive" } }
-      ]
+    // 3. Match via Investor model
+    const investor = await prisma.investor.findFirst({
+      where: { email: { equals: userEmail, mode: "insensitive" } },
+      select: { id: true, name: true }
+    });
+    if (investor && (chatRoom.investorId === investor.id || chatRoom.investorId === investor.name || chatRoom.founderId === investor.id)) {
+      return true;
     }
-  });
-  if (connection) return true;
 
-  return false;
+    // 4. Match via Founder model
+    const founder = await prisma.founder.findFirst({
+      where: { email: { equals: userEmail, mode: "insensitive" } },
+      select: { id: true, fullName: true }
+    });
+    if (founder && (chatRoom.founderId === founder.id || chatRoom.founderId === founder.fullName)) {
+      return true;
+    }
+
+    // 5. Match via Startup ownership or collaboration
+    const startup = await prisma.startup.findFirst({
+      where: {
+        OR: [
+          { id: chatRoom.founderId },
+          { id: chatRoom.investorId },
+          { name: chatRoom.founderId },
+          { name: chatRoom.investorId },
+        ],
+        AND: [
+          {
+            OR: [
+              { founderProfile: { email: { equals: userEmail, mode: "insensitive" } } },
+              { founder: { equals: userEmail, mode: "insensitive" } },
+            ]
+          }
+        ]
+      }
+    });
+    if (startup) return true;
+
+    // 6. Match via Venture Collaborator
+    const collab = await prisma.ventureCollaborator.findFirst({
+      where: {
+        userEmail: { equals: userEmail, mode: "insensitive" },
+        startupId: { in: [chatRoom.founderId, chatRoom.investorId] }
+      }
+    });
+    if (collab) return true;
+
+    // 7. Match via ConnectionRequest
+    const connection = await prisma.connectionRequest.findFirst({
+      where: {
+        OR: [
+          { senderEmail: { equals: userEmail, mode: "insensitive" } },
+          { receiverEmail: { equals: userEmail, mode: "insensitive" } }
+        ]
+      }
+    });
+    if (connection) return true;
+
+    return false;
+  } catch (error) {
+    console.error("Error in checkIsParticipant:", error);
+    return false;
+  }
 }
 
 // GET all messages for a specific chat room
@@ -91,9 +96,9 @@ export async function GET(req: Request) {
     const chatRoomId = searchParams.get("chatRoomId");
     const userEmail = searchParams.get("email");
 
-    if (!chatRoomId) {
+    if (!chatRoomId || chatRoomId === "undefined" || chatRoomId === "null") {
       return NextResponse.json(
-        { success: false, error: "chatRoomId is required." },
+        { success: false, error: "chatRoomId is required and must be valid." },
         { status: 400 }
       );
     }

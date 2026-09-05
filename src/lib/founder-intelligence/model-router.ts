@@ -10,9 +10,26 @@ import fs from "fs";
 import path from "path";
 
 const REGION = "us-central1";
-const PROJECT_ID = process.env.GCP_PROJECT_ID;
-const VERTEX_BASE_URL = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/endpoints/openapi/chat/completions`;
-const VERTEX_EMBED_URL = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/endpoints/openapi/embeddings`;
+
+function getProjectId(): string {
+  if (process.env.GCP_PROJECT_ID) return process.env.GCP_PROJECT_ID;
+  if (process.env.GCP_SERVICE_ACCOUNT_KEY) {
+    try {
+      const decoded = Buffer.from(process.env.GCP_SERVICE_ACCOUNT_KEY, "base64").toString("utf-8");
+      const keyFile = JSON.parse(decoded);
+      if (keyFile.project_id) return keyFile.project_id;
+    } catch (e) {
+      try {
+        const keyFile = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_KEY);
+        if (keyFile.project_id) return keyFile.project_id;
+      } catch (err) {}
+    }
+  }
+  return "venture-iq-499019"; // fallback
+}
+
+const getVertexBaseUrl = () => `https://${REGION}-aiplatform.googleapis.com/v1/projects/${getProjectId()}/locations/${REGION}/endpoints/openapi/chat/completions`;
+const getVertexEmbedUrl = () => `https://${REGION}-aiplatform.googleapis.com/v1/projects/${getProjectId()}/locations/${REGION}/endpoints/openapi/embeddings`;
 
 // ── Cache for OAuth Access Token ──────────────────────────────────────────
 let cachedAccessToken: string | null = null;
@@ -287,7 +304,7 @@ async function callVertexModel(
 
   const signal = abortContext.getStore();
 
-  const res = await fetch(VERTEX_BASE_URL, {
+  const res = await fetch(getVertexBaseUrl(), {
     method: "POST",
     signal,
     headers: {
@@ -520,7 +537,7 @@ export async function vertexAiEmbed(input: string[], options?: EmbedOptions): Pr
   // Use v1beta1 and embedContent for Gemini, v1 and predict for legacy text models
   const apiVersion = isGemini ? "v1beta1" : "v1";
   const action = isGemini ? "embedContent" : "predict";
-  const endpoint = `https://${REGION}-aiplatform.googleapis.com/${apiVersion}/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${rawModelId}:${action}`;
+  const endpoint = `https://${REGION}-aiplatform.googleapis.com/${apiVersion}/projects/${getProjectId()}/locations/${REGION}/publishers/google/models/${rawModelId}:${action}`;
   
   // Fallback for gemini: process all inputs concurrently
   if (isGemini) {
@@ -644,7 +661,7 @@ export async function vertexAiCallGroundingJSON<T>(options: {
   const apiKey = await getAccessToken();
   const rawModelId = VERTEX_MODELS[options.model].replace(/^google\//, "");
   
-  const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${rawModelId}:generateContent`;
+  const endpoint = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${getProjectId()}/locations/${REGION}/publishers/google/models/${rawModelId}:generateContent`;
 
   let promptWithSchema = options.prompt;
   if (options.guidedJson) {
