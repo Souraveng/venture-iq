@@ -205,10 +205,8 @@ export async function POST(req: Request) {
     } else {
       const existing = await prisma.startup.findFirst({
         where: {
-          OR: [
-            { founder: { equals: founder, mode: 'insensitive' } },
-            { name: { equals: name, mode: 'insensitive' } }
-          ]
+          name: { equals: name, mode: 'insensitive' },
+          founderId: founderProfile.id
         }
       });
 
