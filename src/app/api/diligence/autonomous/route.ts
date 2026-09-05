@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     let topStartups: any[] = [];
     try {
       const workerUrl = process.env.NODE_ENV === "production"
-        ? "https://ventureiq-worker.barjatyasourav4210.workers.dev/match"
+        ? process.env.NEXT_PUBLIC_UPLOAD_WORKER_URL?.replace("/upload", "/match") || ""
         : "http://localhost:8787/match";
 
       const workerRes = await fetch(workerUrl, {
@@ -198,3 +198,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+

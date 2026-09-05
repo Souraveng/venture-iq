@@ -2,8 +2,14 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { NativeVideoCall } from "@/components/NativeVideoCall";
 import { gsap } from "gsap";
 import {
+  Pin,
+  Reply,
+  Smile,
+  CheckCheck,
+  Image as ImageIcon,
   Mail,
   Filter,
   CheckCircle2,
@@ -36,7 +42,6 @@ import {
 } from "@/lib/crypto";
 
 // Constants
-const FOUNDER_MOCK_ID = "demo-founder-id"; // Represents the current logged in founder
 
 interface Interaction {
   id: string;
@@ -61,6 +66,77 @@ interface Connection {
   receiverEmail: string;
   status: "PENDING" | "ACCEPTED" | "REJECTED";
   createdAt: string;
+}
+
+// ─── Invites Panel ───────────────────────────────────────────────
+function InvitesPanel({ userEmail }: { userEmail: string | null | undefined }) {
+  const [invites, setInvites] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!userEmail) return;
+    fetch(`/api/user/invitations?email=${encodeURIComponent(userEmail)}`)
+      .then(r => r.json())
+      .then((json: any) => {
+        if (json.success) setInvites(json.invitations || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [userEmail]);
+
+  const handleRespond = async (inviteId: string, action: "ACCEPTED" | "REJECTED") => {
+    try {
+      const res = await fetch("/api/user/invitations", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invitationId: inviteId, status: action, userEmail })
+      });
+      const json = (await res.json()) as any;
+      if (json.success) {
+        setInvites(prev => prev.filter(i => i.id !== inviteId));
+        if (action === "ACCEPTED") router.refresh();
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  if (loading) return <div className="p-6 text-center text-white/40 text-xs animate-pulse">Loading invites...</div>;
+  if (invites.length === 0) return (
+    <div className="p-8 text-center space-y-2">
+      <Bell className="w-10 h-10 text-white/10 mx-auto" />
+      <p className="text-white/40 text-sm">No pending invites</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-2">
+      {invites.map((inv: any) => (
+        <div key={inv.id} className="bg-black/20 border border-white/10 rounded-2xl p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#ccf063]/10 text-[#ccf063] flex items-center justify-center shrink-0 font-bold text-sm">
+              {(inv.invitedBy || inv.ventureId || "?")[0]?.toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-bold truncate">{inv.ventureName || inv.ventureId || "Collaboration Invite"}</p>
+              <p className="text-white/50 text-xs mt-0.5">Invited by <span className="text-[#ccf063]">{inv.invitedBy}</span></p>
+              <p className="text-white/30 text-[10px] font-mono mt-0.5 uppercase tracking-wider">{inv.role || "COLLABORATOR"}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleRespond(inv.id, "ACCEPTED")}
+              className="flex-1 py-2 bg-[#b0d449] hover:bg-[#a1c43f] text-black font-bold rounded-xl text-xs transition-colors"
+            >Accept</button>
+            <button
+              onClick={() => handleRespond(inv.id, "REJECTED")}
+              className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white/70 font-bold rounded-xl text-xs transition-colors border border-white/10"
+            >Decline</button>
+          </div>
+        </div>
+      ))}
+
+    </div>
+  );
 }
 
 interface ChatMessage {
@@ -92,6 +168,11 @@ export default function FounderNotificationsPage() {
   const [chatInput, setChatInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
+  
+  // Social Features State
+  const [replyingTo, setReplyingTo] = useState<any>(null);
+  const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
+
 
   // Cryptographic Keys State
   const [publicKeyBase64, setPublicKeyBase64] = useState<string | null>(null);
@@ -195,7 +276,7 @@ export default function FounderNotificationsPage() {
     }
   };
 
-  const currentSenderId = userEmail || FOUNDER_MOCK_ID;
+  const currentSenderId = userEmail || "";
 
   // Decrypt all messages when they load
   useEffect(() => {
@@ -216,7 +297,19 @@ export default function FounderNotificationsPage() {
   }, [messages, privateKeyBase64, userEmail, currentSenderId]);
 
   // Modals
+  const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
+  const [activeCallPeerEmail, setActiveCallPeerEmail] = useState<string | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactRole, setContactRole] = useState("Partner");
+  const [contactPhone, setContactPhone] = useState("");
+
+  const [termSheetOpen, setTermSheetOpen] = useState(false);
+  const [tsTitle, setTsTitle] = useState("Seed Round Term Sheet");
+  const [tsValuation, setTsValuation] = useState("₹10 Cr");
+  const [tsAsk, setTsAsk] = useState("₹2 Cr");
+
   const [meetingTime, setMeetingTime] = useState("Tomorrow, 11:30 AM");
   const [meetingLoc, setMeetingLoc] = useState("Google Meet");
 
@@ -373,6 +466,23 @@ export default function FounderNotificationsPage() {
   };
 
   // Generic Send Message function
+  const handleChatAction = async (msgId: string, action: string, data?: any) => {
+    try {
+      const payload = { messageId: msgId, action, email: userEmail, ...data };
+      const res = await fetch("/api/deal-rooms/messages/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = (await res.json()) as any;
+      if (json.success) {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, ...json.data } : m));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const sendChatMessage = async (payload: any) => {
     if (!activeChatRoomId) return;
     setIsSending(true);
@@ -381,7 +491,7 @@ export default function FounderNotificationsPage() {
       // Determine recipient email
       let recipientEmail = "";
       if (activeTab === "DEALS" && selectedInteraction) {
-        recipientEmail = selectedInteraction.investor.email || "investor@firm.com";
+        recipientEmail = selectedInteraction.investor.email || "";
       } else if (activeTab === "CONNECTIONS" && selectedConnection) {
         recipientEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
       }
@@ -396,11 +506,13 @@ export default function FounderNotificationsPage() {
           chatRoomId: activeChatRoomId,
           senderId: currentSenderId,
           messagePayload: encryptedPayload,
+          ...(replyingTo ? { replyToId: replyingTo.id } : {})
         }),
       });
       const json = (await res.json()) as any;
       if (json.success) {
         setMessages(prev => [...prev, json.data]);
+        setReplyingTo(null);
       }
     } catch (err) {
       console.error("Failed to send message:", err);
@@ -418,12 +530,10 @@ export default function FounderNotificationsPage() {
 
   // Complex widget actions
   const sendMeetingLink = () => {
-    let meetingLink = "https://meet.google.com/xyz-demo-link";
-    if (meetingLoc === "Zoom") {
-      meetingLink = "https://zoom.us/j/9876543210?pwd=demo";
-    } else if (meetingLoc === "Microsoft Teams") {
-      meetingLink = "https://teams.microsoft.com/l/meetup-join/demo";
-    } else if (meetingLoc === "In-Person" || meetingLoc === "Phone Call") {
+    let meetingLink = "";
+    if (meetingLoc === "Google Meet" || meetingLoc === "Zoom Link") {
+      meetingLink = "native-webrtc";
+    } else {
       meetingLink = "";
     }
 
@@ -466,7 +576,7 @@ export default function FounderNotificationsPage() {
       }
 
       if (!uploadUrl) {
-        uploadUrl = `/files/mock-uploaded-${Date.now()}-${file.name}`;
+        throw new Error("Upload worker URL not configured. Please set NEXT_PUBLIC_UPLOAD_WORKER_URL.");
       }
 
       const sizeStr = file.size > 1024 * 1024 
@@ -488,13 +598,19 @@ export default function FounderNotificationsPage() {
   };
 
   const sendContract = () => {
+    setTermSheetOpen(true);
+    setPlusMenuOpen(false);
+  };
+  
+  const submitContract = () => {
     sendChatMessage({
       type: "CONTRACT",
-      title: "Seed Round Term Sheet",
-      valuation: "₹10 Cr",
-      ask: "₹2 Cr",
+      title: tsTitle,
+      valuation: tsValuation,
+      ask: tsAsk,
       status: "PENDING_SIGNATURE"
     });
+    setTermSheetOpen(false);
   };
 
   const sendDocument = () => {
@@ -509,7 +625,7 @@ export default function FounderNotificationsPage() {
 
     let recipientEmail = "";
     if (activeTab === "DEALS" && selectedInteraction) {
-      recipientEmail = selectedInteraction.investor.email || "investor@firm.com";
+      recipientEmail = selectedInteraction.investor.email || "";
     } else if (activeTab === "CONNECTIONS" && selectedConnection) {
       recipientEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
     }
@@ -534,13 +650,19 @@ export default function FounderNotificationsPage() {
   };
 
   const sendContact = () => {
+    setContactOpen(true);
+    setPlusMenuOpen(false);
+  };
+  
+  const submitContact = () => {
     sendChatMessage({
       type: "CONTACT",
-      name: (activeStartup as any).founder || "Founder Name",
-      role: "CEO",
-      email: "founder@venture.com",
-      phone: "+91 98765 43210"
+      name: contactName || "Contact Info",
+      role: contactRole,
+      email: userEmail || "",
+      phone: contactPhone
     });
+    setContactOpen(false);
   };
 
   // Message Renderer
@@ -559,38 +681,87 @@ export default function FounderNotificationsPage() {
     switch (payload.type) {
       case "TEXT":
         return (
-          <div key={msg.id} className={wrapperClass}>
+          <div key={msg.id} className={wrapperClass} onMouseEnter={() => setHoveredMessage(msg.id)} onMouseLeave={() => setHoveredMessage(null)}>
             {!isMe && (
               <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
                 <img src={selectedInteraction?.investor.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               </div>
             )}
-            <div className={bubbleClass}>
-              <p>{payload.text}</p>
-              <span className={`text-sm block text-right mt-1 opacity-60 ${isMe ? "text-black" : "text-white"}`}>{timeString}</span>
+            
+            <div className="relative group/bubble flex items-center">
+              {/* WhatsApp Hover Menu */}
+              {hoveredMessage === msg.id && (
+                <div className={`absolute top-1/2 -translate-y-1/2 flex items-center gap-1 bg-white dark:bg-[#2a2a2a] border border-black/10 dark:border-white/10 rounded-full px-2 py-1 shadow-lg z-20 ${isMe ? "right-[105%]" : "left-[105%]"}`}>
+                  <button onClick={() => handleChatAction(msg.id, "react", { reaction: "👍" })} className="hover:scale-125 transition-transform">👍</button>
+                  <button onClick={() => handleChatAction(msg.id, "react", { reaction: "❤️" })} className="hover:scale-125 transition-transform">❤️</button>
+                  <button onClick={() => setReplyingTo({ id: msg.id, text: payload.text })} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full text-zinc-500 dark:text-zinc-400 ml-1"><Reply className="w-3.5 h-3.5" /></button>
+                </div>
+              )}
+
+              <div className={bubbleClass}>
+                {/* Instagram/WhatsApp Reply Snippet */}
+                {msg.replyToId && (
+                  <div className={`mb-2 p-2 rounded-lg text-[11px] border-l-2 ${isMe ? "bg-black/5 border-black/20 text-black/70" : "bg-white/5 border-[#ccf063] text-white/70"}`}>
+                    <div className="font-bold mb-0.5">{isMe ? "You" : "Them"} replied</div>
+                    <div className="truncate opacity-80">Quoted message...</div>
+                  </div>
+                )}
+                
+                <p>{payload.text}</p>
+                
+                <div className={`flex items-center justify-end gap-1 mt-1 opacity-60 ${isMe ? "text-black" : "text-white"}`}>
+                  <span className="text-[10px]">{timeString}</span>
+                  {/* WhatsApp Read Receipts */}
+                  {isMe && (
+                    msg.readAt ? <CheckCheck className="w-3.5 h-3.5 text-blue-500" /> : <Check className="w-3.5 h-3.5" />
+                  )}
+                </div>
+                
+                {/* Reactions Display */}
+                {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                  <div className={`absolute -bottom-3 flex gap-1 ${isMe ? "right-2" : "left-2"}`}>
+                    {Object.entries(msg.reactions).map(([r, users]: [string, any]) => (
+                      <span key={r} className="bg-white dark:bg-[#1f1f1f] border border-black/10 dark:border-white/10 text-xs rounded-full px-1.5 py-0.5 shadow-sm">
+                        {r} {users.length > 1 && users.length}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
 
       case "FILE":
+        const isImage = payload.name.match(/\.(jpg|jpeg|png|gif|webp)$/i);
         return (
           <div key={msg.id} className={wrapperClass}>
             {!isMe && <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 bg-white/10" />}
-            <div className={`${bubbleClass} !p-4 min-w-[220px]`}>
-              <div className="flex items-center gap-3 mb-2">
-                <div className={`p-2 rounded-lg ${isMe ? 'bg-black/10' : 'bg-[#ccf063]/10 text-[#ccf063]'}`}>
-                  <FileCode className="w-5 h-5" />
-                </div>
+            <div className={`${bubbleClass} ${isImage ? "!p-1" : "!p-4 min-w-[220px]"}`}>
+              {isImage ? (
                 <div>
-                  <p className="font-bold leading-tight">{payload.name}</p>
-                  <p className="text-sm opacity-70 mt-0.5">{payload.size} &middot; PDF Document</p>
+                  <img src={payload.url} alt={payload.name} className="w-full max-w-[240px] rounded-xl" />
+                  <div className={`flex justify-end gap-1 px-2 pb-1 pt-1 opacity-80 ${isMe ? "text-black" : "text-white"}`}>
+                    <span className="text-[10px]">{timeString}</span>
+                  </div>
                 </div>
-              </div>
-              <button className={`w-full py-1.5 rounded-lg text-sm font-bold mt-2 transition-colors ${isMe ? "bg-black/10 hover:bg-black/20" : "bg-[#ccf063]/10 text-[#ccf063] hover:bg-[#ccf063]/20"
-                }`}>
-                Download File
-              </button>
-              <span className={`text-sm block text-right mt-2 opacity-60 ${isMe ? "text-black" : "text-white"}`}>{timeString}</span>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`p-2 rounded-lg ${isMe ? 'bg-black/10' : 'bg-[#ccf063]/10 text-[#ccf063]'}`}>
+                      <FileCode className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold leading-tight truncate max-w-[120px]">{payload.name}</p>
+                      <p className="text-[10px] opacity-70 mt-0.5">{payload.size}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => window.open(payload.url)} className={`w-full py-1.5 rounded-lg text-xs font-bold mt-2 transition-colors ${isMe ? "bg-black/10 hover:bg-black/20" : "bg-[#ccf063]/10 text-[#ccf063] hover:bg-[#ccf063]/20"}`}>
+                    Download
+                  </button>
+                  <span className={`text-[10px] block text-right mt-2 opacity-60 ${isMe ? "text-black" : "text-white"}`}>{timeString}</span>
+                </>
+              )}
             </div>
           </div>
         );
@@ -616,10 +787,24 @@ export default function FounderNotificationsPage() {
                   <span>{payload.location}</span>
                 </div>
                 <div className="pt-2">
-                  <a href={payload.link} target="_blank" className={`inline-block w-full text-center py-2 rounded-lg font-bold transition-colors ${isMe ? "bg-black text-[#ccf063] hover:bg-black/80" : "bg-[#ccf063] text-black hover:bg-[#c2e45d]"
-                    }`}>
-                    Join Meeting
-                  </a>
+                  {payload.link === "native-webrtc" ? (
+                    <button onClick={() => {
+                        setActiveCallRoom(msg.chatRoomId);
+                        let peerEmail = "";
+                        if (activeTab === "DEALS" && selectedInteraction) {
+                           peerEmail = selectedInteraction.investor.email || "";
+                        } else if (activeTab === "CONNECTIONS" && selectedConnection) {
+                           peerEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
+                        }
+                        setActiveCallPeerEmail(peerEmail);
+                    }} className={`inline-block w-full text-center py-2 rounded-lg font-bold transition-colors ${isMe ? "bg-black text-[#ccf063] hover:bg-black/80" : "bg-[#ccf063] text-black hover:bg-[#c2e45d]"}`}>
+                      Join Native Video Call
+                    </button>
+                  ) : (
+                    <a href={payload.link} target="_blank" className={`inline-block w-full text-center py-2 rounded-lg font-bold transition-colors ${isMe ? "bg-black text-[#ccf063] hover:bg-black/80" : "bg-[#ccf063] text-black hover:bg-[#c2e45d]"}`}>
+                      Join Meeting
+                    </a>
+                  )}
                 </div>
               </div>
               <div className={`px-4 pb-2 text-sm text-right opacity-60 ${isMe ? "text-black" : "text-white"}`}>{timeString}</div>
@@ -717,10 +902,10 @@ export default function FounderNotificationsPage() {
   return (
     <div ref={containerRef} className="max-w-[1400px] mx-auto font-sans h-[calc(100vh-80px)] flex flex-col pb-4">
 
-      <div className="flex h-full w-full relative z-10 overflow-hidden rounded-2xl border border-white/5 bg-[#111111]">
+      <div className="flex h-full w-full relative z-10 overflow-hidden rounded-2xl border border-black/10 dark:border-white/5 bg-[#f0f0f0] dark:bg-[#111111]">
 
         {/* LEFT COLUMN: Request List */}
-        <div className={`w-full md:w-[380px] bg-black/40 backdrop-blur-xl border-r border-white/5 flex flex-col shrink-0 relative overflow-hidden transition-all ${(selectedInteraction || selectedConnection) ? "hidden md:flex" : "flex"
+        <div className={`w-full md:w-[380px] bg-white/80 dark:bg-black/40 backdrop-blur-xl border-r border-black/10 dark:border-white/5 flex flex-col shrink-0 relative overflow-hidden transition-all ${(selectedInteraction || selectedConnection) ? "hidden md:flex" : "flex"
           }`}>
 
           <div className="p-4 sm:p-6 pb-4 border-b border-white/5 bg-gradient-to-b from-black to-transparent">
@@ -742,10 +927,21 @@ export default function FounderNotificationsPage() {
               >
                 Connections
               </button>
+              <button
+                onClick={() => { (setActiveTab as any)("INVITES"); setSelectedInteraction(null); setSelectedConnection(null); }}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors relative ${(activeTab as string) === "INVITES" ? "bg-[#b0d449] text-black" : "text-white/60 hover:text-white hover:bg-white/5"
+                  }`}
+              >
+                Invites
+              </button>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+
+            {(activeTab as string) === "INVITES" && (
+              <InvitesPanel userEmail={userEmail} />
+            )}
 
             {activeTab === "DEALS" && (
               <>
@@ -897,7 +1093,7 @@ export default function FounderNotificationsPage() {
         </div>
 
         {/* RIGHT COLUMN: Chat Room / Active Deal Room */}
-        <div className={`flex-1 flex flex-col bg-[#111111] relative border-l border-white/5 ${(!selectedInteraction && !selectedConnection) ? "hidden md:flex" : "flex"
+        <div className={`flex-1 flex flex-col bg-[#f0f0f0] dark:bg-[#111111] relative border-l border-black/10 dark:border-white/5 ${(!selectedInteraction && !selectedConnection) ? "hidden md:flex" : "flex"
           }`}>
           {!activeChatRoomId ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -949,7 +1145,7 @@ export default function FounderNotificationsPage() {
               </div>
 
               {/* Chat Body */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#161616] flex flex-col">
+              <div className="flex-1 overflow-y-auto p-6 bg-[#f4f4f4] dark:bg-[#161616] flex flex-col">
 
                 {activeTab === "DEALS" && selectedInteraction?.state === "INTRO_REQUESTED" ? (
                   // PENDING REQUEST VIEW
@@ -993,6 +1189,22 @@ export default function FounderNotificationsPage() {
               {/* Input Area (Only if Matched or Connected) */}
               {((activeTab === "DEALS" && selectedInteraction?.state === "MUTUAL_MATCH") || (activeTab === "CONNECTIONS" && selectedConnection?.status === "ACCEPTED")) && (
                 <div className="p-4 bg-black/40 border-t border-white/5 shrink-0 relative">
+
+                  {/* Reply Bar Snippet */}
+                  {replyingTo && (
+                    <div className="absolute bottom-full left-0 right-0 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border-b border-black/5 dark:border-white/5 p-3 flex items-center justify-between z-10">
+                      <div className="flex gap-3 items-center min-w-0">
+                        <Reply className="w-4 h-4 text-[#ccf063]" />
+                        <div className="truncate">
+                          <p className="text-[10px] font-bold text-[#ccf063] uppercase tracking-wider">Replying to</p>
+                          <p className="text-xs text-black/70 dark:text-white/70 truncate">{replyingTo.text}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setReplyingTo(null)} className="text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Action Menu Popover */}
                   {plusMenuOpen && (
@@ -1058,7 +1270,7 @@ export default function FounderNotificationsPage() {
 
       {/* Schedule Meeting Modal (Same as before but integrates into chat) */}
       {scheduleOpen && (selectedInteraction || selectedConnection) && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-[#1f1f1f] border border-white/10 rounded-2xl p-6 max-w-sm w-full space-y-5 shadow-2xl relative">
             <button
               onClick={() => setScheduleOpen(false)}
@@ -1121,6 +1333,143 @@ export default function FounderNotificationsPage() {
         </div>
       )}
 
+            {contactOpen && (selectedInteraction || selectedConnection) && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1f1f1f] border border-white/10 rounded-2xl p-6 max-w-sm w-full space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setContactOpen(false)}
+              className="absolute top-4 right-4 text-white/40 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+              <div className="w-10 h-10 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm font-serif">Share Contact Info</h4>
+                <p className="text-sm text-white/40">Drop your details in chat</p>
+              </div>
+            </div>
+            <div className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-[#c5c9b2] text-sm uppercase font-bold tracking-wider">Name</label>
+                <input
+                  type="text"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="e.g. John Doe"
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[#c5c9b2] text-sm uppercase font-bold tracking-wider">Role / Title</label>
+                <input
+                  type="text"
+                  value={contactRole}
+                  onChange={(e) => setContactRole(e.target.value)}
+                  placeholder="e.g. Managing Partner"
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[#c5c9b2] text-sm uppercase font-bold tracking-wider">Phone Number</label>
+                <input
+                  type="text"
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="e.g. +1 (555) 000-0000"
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setContactOpen(false)} className="flex-1 py-3 text-sm font-bold text-white/50 hover:text-white transition-colors">
+                Cancel
+              </button>
+              <button onClick={submitContact} className="flex-1 py-3 bg-blue-500 hover:bg-blue-400 text-white rounded-xl text-sm font-bold transition-colors">
+                Share Contact
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {termSheetOpen && (selectedInteraction || selectedConnection) && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1f1f1f] border border-white/10 rounded-2xl p-6 max-w-sm w-full space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setTermSheetOpen(false)}
+              className="absolute top-4 right-4 text-white/40 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+              <div className="w-10 h-10 bg-green-500/10 border border-green-500/30 text-green-400 rounded-full flex items-center justify-center">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm font-serif">Send Term Sheet</h4>
+                <p className="text-sm text-white/40">Propose deal terms in chat</p>
+              </div>
+            </div>
+            <div className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-[#c5c9b2] text-sm uppercase font-bold tracking-wider">Term Sheet Title</label>
+                <input
+                  type="text"
+                  value={tsTitle}
+                  onChange={(e) => setTsTitle(e.target.value)}
+                  placeholder="e.g. Seed Round Term Sheet"
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[#c5c9b2] text-sm uppercase font-bold tracking-wider">Proposed Valuation</label>
+                <input
+                  type="text"
+                  value={tsValuation}
+                  onChange={(e) => setTsValuation(e.target.value)}
+                  placeholder="e.g. ₹10 Cr / $5M"
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[#c5c9b2] text-sm uppercase font-bold tracking-wider">Investment Amount (Ask)</label>
+                <input
+                  type="text"
+                  value={tsAsk}
+                  onChange={(e) => setTsAsk(e.target.value)}
+                  placeholder="e.g. ₹2 Cr / $1M"
+                  className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-green-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setTermSheetOpen(false)} className="flex-1 py-3 text-sm font-bold text-white/50 hover:text-white transition-colors">
+                Cancel
+              </button>
+              <button onClick={submitContract} className="flex-1 py-3 bg-green-500 hover:bg-green-400 text-white rounded-xl text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                Send Term Sheet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeCallRoom && activeCallPeerEmail && (
+        <NativeVideoCall
+           chatRoomId={activeCallRoom}
+           userEmail={userEmail || ""}
+           peerEmail={activeCallPeerEmail}
+           onEndCall={() => setActiveCallRoom(null)}
+        />
+      )}
     </div>
   );
 }
+
+
+
+
+

@@ -169,12 +169,12 @@ function DiligenceContent() {
   if (mode === "error") {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-4">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl backdrop-blur-md">
+        <div className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl backdrop-blur-md">
           <div className="bg-red-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-3">Notice</h2>
-          <p className="text-sm text-[#c5c9b2] mb-8 bg-black/40 p-4 rounded-lg border border-white/5">
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-3">Notice</h2>
+          <p className="text-sm text-zinc-600 dark:text-[#c5c9b2] mb-8 bg-black/5 dark:bg-black/40 p-4 rounded-lg border border-black/5 dark:border-white/5">
             {errorMsg}
           </p>
           <button 
@@ -198,15 +198,15 @@ function DiligenceContent() {
     return (
       <div className="flex flex-col items-center justify-center py-32 space-y-8">
         <div className="relative">
-          <div className="w-24 h-24 border-4 border-white/5 rounded-full absolute inset-0"></div>
+          <div className="w-24 h-24 border-4 border-black/5 dark:border-white/5 rounded-full absolute inset-0"></div>
           <div className="w-24 h-24 border-4 border-t-[#ccf063] rounded-full animate-spin"></div>
           <Sparkles className="w-8 h-8 text-[#ccf063] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
         </div>
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-serif italic text-white animate-pulse">
+          <h2 className="text-2xl font-serif italic text-zinc-900 dark:text-white animate-pulse">
             {mode === "analyzing" ? "Agentic Workflow Active" : "Loading Workspace..."}
           </h2>
-          <p className="text-sm text-[#c5c9b2]">
+          <p className="text-sm text-zinc-600 dark:text-[#c5c9b2]">
             {mode === "analyzing" 
               ? "AI Agents are analyzing specs and validating facts via Google Search Grounding..." 
               : "Preparing intelligence suite..."}
@@ -218,21 +218,21 @@ function DiligenceContent() {
 
   if (mode === "selection") {
     return (
-      <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+      <div className="min-h-screen relative overflow-hidden bg-zinc-50 dark:bg-transparent">
         <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-[#ccf063]/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
         <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-violet-600/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen" />
         
         <div className="relative z-10 max-w-4xl mx-auto py-12 px-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <button onClick={() => router.back()} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white/70 hover:text-white">
+              <button onClick={() => router.back()} className="p-2 bg-black/5 dark:bg-white/5 hover:bg-black/5 dark:bg-black/10 dark:bg-white/10 rounded-full text-white/70 hover:text-zinc-900 dark:text-white">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h2 className="text-3xl font-bold text-white font-serif flex items-center gap-2">
+                <h2 className="text-3xl font-bold text-zinc-900 dark:text-white font-serif flex items-center gap-2">
                   Select Deals for AI Diligence
                 </h2>
-                <p className="text-[#c5c9b2] mt-1 text-sm">Choose from your shortlisted pipeline to run a deep-dive analysis.</p>
+                <p className="text-zinc-600 dark:text-[#c5c9b2] mt-1 text-sm">Choose from your shortlisted pipeline to run a deep-dive analysis.</p>
               </div>
             </div>
             <WorkspaceSwitcher compact />
@@ -244,22 +244,22 @@ function DiligenceContent() {
                 key={startup.id} 
                 onClick={() => toggleSelection(startup.id)}
                 className={`p-4 rounded-2xl border cursor-pointer flex items-center gap-4 transition-all ${
-                  selectedIds.includes(startup.id) ? 'bg-[#ccf063]/10 border-[#ccf063]' : 'bg-[#1f1f1f] border-white/10 hover:border-white/30'
+                  selectedIds.includes(startup.id) ? 'bg-[#ccf063]/10 border-[#ccf063]' : 'bg-[#1f1f1f] border-black/10 dark:border-white/10 hover:border-white/30'
                 }`}
               >
                 <div className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 ${
-                  selectedIds.includes(startup.id) ? 'bg-[#ccf063] border-[#ccf063] text-black' : 'border-white/30 bg-black/40'
+                  selectedIds.includes(startup.id) ? 'bg-[#ccf063] border-[#ccf063] text-black' : 'border-white/30 bg-black/5 dark:bg-black/40'
                 }`}>
                   {selectedIds.includes(startup.id) && <Check className="w-4 h-4" />}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-white font-bold truncate">{startup.name}</h3>
-                  <p className="text-xs text-[#c5c9b2] truncate">{startup.tagline}</p>
+                  <h3 className="text-zinc-900 dark:text-white font-bold truncate">{startup.name}</h3>
+                  <p className="text-xs text-zinc-600 dark:text-[#c5c9b2] truncate">{startup.tagline}</p>
                 </div>
               </div>
             ))}
             {shortlisted.length === 0 && (
-              <div className="col-span-full py-20 text-center text-[#c5c9b2]">
+              <div className="col-span-full py-20 text-center text-zinc-600 dark:text-[#c5c9b2]">
                 You haven't shortlisted any deals yet. Go to the Discovery Feed to find matches!
               </div>
             )}
@@ -281,25 +281,25 @@ function DiligenceContent() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#0a0a0a]">
+    <div className="min-h-screen relative overflow-hidden bg-zinc-50 dark:bg-transparent">
       {/* Background gradients */}
       <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-[#ccf063]/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
       <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-violet-600/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen" />
       
       <div ref={containerRef} className="relative z-10 space-y-8 max-w-5xl mx-auto font-sans pb-12 pt-8 px-6">
         {/* Header */}
-        <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+        <div className="flex items-center gap-4 border-b border-black/10 dark:border-white/10 pb-6">
         <button 
           onClick={() => router.back()}
-          className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
+          className="p-2 bg-black/5 dark:bg-white/5 hover:bg-black/5 dark:bg-black/10 dark:bg-white/10 rounded-full transition-colors text-white/70 hover:text-zinc-900 dark:text-white"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h2 className="text-3xl font-bold text-white font-serif flex items-center gap-2">
+          <h2 className="text-3xl font-bold text-zinc-900 dark:text-white font-serif flex items-center gap-2">
             AI Diligence Portal <Sparkles className="w-5 h-5 text-[#ccf063]" />
           </h2>
-          <p className="text-xs text-[#c5c9b2] mt-1">
+          <p className="text-xs text-zinc-600 dark:text-[#c5c9b2] mt-1">
             Comparative analysis powered by LangGraph & Gemini Search Grounding.
           </p>
         </div>
@@ -311,7 +311,7 @@ function DiligenceContent() {
           <div 
             key={idx}
             className={`animate-item bg-[#1f1f1f]/80 backdrop-blur-xl border rounded-3xl p-8 relative overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1 ${
-              startup.rank === 1 ? "border-[#ccf063] shadow-[0_0_40px_rgba(204,240,99,0.15)]" : "border-white/10 hover:border-white/20"
+              startup.rank === 1 ? "border-[#ccf063] shadow-[0_0_40px_rgba(204,240,99,0.15)]" : "border-black/10 dark:border-white/10 hover:border-white/20"
             }`}
           >
             {startup.rank === 1 && (
@@ -324,13 +324,13 @@ function DiligenceContent() {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg border ${
-                    startup.rank === 1 ? "bg-[#ccf063]/10 border-[#ccf063]/30 text-[#ccf063]" : "bg-white/5 border-white/10 text-white"
+                    startup.rank === 1 ? "bg-[#ccf063]/10 border-[#ccf063]/30 text-[#ccf063]" : "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-zinc-900 dark:text-white"
                   }`}>
                     #{startup.rank}
                   </div>
-                  <h3 className="text-2xl font-bold text-white font-serif">{startup.startupName || startup.startupId}</h3>
+                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-white font-serif">{startup.startupName || startup.startupId}</h3>
                 </div>
-                <p className="text-sm text-[#c5c9b2] max-w-3xl leading-relaxed mt-4">
+                <p className="text-sm text-zinc-600 dark:text-[#c5c9b2] max-w-3xl leading-relaxed mt-4">
                   {startup.reason}
                 </p>
               </div>
@@ -382,7 +382,7 @@ function DiligenceContent() {
                 </h4>
                 <ul className="space-y-2">
                   {startup.keyStrengths?.map((str: string, i: number) => (
-                    <li key={i} className="text-xs text-[#c5c9b2] flex items-start gap-2">
+                    <li key={i} className="text-xs text-zinc-600 dark:text-[#c5c9b2] flex items-start gap-2">
                       <span className="text-green-500/50 mt-0.5">•</span> {str}
                     </li>
                   ))}
@@ -396,7 +396,7 @@ function DiligenceContent() {
                 </h4>
                 <ul className="space-y-2">
                   {startup.keyRisks?.map((risk: string, i: number) => (
-                    <li key={i} className="text-xs text-[#c5c9b2] flex items-start gap-2">
+                    <li key={i} className="text-xs text-zinc-600 dark:text-[#c5c9b2] flex items-start gap-2">
                       <span className="text-red-500/50 mt-0.5">•</span> {risk}
                     </li>
                   ))}
@@ -411,7 +411,7 @@ function DiligenceContent() {
                 <h4 className="text-sm font-bold text-[#ccf063] mb-2 flex items-center gap-2 relative z-10">
                   <Search className="w-4 h-4" /> Search Grounding Fact Check
                 </h4>
-                <p className="text-xs text-[#c5c9b2] leading-relaxed relative z-10">
+                <p className="text-xs text-zinc-600 dark:text-[#c5c9b2] leading-relaxed relative z-10">
                   {startup.validationNotes}
                 </p>
               </div>
@@ -420,7 +420,7 @@ function DiligenceContent() {
         ))}
 
         {rankings.length === 0 && mode === "results" && (
-          <div className="text-center py-20 text-[#c5c9b2] text-sm">
+          <div className="text-center py-20 text-zinc-600 dark:text-[#c5c9b2] text-sm">
             Could not parse valid rankings from the AI output.
           </div>
         )}
@@ -428,18 +428,18 @@ function DiligenceContent() {
       
       {/* Escalation Modal */}
       {escalationModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/60 dark:bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl p-6 w-full max-w-lg shadow-2xl relative">
             <button 
               onClick={() => setEscalationModalOpen(false)}
-              className="absolute top-4 right-4 text-white/50 hover:text-white"
+              className="absolute top-4 right-4 text-white/50 hover:text-zinc-900 dark:text-white"
             >
               ×
             </button>
-            <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-[#ccf063]" /> Escalate to Investment Committee
             </h3>
-            <p className="text-sm text-[#c5c9b2] mb-6">
+            <p className="text-sm text-zinc-600 dark:text-[#c5c9b2] mb-6">
               This will generate an AI-synthesized Handoff Note for the IC using your context and the automated diligence report.
             </p>
 
@@ -450,7 +450,7 @@ function DiligenceContent() {
                   type="text" 
                   disabled 
                   value="Investment Committee" 
-                  className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-white/50"
+                  className="w-full bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg p-3 text-sm text-white/50"
                 />
               </div>
               <div>
@@ -459,18 +459,18 @@ function DiligenceContent() {
                   value={analystNote}
                   onChange={(e) => setAnalystNote(e.target.value)}
                   placeholder="Why are you escalating this deal? e.g. 'Strong founder background but need IC approval on the valuation ask.'"
-                  className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-white placeholder-white/30 h-32 focus:border-[#ccf063] focus:outline-none focus:ring-1 focus:ring-[#ccf063]"
+                  className="w-full bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg p-3 text-sm text-zinc-900 dark:text-white placeholder-white/30 h-32 focus:border-[#ccf063] focus:outline-none focus:ring-1 focus:ring-[#ccf063]"
                 />
               </div>
               
               {teamMembers.length > 0 && (
-                <div className="bg-black/30 border border-white/5 p-4 rounded-xl">
-                  <label className="flex items-center gap-2 text-sm text-white font-bold cursor-pointer mb-3">
+                <div className="bg-black/30 border border-black/5 dark:border-white/5 p-4 rounded-xl">
+                  <label className="flex items-center gap-2 text-sm text-zinc-900 dark:text-white font-bold cursor-pointer mb-3">
                     <input 
                       type="checkbox" 
                       checked={shareWithAll} 
                       onChange={(e) => setShareWithAll(e.target.checked)}
-                      className="rounded border-white/20 bg-black/50 text-[#ccf063] focus:ring-[#ccf063] accent-[#ccf063]"
+                      className="rounded border-white/20 bg-white dark:bg-black/50 text-[#ccf063] focus:ring-[#ccf063] accent-[#ccf063]"
                     />
                     Share with all team members
                   </label>
@@ -479,7 +479,7 @@ function DiligenceContent() {
                     <div className="pl-6 space-y-2 max-h-32 overflow-y-auto">
                       <p className="text-xs text-white/50 mb-2">Select specific members to share with:</p>
                       {teamMembers.map(member => (
-                        <label key={member.userEmail} className="flex items-center gap-2 text-sm text-[#c5c9b2] cursor-pointer">
+                        <label key={member.userEmail} className="flex items-center gap-2 text-sm text-zinc-600 dark:text-[#c5c9b2] cursor-pointer">
                           <input 
                             type="checkbox" 
                             checked={selectedEmails.includes(member.userEmail)}
@@ -490,7 +490,7 @@ function DiligenceContent() {
                                 setSelectedEmails(prev => prev.filter(email => email !== member.userEmail));
                               }
                             }}
-                            className="rounded border-white/20 bg-black/50 text-[#ccf063] focus:ring-[#ccf063] accent-[#ccf063]"
+                            className="rounded border-white/20 bg-white dark:bg-black/50 text-[#ccf063] focus:ring-[#ccf063] accent-[#ccf063]"
                           />
                           {member.userEmail} <span className="text-white/30 text-xs">({member.role})</span>
                         </label>
@@ -504,7 +504,7 @@ function DiligenceContent() {
             <div className="mt-8 flex justify-end gap-3">
               <button 
                 onClick={() => setEscalationModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:text-white hover:bg-white/5"
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white/70 hover:text-zinc-900 dark:text-white hover:bg-black/5 dark:bg-white/5"
               >
                 Cancel
               </button>
@@ -534,7 +534,7 @@ function DiligenceContent() {
 
 export default function DiligencePortalPage() {
   return (
-    <Suspense fallback={<div className="p-10 text-white">Loading Portal...</div>}>
+    <Suspense fallback={<div className="p-10 text-zinc-900 dark:text-white">Loading Portal...</div>}>
       <DiligenceContent />
     </Suspense>
   );

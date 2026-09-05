@@ -1,12 +1,14 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/client"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  output          = "../src/generated/client"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 model Startup {
@@ -67,7 +69,7 @@ model Startup {
   executionScore         Float?
   aiSummary              String?  @db.Text
   keywords               String[] @default([])
-  embedding              Json?
+  embedding              Unsupported("vector(1024)")?
   fundingProbability     Float?
   recommendedInvestors   String[] @default([])
   // Spec Additions
@@ -452,6 +454,12 @@ model ChatMessage {
   iv               String   // Initialization Vector (salt)
   createdAt        DateTime @default(now())
 
+  // New Social Chat Features
+  reactions        Json?    @default("{}") // e.g. { "❤️": ["email1"] }
+  readAt           DateTime?
+  replyToId        String?
+  isPinned         Boolean  @default(false)
+
   chatRoom         ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 }
 
@@ -689,3 +697,70 @@ model HandoffNote {
   @@index([startupId, assignedTo])
 }
 
+model CachedFact {
+  id         String   @id
+  sector     String
+  geography  String
+  claim      String   @db.Text
+  value      Float?
+  unit       String?
+  confidence String
+  sourceUrl  String?
+  embedding  Unsupported("vector(1024)")?
+  createdAt  DateTime @default(now())
+
+  @@index([sector, geography, createdAt])
+}
+
+// ── Connect Hub Models ──────────────────────────────────
+
+model Follow {
+  id            String   @id @default(uuid())
+  followerEmail String
+  followingEmail String
+  createdAt     DateTime @default(now())
+
+  @@unique([followerEmail, followingEmail])
+  @@index([followerEmail])
+  @@index([followingEmail])
+}
+
+model PostReaction {
+  id         String   @id @default(uuid())
+  postId     String
+  userEmail  String
+  reaction   String   // fire | insight | vibe | launch | love
+  createdAt  DateTime @default(now())
+
+  @@unique([postId, userEmail])
+  @@index([postId])
+}
+
+model Story {
+  id          String   @id @default(uuid())
+  authorEmail String
+  authorName  String
+  authorAvatar String?
+  authorRole  String   @default("Founder")
+  mediaUrl    String?
+  text        String?  @db.Text
+  expiresAt   DateTime
+  viewedBy    String[] @default([])
+  createdAt   DateTime @default(now())
+
+  @@index([authorEmail])
+  @@index([expiresAt])
+}
+
+// ── WebRTC Signaling ──────────────────────────────────
+model WebRTCSignal {
+  id            String   @id @default(uuid())
+  chatRoomId    String
+  senderEmail   String
+  receiverEmail String
+  type          String   // offer, answer, ice-candidate
+  payload       Json
+  createdAt     DateTime @default(now())
+
+  @@index([chatRoomId, receiverEmail])
+}

@@ -40,7 +40,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   if (isPublicPage) {
     return (
-      <div className="w-full relative min-h-screen bg-[#0e0e0e] overflow-x-hidden">
+      <div className="w-full relative min-h-screen bg-zinc-50 dark:bg-[#0e0e0e] overflow-x-hidden">
         <DotMatrixCanvas />
         <div className="relative z-10 w-full flex flex-col">{children}</div>
       </div>
@@ -52,7 +52,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     : { type: "spring" as const, damping: 28, stiffness: 260 };
 
   return (
-    <div className="h-screen bg-[#0e0e0e] text-[#e2e2e2] flex flex-col w-full relative overflow-hidden">
+    <div className="h-screen bg-zinc-50 dark:bg-[#0e0e0e] text-[#18181b] dark:text-[#e2e2e2] flex flex-col w-full relative overflow-hidden">
       {/* Interactive Dot Matrix Canvas Background */}
       <DotMatrixCanvas />
 

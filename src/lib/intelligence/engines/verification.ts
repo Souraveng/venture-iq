@@ -61,7 +61,7 @@ export async function runVerificationEngine(context: EngineContext): Promise<voi
         f.citations = [];
       }
       f.citations.push({
-        url: "https://techcrunch.com/mock-industry-report",
+        url: "",
         credibility: "MEDIUM"
       });
       if (f.content.toLowerCase().includes("revenue")) {
@@ -72,3 +72,4 @@ export async function runVerificationEngine(context: EngineContext): Promise<voi
 
   result.completedWorkerIds.push("verification");
 }
+

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get the JWT token directly
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=" });
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET! });
 
     if (!token || !token.email) {
       return NextResponse.redirect(safeRedirectUrl(req, `/login/${targetRole}`));
@@ -58,3 +58,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(safeRedirectUrl(req, "/login-role", { error: "switch_failed" }));
   }
 }
+
+

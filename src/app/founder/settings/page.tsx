@@ -396,11 +396,11 @@ export default function FounderEditProfilePage() {
     name: userName || "Swapn Kumar",
     email: userEmail || "swapn@gmail.com",
     roleTitle: isFounder ? "CEO & Technical Co-founder" : "Managing Partner",
-    companyName: isFounder ? "NeuralNexus AI" : "Apex Horizon Ventures",
+    companyName: isFounder ? "" : "",
     location: "San Francisco, CA",
     tagline: isFounder ? "Building the next generation of modular EV charging infrastructure." : "Accelerating Seed to Series A deeptech and infrastructure.",
     timezone: "UTC-8 (Pacific Time)",
-    publicUrl: isFounder ? "ventureiq.com/startup/neuralnexus" : "ventureiq.com/investor/apexhorizon",
+    publicUrl: isFounder ? "" : "",
   });
 
   // Tab 2: Security State

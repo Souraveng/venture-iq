@@ -61,7 +61,7 @@ export default function InvestorNotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(`/api/investor/notifications?email=${encodeURIComponent(userEmail || "")}`);
+      const res = await fetch(`/api/investor/notifications?email=${encodeURIComponent(userEmail || "")}&portal=investor`);
       const json = (await res.json()) as any;
       if (json.success) {
         setNotifications(json.notifications);
@@ -229,7 +229,7 @@ export default function InvestorNotificationsPage() {
     <div ref={containerRef} className="max-w-4xl mx-auto py-8 px-4 font-sans text-white">
       
       {/* Page Header */}
-      <div className="sticky top-0 bg-[#0e0e0e]/75 backdrop-blur-md z-30 pt-4 pb-0 mb-6 border-b border-white/10 space-y-4">
+      <div className="sticky top-0 bg-[#f6f6f6]/90 dark:bg-[#0e0e0e]/75 backdrop-blur-md z-30 pt-4 pb-0 mb-6 border-b border-black/10 dark:border-white/10 space-y-4">
         <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1.5">
@@ -262,7 +262,7 @@ export default function InvestorNotificationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications by title or description..."
-              className="w-full pl-4 pr-36 py-2.5 bg-black border border-white/10 rounded-2xl text-xs text-white placeholder-white/40 focus:outline-none focus:border-[#ccf063] transition-colors"
+              className="w-full pl-4 pr-36 py-2.5 bg-white dark:bg-black border border-black/10 dark:border-white/10 rounded-2xl text-xs text-[#18181b] dark:text-white placeholder-black/30 dark:placeholder-white/40 focus:outline-none focus:border-[#ccf063] transition-colors"
             />
             {/* Category Dropdown Trigger */}
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -553,3 +553,4 @@ export default function InvestorNotificationsPage() {
     </div>
   );
 }
+

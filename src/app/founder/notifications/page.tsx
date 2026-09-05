@@ -61,7 +61,7 @@ export default function FounderNotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch(`/api/investor/notifications?email=${encodeURIComponent(userEmail || "")}`);
+      const res = await fetch(`/api/investor/notifications?email=${encodeURIComponent(userEmail || "")}&portal=founder`);
       const json = (await res.json()) as any;
       if (json.success) {
         setNotifications(json.notifications);
@@ -225,10 +225,10 @@ export default function FounderNotificationsPage() {
   }
 
   return (
-    <div ref={containerRef} className="max-w-4xl mx-auto pt-0 pb-8 px-4 font-sans text-white">
+    <div ref={containerRef} className="max-w-4xl mx-auto pt-0 pb-8 px-4 font-sans text-[#18181b] dark:text-white">
       
       {/* Page Header */}
-      <div className="sticky top-0 bg-[#0e0e0e]/75 backdrop-blur-md z-30 pt-4 pb-0 mb-6 border-b border-white/10 space-y-4">
+      <div className="sticky top-0 bg-[#f6f6f6]/90 dark:bg-[#0e0e0e]/75 backdrop-blur-md z-30 pt-4 pb-0 mb-6 border-b border-black/10 dark:border-white/10 space-y-4">
         <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1.5">
@@ -261,7 +261,7 @@ export default function FounderNotificationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications by title or description..."
-              className="w-full pl-4 pr-36 py-2.5 bg-black border border-white/10 rounded-2xl text-xs text-white placeholder-white/40 focus:outline-none focus:border-[#ccf063] transition-colors"
+              className="w-full pl-4 pr-36 py-2.5 bg-white dark:bg-black border border-black/10 dark:border-white/10 rounded-2xl text-xs text-[#18181b] dark:text-white placeholder-black/30 dark:placeholder-white/40 focus:outline-none focus:border-[#ccf063] transition-colors"
             />
             {/* Category Dropdown Trigger */}
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -284,7 +284,7 @@ export default function FounderNotificationsPage() {
                 className="fixed inset-0 z-40" 
                 onClick={() => setShowCategoryDropdown(false)}
               />
-              <div className="absolute right-0 top-full mt-2 w-64 bg-[#1f1f1f]/90 backdrop-blur-md border border-white/10 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white/95 dark:bg-[#1f1f1f]/90 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <h4 className="text-[9px] font-bold text-white/40 uppercase tracking-widest font-mono p-2 border-b border-white/5 mb-1.5">Filter by Category</h4>
                 
                 <button
@@ -401,7 +401,7 @@ export default function FounderNotificationsPage() {
 
       <div className="max-w-3xl mx-auto space-y-3.5 mt-6">
           {filteredNotifications.length === 0 ? (
-            <div className="text-center py-20 bg-[#1f1f1f]/50 backdrop-blur-md border border-white/10 rounded-2xl">
+            <div className="text-center py-20 bg-white/80 dark:bg-[#1f1f1f]/50 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-2xl">
               <Bell className="w-12 h-12 text-white/10 mx-auto mb-3" />
               <p className="text-white/60 font-serif text-lg">No Notifications Found</p>
               <p className="text-xs text-white/40 mt-1">There are no updates matching your active criteria.</p>
@@ -411,8 +411,8 @@ export default function FounderNotificationsPage() {
               <div
                 key={item.id}
                 onClick={() => handleMarkAsRead(item.id)}
-                className={`notification-card bg-[#1f1f1f]/50 backdrop-blur-md border rounded-2xl p-4.5 transition-all flex items-start gap-4 relative overflow-hidden group hover:border-white/20 ${
-                  !item.read ? "border-white/15 bg-white/[0.02]" : "border-white/5 opacity-75"
+                className={`notification-card backdrop-blur-md border rounded-2xl p-4.5 transition-all flex items-start gap-4 relative overflow-hidden group ${
+                  !item.read ? "bg-white dark:bg-[#1f1f1f]/50 border-black/10 dark:border-white/15 hover:border-black/20 dark:hover:border-white/20" : "bg-black/5 dark:bg-white/[0.02] border-black/5 dark:border-white/5 opacity-75"
                 }`}
               >
                 {/* Unread indicator sidebar */}

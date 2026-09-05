@@ -1,86 +1,18 @@
 // ──────────────────────────────────────────────────────────────────────────────
-// Phase 2b — Vector Store / RAG (Azure Cosmos DB NoSQL)
-// Type: 🟢 Embeddings + Cosmos DB Vector Search
+// Phase 2b — Vector Store / RAG (PostgreSQL + pgvector)
+// Type: 🟢 Embeddings + Supabase/PostgreSQL Vector Search
 // Caches extracted facts by sector+geography for reuse across founders
 // ──────────────────────────────────────────────────────────────────────────────
 
-import { CosmosClient } from "@azure/cosmos";
+import { prisma } from "@/lib/prisma";
 import { vertexAiEmbed } from "../model-router";
 import type { ExtractedFact, PipelineNodeId } from "../contracts";
 
-const NV_EMBED_DIMENSIONS = 1024;
-
-interface FactDocument {
-  id: string; // Unique claim ID
-  sector: string;
-  geography: string;
-  claim: string;
-  value?: number;
-  unit?: string;
-  confidence: "high" | "medium" | "low";
-  sourceUrl?: string;
-  embedding: number[];
-  createdAt: string; // ISO string for staleness tracking
-}
-
-function getCosmosClient() {
-  const endpoint = process.env.AZURE_COSMOS_ENDPOINT;
-  const key = process.env.AZURE_COSMOS_KEY;
-  const dbName = process.env.AZURE_COSMOS_DB_NAME || "FounderIntelligence";
-  const containerName = process.env.AZURE_COSMOS_CONTAINER_NAME || "FactsVectorStore";
-
-  if (!endpoint || !key) {
-    throw new Error("[VectorStore] Missing Cosmos DB credentials (AZURE_COSMOS_ENDPOINT / AZURE_COSMOS_KEY).");
-  }
-
-  const client = new CosmosClient({ endpoint, key });
-  return { client, dbName, containerName };
-}
-
 /**
- * Ensure database and container with Vector Policy exist.
- */
-async function ensureContainerExists(client: CosmosClient, dbName: string, containerName: string) {
-  const { database } = await client.databases.createIfNotExists({ id: dbName });
-
-  const vectorEmbeddingPolicy = {
-    vectorEmbeddings: [
-      {
-        path: "/embedding",
-        dataType: "float32",
-        distanceFunction: "cosine",
-        dimensions: NV_EMBED_DIMENSIONS,
-      },
-    ],
-  };
-
-  const indexingPolicy = {
-    vectorIndexes: [
-      {
-        path: "/embedding",
-        type: "quantizedFlat",
-      },
-    ],
-  };
-
-  await database.containers.createIfNotExists({
-    id: containerName,
-    partitionKey: { paths: ["/sector"] },
-    vectorEmbeddingPolicy: vectorEmbeddingPolicy as any,
-    indexingPolicy: indexingPolicy as any,
-  });
-
-  return database.container(containerName);
-}
-
-/**
- * Store facts in Cosmos DB for future reuse.
+ * Store facts in PostgreSQL for future reuse.
  */
 export async function cacheFacts(sector: string, geography: string, facts: ExtractedFact[]): Promise<void> {
   if (facts.length === 0) return;
-
-  const { client, dbName, containerName } = getCosmosClient();
-  const container = await ensureContainerExists(client, dbName, containerName);
 
   // Generate embeddings for all claims
   const claims = facts.map((f) => f.claim);
@@ -93,88 +25,81 @@ export async function cacheFacts(sector: string, geography: string, facts: Extra
       .toString("base64")
       .replace(/[^a-zA-Z0-9-]/g, "");
 
-    const doc: FactDocument = {
-      id,
-      sector: sector.toLowerCase(),
-      geography: geography.toLowerCase(),
-      claim: fact.claim,
-      value: fact.value,
-      unit: fact.unit,
-      confidence: fact.confidence,
-      sourceUrl: fact.sourceUrl,
-      embedding: embeddings[i],
-      createdAt: new Date().toISOString(),
-    };
+    const embeddingStr = `[${embeddings[i].join(",")}]`;
 
     try {
-      await container.items.upsert(doc);
+      await prisma.$executeRaw`
+        INSERT INTO "CachedFact" ("id", "sector", "geography", "claim", "value", "unit", "confidence", "sourceUrl", "embedding", "createdAt")
+        VALUES (
+          ${id}, 
+          ${sector.toLowerCase()}, 
+          ${geography.toLowerCase()}, 
+          ${fact.claim}, 
+          ${fact.value ?? null}, 
+          ${fact.unit ?? null}, 
+          ${fact.confidence}, 
+          ${fact.sourceUrl ?? null}, 
+          ${embeddingStr}::vector, 
+          NOW()
+        )
+        ON CONFLICT ("id") DO UPDATE
+        SET 
+          "embedding" = ${embeddingStr}::vector,
+          "createdAt" = NOW()
+      `;
       uploadedCount++;
     } catch (err) {
       console.warn(`[VectorStore] Failed to upsert fact: ${id}`, err);
     }
   }
 
-  console.log(`[VectorStore] Upserted ${uploadedCount} facts to Cosmos DB.`);
+  console.log(`[VectorStore] Upserted ${uploadedCount} facts to PostgreSQL.`);
 }
 
 /**
- * Retrieve cached facts using Vector Search in Cosmos DB NoSQL.
+ * Retrieve cached facts using Vector Search in PostgreSQL.
  */
 export async function getCachedFacts(sector: string, geography: string, idea: string): Promise<ExtractedFact[]> {
-  const { client, dbName, containerName } = getCosmosClient();
-  const database = client.database(dbName);
-  const container = database.container(containerName);
-
   try {
-    // Check if container exists, if it doesn't we return empty
-    await container.read();
+    // Embed the current startup idea
+    const queryEmbeddings = await vertexAiEmbed([idea], { taskType: "RETRIEVAL_QUERY" });
+    const queryEmbedding = queryEmbeddings[0];
+
+    // Calculate 3 months ago for staleness check
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    const embeddingStr = `[${queryEmbedding.join(",")}]`;
+
+    // PostgreSQL Vector Search query with staleness filter
+    const resources = await prisma.$queryRaw<any[]>`
+      SELECT claim, value, unit, confidence, "sourceUrl", (embedding <=> ${embeddingStr}::vector) AS score
+      FROM "CachedFact"
+      WHERE sector = ${sector.toLowerCase()} 
+        AND geography = ${geography.toLowerCase()} 
+        AND "createdAt" >= ${threeMonthsAgo}
+      ORDER BY score ASC
+      LIMIT 15
+    `;
+
+    const retrievedFacts: ExtractedFact[] = resources.map((res: any) => ({
+      claim: res.claim,
+      value: res.value,
+      unit: res.unit,
+      confidence: res.confidence,
+      sourceUrl: res.sourceUrl,
+    }));
+
+    console.log(`[VectorStore] Retrieved ${retrievedFacts.length} cached facts from PostgreSQL via vector search.`);
+    return retrievedFacts;
   } catch (error: any) {
-    if (error.code === 404) return [];
-    throw error;
+    console.error("[VectorStore] Failed to retrieve cached facts", error);
+    return [];
   }
-
-  // Embed the current startup idea
-  const queryEmbeddings = await vertexAiEmbed([idea], { taskType: "RETRIEVAL_QUERY" });
-  const queryEmbedding = queryEmbeddings[0];
-
-  // Calculate 3 months ago for staleness check
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-  // Cosmos DB NoSQL Vector Search query with staleness filter
-  const querySpec = {
-    query: `
-      SELECT TOP 15 c.claim, c["value"], c.unit, c.confidence, c.sourceUrl, VectorDistance(c.embedding, @queryVector) AS score
-      FROM c
-      WHERE c.sector = @sector 
-        AND c.geography = @geography 
-        AND c.createdAt >= @cutoffDate
-      ORDER BY VectorDistance(c.embedding, @queryVector)
-    `,
-    parameters: [
-      { name: "@queryVector", value: queryEmbedding },
-      { name: "@sector", value: sector.toLowerCase() },
-      { name: "@geography", value: geography.toLowerCase() },
-      { name: "@cutoffDate", value: threeMonthsAgo.toISOString() },
-    ],
-  };
-
-  const { resources } = await container.items.query(querySpec).fetchAll();
-
-  const retrievedFacts: ExtractedFact[] = resources.map((res: any) => ({
-    claim: res.claim,
-    value: res.value,
-    unit: res.unit,
-    confidence: res.confidence,
-    sourceUrl: res.sourceUrl,
-  }));
-
-  console.log(`[VectorStore] Retrieved ${retrievedFacts.length} cached facts from Cosmos DB via vector search.`);
-  return retrievedFacts;
 }
 
 /**
- * LangGraph node: stores new facts into Cosmos DB.
+ * LangGraph node: stores new facts into PostgreSQL.
  */
 export async function runVectorStore(state: any) {
   const playbook = state.pipeline?.playbook;
@@ -184,7 +109,7 @@ export async function runVectorStore(state: any) {
   const sector = playbook?.sector || "general";
   const geography = playbook?.geography || "global";
 
-  // Store newly extracted facts (from Maverick) into Azure
+  // Store newly extracted facts (from Maverick) into PostgreSQL
   if (extractedFacts.length > 0) {
     // Don't block the pipeline on cache upload
     cacheFacts(sector, geography, extractedFacts).catch((err) => {

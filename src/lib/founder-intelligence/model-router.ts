@@ -10,7 +10,7 @@ import fs from "fs";
 import path from "path";
 
 const REGION = "us-central1";
-const PROJECT_ID = "venture-iq-499019";
+const PROJECT_ID = process.env.GCP_PROJECT_ID;
 const VERTEX_BASE_URL = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/endpoints/openapi/chat/completions`;
 const VERTEX_EMBED_URL = `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/endpoints/openapi/embeddings`;
 
@@ -43,8 +43,9 @@ async function getAccessToken(): Promise<string> {
 
   // 2. Try reading from Local JSON File (Development environment)
   if (!keyFile) {
-    const keyPath = path.resolve("venture-iq-499019-f539f41d1d0a.json");
-    if (fs.existsSync(keyPath)) {
+    const keyFilePath = process.env.GCP_KEY_FILE_PATH;
+    const keyPath = keyFilePath ? path.resolve(keyFilePath) : "";
+    if (keyPath && fs.existsSync(keyPath)) {
       try {
         keyFile = JSON.parse(fs.readFileSync(keyPath, "utf-8"));
       } catch (e) {
@@ -141,7 +142,7 @@ async function getAccessToken(): Promise<string> {
   throw new Error(
     "[Gemini Auth] Service account credentials not found. Please provide access credentials via one of:\n" +
       "1. Base64 or raw JSON service account string inside the 'GCP_SERVICE_ACCOUNT_KEY' environment variable,\n" +
-      "2. A local JSON file 'venture-iq-499019-f539f41d1d0a.json' in the root directory, or\n" +
+      "2. A local JSON file '<GCP_KEY_FILE_PATH>' in the root directory, or\n" +
       "3. Running on GCP Cloud Run with default compute service account permissions."
   );
 }

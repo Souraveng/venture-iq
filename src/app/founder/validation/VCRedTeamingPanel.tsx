@@ -50,6 +50,46 @@ export default function VCRedTeamingPanel({ activeProject, userEmail, userName }
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isGrilling]);
 
+  // Load session from local storage on mount or project change
+  useEffect(() => {
+    if (selectedProjectId) {
+      const stored = localStorage.getItem(`vc_grill_session_${selectedProjectId}`);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          setMessages(data.messages || []);
+          setSessionStarted(data.sessionStarted || false);
+          setSessionConcluded(data.sessionConcluded || false);
+          setUserMessageCount(data.userMessageCount || 0);
+          if (data.pitchFocus) setPitchFocus(data.pitchFocus);
+          if (data.focusDetail) setFocusDetail(data.focusDetail);
+        } catch (e) {
+          console.error("Failed to parse grill session", e);
+        }
+      } else {
+        setMessages([]);
+        setSessionStarted(false);
+        setSessionConcluded(false);
+        setUserMessageCount(0);
+      }
+    }
+  }, [selectedProjectId]);
+
+  // Save session to local storage when state changes
+  useEffect(() => {
+    if (selectedProjectId && (sessionStarted || messages.length > 0)) {
+      const data = {
+        messages,
+        sessionStarted,
+        sessionConcluded,
+        userMessageCount,
+        pitchFocus,
+        focusDetail
+      };
+      localStorage.setItem(`vc_grill_session_${selectedProjectId}`, JSON.stringify(data));
+    }
+  }, [messages, sessionStarted, sessionConcluded, userMessageCount, selectedProjectId, pitchFocus, focusDetail]);
+
   // Fetch all projects for the founder
   useEffect(() => {
     if (userName || userEmail) {
@@ -219,6 +259,9 @@ export default function VCRedTeamingPanel({ activeProject, userEmail, userName }
     setSessionStarted(false);
     setSessionConcluded(false);
     setUserMessageCount(0);
+    if (selectedProjectId) {
+      localStorage.removeItem(`vc_grill_session_${selectedProjectId}`);
+    }
   };
 
   const navigateToPitchSetup = () => {

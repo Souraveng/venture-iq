@@ -23,7 +23,8 @@ import {
   Building,
   FileText,
   Clock,
-  ClipboardList
+  ClipboardList,
+  Bell
 } from "lucide-react";
 
 interface HeaderProps {
@@ -63,6 +64,12 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
   const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
   const notesDropdownRef = React.useRef<HTMLDivElement>(null);
 
+  // Notification Bell states
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const notifDropdownRef = React.useRef<HTMLDivElement>(null);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   const fetchHandoffNotes = async () => {
     if (!userEmail) return;
     try {
@@ -83,6 +90,33 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
     const interval = setInterval(fetchHandoffNotes, 15000);
     return () => clearInterval(interval);
   }, [userEmail]);
+
+  // Fetch notifications for the bell
+  const fetchNotifications = async () => {
+    if (!userEmail) return;
+    try {
+      const portal = pathname.startsWith("/investor") ? "investor" : "founder";
+      const res = await fetch(`/api/investor/notifications?email=${encodeURIComponent(userEmail)}&portal=${portal}`);
+      const json = (await res.json()) as any;
+      if (json.success) setNotifications(json.notifications || []);
+    } catch (e) { /* silent */ }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 20000);
+    return () => clearInterval(interval);
+  }, [userEmail, pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target as Node)) {
+        setNotifDropdownOpen(false);
+      }
+    };
+    if (notifDropdownOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [notifDropdownOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -402,6 +436,76 @@ export default function Header({ isCollapsed, setIsCollapsed }: HeaderProps) {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notification Bell Dropdown */}
+        {userEmail && (
+          <div ref={notifDropdownRef} className="relative">
+            <button
+              onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all flex items-center justify-center relative"
+              title="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-extrabold text-white animate-pulse">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notifDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[200] text-xs">
+                <div className="p-3 border-b border-black/10 dark:border-white/5 bg-black/5 dark:bg-black/20 flex justify-between items-center">
+                  <span className="font-bold text-[#18181b] dark:text-white tracking-tight flex items-center gap-2">
+                    <Bell className="w-3.5 h-3.5 text-[#ccf063]" /> Notifications
+                    {unreadCount > 0 && (
+                      <span className="bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">{unreadCount} new</span>
+                    )}
+                  </span>
+                  <button
+                    onClick={async () => {
+                      if (!userEmail) return;
+                      await fetch("/api/investor/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ markAll: true, email: userEmail }) });
+                      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                    }}
+                    className="text-[10px] text-[#ccf063] hover:text-white transition-colors font-bold"
+                  >Mark all read</button>
+                </div>
+                <div className="max-h-[360px] overflow-y-auto divide-y divide-black/5 dark:divide-white/5">
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-black/40 dark:text-white/40 italic">No notifications</div>
+                  ) : (
+                    notifications.slice(0, 10).map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={async () => {
+                          if (!n.read) {
+                            await fetch("/api/investor/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: n.id, read: true }) });
+                            setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+                          }
+                        }}
+                        className={`flex gap-3 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${!n.read ? "bg-[#ccf063]/5 dark:bg-[#ccf063]/5" : ""}`}
+                      >
+                        {!n.read && <div className="w-1 shrink-0 rounded-full bg-[#ccf063] self-stretch" />}
+                        <div className="min-w-0">
+                          <div className={`font-bold leading-snug truncate ${!n.read ? "text-[#18181b] dark:text-white" : "text-black/60 dark:text-white/60"}`}>{n.title}</div>
+                          <div className="text-[11px] text-black/50 dark:text-white/40 mt-0.5 line-clamp-2">{n.message}</div>
+                          <div className="text-[9px] text-black/30 dark:text-white/30 mt-1 font-mono uppercase tracking-wider">{n.category}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="p-2 border-t border-black/10 dark:border-white/5 bg-black/5 dark:bg-black/20">
+                  <button
+                    onClick={() => { setNotifDropdownOpen(false); router.push(pathname.startsWith("/investor") ? "/investor/notifications" : "/founder/notifications"); }}
+                    className="w-full py-2 text-center text-[#ccf063] font-bold hover:bg-[#ccf063]/10 rounded-xl transition-colors text-xs"
+                  >View all notifications →</button>
+                </div>
               </div>
             )}
           </div>

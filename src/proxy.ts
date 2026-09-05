@@ -50,7 +50,7 @@ export async function proxy(req: NextRequest) {
   // Retrieve NextAuth JWT token — this is the ONLY source of truth for auth
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
+    secret: process.env.NEXTAUTH_SECRET!,
   });
 
   const isAuth = !!token;
@@ -189,3 +189,5 @@ export const config = {
     "/api/validations/:path*",
   ],
 };
+
+

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { vertexAiEmbed } from "@/lib/founder-intelligence/model-router";
-import { upsertStartupVector } from "@/lib/matchmaking/cosmos-matchmaking";
+import { upsertStartupVector } from "@/lib/matchmaking/pg-matchmaking";
 
 // Dynamically build text representation from Prisma objects
 function buildSemanticText(obj: any): string {
@@ -52,7 +52,10 @@ export async function POST(req: Request) {
       include: { founderProfile: true }
     });
 
-    console.log(`[Admin Sync] Found ${startups.length} startups. Syncing to Cosmos DB...`);
+    const embeddingsRaw = await prisma.$queryRaw<Array<{id: string, embedding: string}>>`SELECT id, embedding::text FROM "Startup"`;
+    const embeddingMap = new Map(embeddingsRaw.map(e => [e.id, e.embedding ? JSON.parse(e.embedding) : null]));
+
+    console.log(`[Admin Sync] Found ${startups.length} startups. Syncing to PostgreSQL (pgvector)...`);
     let synced = 0;
     
     // Process in batches of 10 to avoid rate limits
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
       
       await Promise.all(
         batch.map(async (s) => {
-          let embedding = s.embedding as number[] | null;
+          let embedding = embeddingMap.get(s.id) as number[] | null;
 
           if (!embedding || embedding.length === 0) {
             try {
@@ -69,10 +72,8 @@ export async function POST(req: Request) {
               const [newEmb] = await vertexAiEmbed([startupText], { taskType: "RETRIEVAL_DOCUMENT", title: s.name });
               if (newEmb) {
                 embedding = newEmb;
-                await prisma.startup.update({
-                  where: { id: s.id },
-                  data: { embedding: newEmb as any }
-                }).catch(() => {});
+                const embStr = `[${newEmb.join(",")}]`;
+                await prisma.$executeRaw`UPDATE "Startup" SET embedding = ${embStr}::vector WHERE id = ${s.id}`.catch(() => {});
               }
             } catch (e) {
               console.warn(`Failed to embed startup ${s.id}`, e);
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully synced ${synced} startups to Cosmos DB.`
+      message: `Successfully synced ${synced} startups to PostgreSQL.`
     });
   } catch (error: any) {
     console.error("[Admin Sync] Error:", error);

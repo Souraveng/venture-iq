@@ -60,7 +60,7 @@ function buildSemanticText(obj: any): string {
   return parts.join(" | ");
 }
 
-import { upsertStartupVector, searchMatchingStartups } from "@/lib/matchmaking/cosmos-matchmaking";
+import { upsertStartupVector, searchMatchingStartups } from "@/lib/matchmaking/pg-matchmaking";
 
 export async function POST(req: Request) {
   try {
@@ -116,10 +116,16 @@ export async function POST(req: Request) {
 
     // 4. Optimize Vector via Rocchio Relevance Feedback (using interested vs passed deals)
     if (interestedStartupIds.size > 0 || passedStartupIds.size > 0) {
-      const historicalStartups = await prisma.startup.findMany({
-        where: { id: { in: [...Array.from(interestedStartupIds), ...Array.from(passedStartupIds)] } },
-        select: { id: true, embedding: true }
-      });
+      const allIds = [...Array.from(interestedStartupIds), ...Array.from(passedStartupIds)];
+      
+      const embeddingsMap = new Map();
+      if (allIds.length > 0) {
+        const idList = allIds.map(id => `'${id}'`).join(',');
+        const result = await prisma.$queryRawUnsafe<Array<{id: string, embedding: string}>>(`SELECT id, embedding::text FROM "Startup" WHERE id IN (${idList})`);
+        result.forEach(r => embeddingsMap.set(r.id, r.embedding ? JSON.parse(r.embedding) : null));
+      }
+
+      const historicalStartups = allIds.map(id => ({ id, embedding: embeddingsMap.get(id) }));
 
       const interestedEmbeddings = historicalStartups
         .filter((s) => interestedStartupIds.has(s.id) && Array.isArray(s.embedding))

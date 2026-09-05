@@ -44,7 +44,7 @@ export default function StartupPitchRoomPublicViewPage() {
               DeepTech
             </span>
           </div>
-          <h1 className="text-4xl font-serif text-white italic mb-2">NeuralNexus</h1>
+          <h1 className="text-4xl font-serif text-white italic mb-2"></h1>
           <p className="text-xs text-[#c5c9b2] max-w-xl leading-relaxed">
             Pioneering the next generation of neuromorphic computing. We are building the hardware-software stack that allows AI agents to learn in real-time.
           </p>

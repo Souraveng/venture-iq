@@ -287,7 +287,7 @@ export default function FounderEscalationsDashboard() {
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
-    <div className="min-h-screen bg-[#111111] text-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f6f6f6] dark:bg-[#111111] text-[#18181b] dark:text-white flex flex-col font-sans">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-20 right-8 z-50 bg-[#ccf063] text-black px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 font-bold text-xs animate-bounce">
@@ -297,7 +297,7 @@ export default function FounderEscalationsDashboard() {
       )}
 
       {/* Top Header Bar */}
-      <header className="border-b border-white/10 px-8 py-5 flex items-center justify-between bg-[#151515] sticky top-0 z-30">
+      <header className="border-b border-black/10 dark:border-white/10 px-8 py-5 flex items-center justify-between bg-white dark:bg-[#151515] sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <AlertTriangle className="w-5 h-5" />
@@ -326,7 +326,7 @@ export default function FounderEscalationsDashboard() {
               </button>
 
               {ventureDropdownOpen && (
-                <div className="absolute right-0 mt-1 w-56 bg-[#1a1a1a] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/15 rounded-xl shadow-2xl overflow-hidden z-50">
                   {ventures.map((v: any) => (
                     <button
                       key={v.id}
@@ -363,7 +363,7 @@ export default function FounderEscalationsDashboard() {
       {/* Main Content Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left List of Escalations & Notes */}
-        <div className="w-80 lg:w-96 border-r border-white/10 bg-[#121212] flex flex-col h-[calc(100vh-81px)]">
+        <div className="w-80 lg:w-96 border-r border-black/10 dark:border-white/10 bg-white dark:bg-[#121212] flex flex-col h-[calc(100vh-81px)]">
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-white/50">
               Notes & Escalations ({allItems.length})
@@ -428,7 +428,7 @@ export default function FounderEscalationsDashboard() {
         </div>
 
         {/* Right Note Detail View */}
-        <div className="flex-1 bg-[#141414] overflow-y-auto p-8 flex flex-col h-[calc(100vh-81px)]">
+        <div className="flex-1 bg-[#f0f0f0] dark:bg-[#141414] overflow-y-auto p-8 flex flex-col h-[calc(100vh-81px)]">
           {selectedItem ? (
             <div className="max-w-4xl w-full mx-auto space-y-6">
               {/* Header Details */}
@@ -548,7 +548,7 @@ export default function FounderEscalationsDashboard() {
       {/* Give Handoff Note Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#181818] border border-white/15 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+          <div className="bg-white dark:bg-[#181818] border border-black/10 dark:border-white/15 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#ccf063]" /> Give Handoff Note
@@ -660,3 +660,4 @@ export default function FounderEscalationsDashboard() {
     </div>
   );
 }
+

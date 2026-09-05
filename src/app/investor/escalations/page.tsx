@@ -26,15 +26,15 @@ import { useRouter } from "next/navigation";
 function renderMarkdown(text: string) {
   if (!text) return null;
   return text.split('\n').map((line, i) => {
-    if (line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold text-white mt-6 mb-3">{line.replace('### ', '')}</h3>;
+    if (line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold text-zinc-900 dark:text-white mt-6 mb-3">{line.replace('### ', '')}</h3>;
     if (line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold text-[#ccf063] mt-8 mb-4">{line.replace('## ', '')}</h2>;
-    if (line.startsWith('# ')) return <h1 key={i} className="text-2xl font-bold text-white mt-8 mb-4">{line.replace('# ', '')}</h1>;
-    if (line.startsWith('- ')) return <li key={i} className="text-sm text-[#c5c9b2] ml-4 mb-2 flex items-start gap-2"><span className="text-[#ccf063] mt-1">•</span> <span dangerouslySetInnerHTML={{__html: line.substring(2).replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')}} /></li>;
-    if (line.startsWith('1. ') || line.startsWith('2. ') || line.startsWith('3. ')) return <li key={i} className="text-sm text-[#c5c9b2] ml-4 mb-2 list-decimal">{line.substring(3).replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')}</li>;
+    if (line.startsWith('# ')) return <h1 key={i} className="text-2xl font-bold text-zinc-900 dark:text-white mt-8 mb-4">{line.replace('# ', '')}</h1>;
+    if (line.startsWith('- ')) return <li key={i} className="text-sm text-zinc-600 dark:text-[#c5c9b2] ml-4 mb-2 flex items-start gap-2"><span className="text-[#ccf063] mt-1">•</span> <span dangerouslySetInnerHTML={{__html: line.substring(2).replace(/\*\*(.*?)\*\*/g, '<strong class="text-zinc-900 dark:text-white">$1</strong>')}} /></li>;
+    if (line.startsWith('1. ') || line.startsWith('2. ') || line.startsWith('3. ')) return <li key={i} className="text-sm text-zinc-600 dark:text-[#c5c9b2] ml-4 mb-2 list-decimal">{line.substring(3).replace(/\*\*(.*?)\*\*/g, '<strong class="text-zinc-900 dark:text-white">$1</strong>')}</li>;
     if (line.trim() === '') return <br key={i} />;
     
-    const bolded = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>');
-    return <p key={i} className="text-sm text-[#c5c9b2] mb-3 leading-relaxed" dangerouslySetInnerHTML={{__html: bolded}} />;
+    const bolded = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-zinc-900 dark:text-white">$1</strong>');
+    return <p key={i} className="text-sm text-zinc-600 dark:text-[#c5c9b2] mb-3 leading-relaxed" dangerouslySetInnerHTML={{__html: bolded}} />;
   });
 }
 
@@ -223,10 +223,10 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center font-sans">
+      <div className="min-h-screen bg-zinc-50 dark:bg-transparent flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#ccf063] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-[#c5c9b2] animate-pulse font-mono uppercase tracking-wider">
+          <p className="text-xs text-zinc-600 dark:text-[#c5c9b2] animate-pulse font-mono uppercase tracking-wider">
             Loading IC Handoffs...
           </p>
         </div>
@@ -235,7 +235,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col font-sans">
+    <div className="min-h-screen bg-zinc-50 dark:bg-transparent flex flex-col font-sans">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-[#ccf063] text-black px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 font-bold text-xs animate-bounce">
@@ -245,9 +245,9 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
       )}
 
       {/* Top Header Bar with Workspace Switcher and Actions */}
-      <div className="border-b border-white/10 bg-black/60 backdrop-blur-md px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-20">
+      <div className="border-b border-black/10 dark:border-white/10 bg-white/60 dark:bg-black/60 backdrop-blur-md px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-0 z-20">
         <div>
-          <h1 className="text-xl font-bold text-white font-serif flex items-center gap-2">
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-white font-serif flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#ccf063]" /> IC Escalations & Handoff Notes
           </h1>
           <p className="text-xs text-white/50 mt-0.5">
@@ -269,12 +269,12 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar List */}
-        <div className="w-1/3 border-r border-white/10 bg-black/20 overflow-y-auto custom-scrollbar">
+        <div className="w-1/3 border-r border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 overflow-y-auto custom-scrollbar">
           <div className="p-4 space-y-2">
             {escalations.length === 0 ? (
-              <div className="text-center py-12 px-4 text-white/40 text-xs border border-dashed border-white/10 rounded-2xl m-2 bg-black/10">
+              <div className="text-center py-12 px-4 text-zinc-500 dark:text-white/40 text-xs border border-dashed border-black/10 dark:border-white/10 rounded-2xl m-2 bg-black/5 dark:bg-black/10">
                 <FileText className="w-8 h-8 mx-auto mb-2 text-white/20" />
-                <p className="font-bold text-white/60">No pending IC escalations.</p>
+                <p className="font-bold text-zinc-600 dark:text-white/60">No pending IC escalations.</p>
                 <p className="text-[11px] text-white/30 mt-1">
                   Click "Give Handoff Note" above or run automated diligence on a startup to generate handoff notes.
                 </p>
@@ -290,11 +290,11 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                   className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
                     selectedEscalation?.id === esc.id 
                       ? "bg-[#ccf063]/10 border-[#ccf063]/50 shadow-[0_0_20px_rgba(204,240,99,0.1)]" 
-                      : "bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10"
+                      : "bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:border-white/20 hover:bg-black/5 dark:bg-black/10 dark:bg-white/10"
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-white font-bold truncate text-sm">{esc.startup.name}</h3>
+                    <h3 className="text-zinc-900 dark:text-white font-bold truncate text-sm">{esc.startup.name}</h3>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
                       esc.status === 'PENDING' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                     }`}>
@@ -311,7 +311,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                         Team: {esc.team.name}
                       </span>
                     )}
-                    <span className="text-[9px] text-white/50 bg-white/5 border border-white/10 px-2 py-0.5 rounded">
+                    <span className="text-[9px] text-white/50 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-0.5 rounded">
                       {esc.shareWithAll ? "Broadcast (All IC)" : "Targeted"}
                     </span>
                   </div>
@@ -326,20 +326,20 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
         </div>
 
         {/* Main Content Area */}
-        <div className="w-2/3 h-[calc(100vh-73px)] overflow-y-auto relative bg-[#0a0a0a] p-8">
+        <div className="w-2/3 h-[calc(100vh-73px)] overflow-y-auto relative bg-zinc-50 dark:bg-transparent p-8">
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#ccf063]/5 blur-[120px] rounded-full pointer-events-none mix-blend-screen" />
           
           {selectedEscalation ? (
             <div className="max-w-4xl mx-auto relative z-10 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-6 gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/10 dark:border-white/10 pb-6 gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-[#ccf063] mb-1.5">
                     <AlertTriangle className="w-4 h-4" /> 
                     <span className="text-xs font-bold tracking-wider uppercase font-mono">IC Diligence Handoff Note</span>
                   </div>
-                  <h2 className="text-3xl font-bold text-white font-serif">{selectedEscalation.startup.name}</h2>
-                  <div className="flex flex-wrap gap-2.5 text-xs text-[#c5c9b2] mt-3">
-                    <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                  <h2 className="text-3xl font-bold text-zinc-900 dark:text-white font-serif">{selectedEscalation.startup.name}</h2>
+                  <div className="flex flex-wrap gap-2.5 text-xs text-zinc-600 dark:text-[#c5c9b2] mt-3">
+                    <span className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 px-2.5 py-1 rounded-lg">
                       By: {selectedEscalation.escalatedBy}
                     </span>
                     {selectedEscalation.team && (
@@ -347,7 +347,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                         Team: {selectedEscalation.team.name}
                       </span>
                     )}
-                    <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                    <span className="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 px-2.5 py-1 rounded-lg">
                       {new Date(selectedEscalation.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -358,7 +358,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                     <>
                       <button 
                         onClick={handleEditClick}
-                        className="bg-white/10 hover:bg-white/20 text-white border border-white/10 px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                        className="bg-black/5 dark:bg-black/10 dark:bg-white/10 hover:bg-white/20 text-zinc-900 dark:text-white border border-black/10 dark:border-white/10 px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                       >
                         <Edit2 className="w-3.5 h-3.5" /> Edit Note
                       </button>
@@ -380,7 +380,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                       </button>
                       <button 
                         onClick={() => setIsEditing(false)}
-                        className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        className="bg-black/5 dark:bg-black/10 dark:bg-white/10 hover:bg-white/20 text-zinc-900 dark:text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" /> Cancel
                       </button>
@@ -390,14 +390,14 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
               </div>
 
               {/* Note Content / Markdown Editor */}
-              <div className="bg-[#151515] border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden min-h-[400px]">
+              <div className="bg-[#151515] border border-black/10 dark:border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden min-h-[400px]">
                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#ccf063] to-transparent"></div>
                 
                 {isEditing ? (
                   <textarea
                     value={editNoteContent}
                     onChange={(e) => setEditNoteContent(e.target.value)}
-                    className="w-full h-[500px] bg-black/50 text-[#c5c9b2] border border-white/10 rounded-xl p-4 font-mono text-xs focus:outline-none focus:border-[#ccf063] resize-y"
+                    className="w-full h-[500px] bg-white dark:bg-black/50 text-zinc-600 dark:text-[#c5c9b2] border border-black/10 dark:border-white/10 rounded-xl p-4 font-mono text-xs focus:outline-none focus:border-[#ccf063] resize-y"
                     placeholder="Edit the handoff note markdown here..."
                   />
                 ) : (
@@ -418,20 +418,20 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
 
       {/* Give / Share Handoff Note Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#141414] border border-white/15 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-white font-serif flex items-center gap-2">
+                <h3 className="text-lg font-bold text-zinc-900 dark:text-white font-serif flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[#ccf063]" /> Give / Share Handoff Note
                 </h3>
-                <p className="text-xs text-[#c5c9b2] mt-0.5">
+                <p className="text-xs text-zinc-600 dark:text-[#c5c9b2] mt-0.5">
                   Write structured handoff decisions and assign them to specific team members or broadcast to the IC.
                 </p>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-lg text-zinc-500 dark:text-white/40 hover:text-zinc-900 dark:text-white hover:bg-black/5 dark:bg-black/10 dark:bg-white/10 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -446,7 +446,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                 <select
                   value={selectedStartupId}
                   onChange={(e) => setSelectedStartupId(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                   required
                 >
                   {availableStartups.map((s) => (
@@ -467,7 +467,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                   placeholder="e.g. Lead Partner IC Review & Terms Authorization"
                   value={noteTitle}
                   onChange={(e) => setNoteTitle(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                   required
                 />
               </div>
@@ -482,7 +482,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                   placeholder="Summarize key findings, valuation thoughts, and strategic fit..."
                   value={noteContext}
                   onChange={(e) => setNoteContext(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                   required
                 />
               </div>
@@ -497,7 +497,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                   placeholder="- Approve $500K SAFE check size&#10;- Confirm pro-rata follow-on terms"
                   value={noteDecisions}
                   onChange={(e) => setNoteDecisions(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                 />
               </div>
 
@@ -511,12 +511,12 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                   placeholder="- Review background check on co-founders&#10;- Schedule technical deep dive"
                   value={noteActions}
                   onChange={(e) => setNoteActions(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                  className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                 />
               </div>
 
               {/* Target Assignment Selector */}
-              <div className="space-y-2 pt-2 border-t border-white/10">
+              <div className="space-y-2 pt-2 border-t border-black/10 dark:border-white/10">
                 <label className="text-white/70 font-bold uppercase tracking-wider text-[10px]">
                   Assign / Share Target
                 </label>
@@ -526,14 +526,14 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                     onClick={() => setShareTarget("ALL")}
                     className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       shareTarget === "ALL"
-                        ? "bg-[#ccf063]/10 border-[#ccf063] text-white"
-                        : "bg-black/40 border-white/10 text-white/60 hover:text-white"
+                        ? "bg-[#ccf063]/10 border-[#ccf063] text-zinc-900 dark:text-white"
+                        : "bg-black/5 dark:bg-black/40 border-black/10 dark:border-white/10 text-zinc-600 dark:text-white/60 hover:text-zinc-900 dark:text-white"
                     }`}
                   >
-                    <Users className={`w-4 h-4 mt-0.5 shrink-0 ${shareTarget === "ALL" ? "text-[#ccf063]" : "text-white/40"}`} />
+                    <Users className={`w-4 h-4 mt-0.5 shrink-0 ${shareTarget === "ALL" ? "text-[#ccf063]" : "text-zinc-500 dark:text-white/40"}`} />
                     <div>
                       <div className="font-bold text-xs">All Team Members</div>
-                      <div className="text-[10px] text-white/40 mt-0.5">Broadcast to entire IC Committee</div>
+                      <div className="text-[10px] text-zinc-500 dark:text-white/40 mt-0.5">Broadcast to entire IC Committee</div>
                     </div>
                   </button>
 
@@ -542,14 +542,14 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                     onClick={() => setShareTarget("SPECIFIC")}
                     className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       shareTarget === "SPECIFIC"
-                        ? "bg-[#ccf063]/10 border-[#ccf063] text-white"
-                        : "bg-black/40 border-white/10 text-white/60 hover:text-white"
+                        ? "bg-[#ccf063]/10 border-[#ccf063] text-zinc-900 dark:text-white"
+                        : "bg-black/5 dark:bg-black/40 border-black/10 dark:border-white/10 text-zinc-600 dark:text-white/60 hover:text-zinc-900 dark:text-white"
                     }`}
                   >
-                    <User className={`w-4 h-4 mt-0.5 shrink-0 ${shareTarget === "SPECIFIC" ? "text-[#ccf063]" : "text-white/40"}`} />
+                    <User className={`w-4 h-4 mt-0.5 shrink-0 ${shareTarget === "SPECIFIC" ? "text-[#ccf063]" : "text-zinc-500 dark:text-white/40"}`} />
                     <div>
                       <div className="font-bold text-xs">Specific Teammate</div>
-                      <div className="text-[10px] text-white/40 mt-0.5">Assign note to a team member</div>
+                      <div className="text-[10px] text-zinc-500 dark:text-white/40 mt-0.5">Assign note to a team member</div>
                     </div>
                   </button>
                 </div>
@@ -560,7 +560,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                       <select
                         value={targetMemberEmail}
                         onChange={(e) => setTargetMemberEmail(e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                        className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                         required
                       >
                         {teamMembers.map((m) => (
@@ -575,7 +575,7 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
                         placeholder="teammate@fund.com"
                         value={targetMemberEmail}
                         onChange={(e) => setTargetMemberEmail(e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-[#ccf063]"
+                        className="w-full bg-white dark:bg-black/50 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#ccf063]"
                         required
                       />
                     )}
@@ -585,11 +585,11 @@ ${noteActions || "- Complete customer reference calls.\n- Verify technical archi
 
               {createError && <p className="text-xs text-rose-400 font-semibold">⚠️ {createError}</p>}
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/10 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-5 py-2.5 rounded-xl text-white/70 hover:text-white bg-white/5 hover:bg-white/10 transition-colors text-xs font-bold cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl text-white/70 hover:text-zinc-900 dark:text-white bg-black/5 dark:bg-white/5 hover:bg-black/5 dark:bg-black/10 dark:bg-white/10 transition-colors text-xs font-bold cursor-pointer"
                 >
                   Cancel
                 </button>

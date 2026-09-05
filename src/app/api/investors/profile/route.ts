@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     // Retrieve NextAuth JWT token if available
     const token = await getToken({
       req: req as any,
-      secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
+      secret: process.env.NEXTAUTH_SECRET!,
     });
 
     const targetEmail = emailParam || token?.email;
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   try {
     const token = await getToken({
       req: req as any,
-      secret: process.env.NEXTAUTH_SECRET || "V4dzUUwcvodMYbvndczt0K4JC3wD38zbJ5hJq9yVzLA=",
+      secret: process.env.NEXTAUTH_SECRET!,
     });
 
     const body = (await req.json()) as any;
@@ -136,3 +136,5 @@ export async function POST(req: Request) {
     );
   }
 }
+
+

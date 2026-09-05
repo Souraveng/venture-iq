@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Find the investor to fetch the real deal interaction state
-      let investorId = "demo-investor-id";
+      let investorId = "";
       const dbInvestor = await prisma.investor.findFirst();
       if (dbInvestor) {
         investorId = dbInvestor.id;
@@ -230,10 +230,8 @@ export async function POST(req: Request) {
       vertexAiEmbed([textToEmbed], { taskType: "RETRIEVAL_DOCUMENT", title: body.name || startup.name || "Startup Profile" })
         .then(async (embeddings) => {
           if (embeddings && embeddings[0]) {
-            await prisma.startup.update({
-              where: { id: startup.id },
-              data: { embedding: embeddings[0] as any }
-            });
+            const embStr = `[${embeddings[0].join(",")}]`;
+            await prisma.$executeRaw`UPDATE "Startup" SET embedding = ${embStr}::vector WHERE id = ${startup.id}`;
           }
         })
         .catch((err) => {

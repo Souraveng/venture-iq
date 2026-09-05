@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { NativeVideoCall } from "@/components/NativeVideoCall";
 import { gsap } from "gsap";
 import {
   Mail,
@@ -214,7 +215,19 @@ export default function InvestorMeetingsPage() {
   }, [messages, privateKeyBase64, userEmail]);
 
   // Modals
+  const [activeCallRoom, setActiveCallRoom] = useState<string | null>(null);
+  const [activeCallPeerEmail, setActiveCallPeerEmail] = useState<string | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactRole, setContactRole] = useState("Partner");
+  const [contactPhone, setContactPhone] = useState("");
+
+  const [termSheetOpen, setTermSheetOpen] = useState(false);
+  const [tsTitle, setTsTitle] = useState("Seed Round Term Sheet");
+  const [tsValuation, setTsValuation] = useState("₹10 Cr");
+  const [tsAsk, setTsAsk] = useState("₹2 Cr");
+
   const [meetingTime, setMeetingTime] = useState("Tomorrow, 11:30 AM");
   const [meetingLoc, setMeetingLoc] = useState("Google Meet");
 
@@ -358,7 +371,7 @@ export default function InvestorMeetingsPage() {
       // Determine recipient email
       let recipientEmail = "";
       if (activeTab === "DEALS" && selectedInteraction) {
-        recipientEmail = selectedInteraction.startup.founderEmail || "founder@startup.com";
+        recipientEmail = selectedInteraction.startup.founderEmail || "";
       } else if (activeTab === "CONNECTIONS" && selectedConnection) {
         recipientEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
       }
@@ -415,12 +428,10 @@ export default function InvestorMeetingsPage() {
 
   // Complex widget actions
   const sendMeetingLink = () => {
-    let meetingLink = "https://meet.google.com/xyz-demo-link";
-    if (meetingLoc === "Zoom") {
-      meetingLink = "https://zoom.us/j/9876543210?pwd=demo";
-    } else if (meetingLoc === "Microsoft Teams") {
-      meetingLink = "https://teams.microsoft.com/l/meetup-join/demo";
-    } else if (meetingLoc === "In-Person" || meetingLoc === "Phone Call") {
+    let meetingLink = "";
+    if (meetingLoc === "Google Meet" || meetingLoc === "Zoom Link" || meetingLoc === "Zoom") {
+      meetingLink = "native-webrtc";
+    } else {
       meetingLink = "";
     }
 
@@ -463,7 +474,7 @@ export default function InvestorMeetingsPage() {
       }
 
       if (!uploadUrl) {
-        uploadUrl = `/files/mock-uploaded-${Date.now()}-${file.name}`;
+        throw new Error("Upload worker URL not configured. Please set NEXT_PUBLIC_UPLOAD_WORKER_URL.");
       }
 
       const sizeStr = file.size > 1024 * 1024 
@@ -485,13 +496,19 @@ export default function InvestorMeetingsPage() {
   };
 
   const sendContract = () => {
+    setTermSheetOpen(true);
+    setPlusMenuOpen(false);
+  };
+  
+  const submitContract = () => {
     sendChatMessage({
       type: "CONTRACT",
-      title: "Seed Round Term Sheet",
-      valuation: "₹10 Cr",
-      ask: "₹2 Cr",
+      title: tsTitle,
+      valuation: tsValuation,
+      ask: tsAsk,
       status: "PENDING_SIGNATURE"
     });
+    setTermSheetOpen(false);
   };
 
   const sendDocument = () => {
@@ -499,13 +516,19 @@ export default function InvestorMeetingsPage() {
   };
 
   const sendContact = () => {
+    setContactOpen(true);
+    setPlusMenuOpen(false);
+  };
+  
+  const submitContact = () => {
     sendChatMessage({
       type: "CONTACT",
-      name: "Investor Contact",
-      role: "Partner",
-      email: userEmail || "investor@firm.com",
-      phone: "+91 98765 43210"
+      name: contactName || "Contact Info",
+      role: contactRole,
+      email: userEmail || "",
+      phone: contactPhone
     });
+    setContactOpen(false);
   };
 
   const handleExecuteContract = async (messageId: string, parsedPayload: any) => {
@@ -516,7 +539,7 @@ export default function InvestorMeetingsPage() {
 
     let recipientEmail = "";
     if (activeTab === "DEALS" && selectedInteraction) {
-      recipientEmail = selectedInteraction.startup.founderEmail || "founder@startup.com";
+      recipientEmail = selectedInteraction.startup.founderEmail || "";
     } else if (activeTab === "CONNECTIONS" && selectedConnection) {
       recipientEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
     }
@@ -619,11 +642,24 @@ export default function InvestorMeetingsPage() {
                      <span>{payload.location}</span>
                    </div>
                    <div className="pt-2">
-                     <a href={payload.link} target="_blank" className={`inline-block w-full text-center py-2 rounded-lg font-bold transition-colors ${
-                        isMe ? "bg-black text-[#ccf063] hover:bg-black/80" : "bg-[#ccf063] text-black hover:bg-[#c2e45d]"
-                     }`}>
-                        Join Meeting
-                     </a>
+                     {payload.link === "native-webrtc" ? (
+                        <button onClick={() => {
+                            setActiveCallRoom(msg.chatRoomId);
+                            let peerEmail = "";
+                            if (activeTab === "DEALS" && selectedInteraction) {
+                                peerEmail = selectedInteraction.startup.founderEmail || "";
+                            } else if (activeTab === "CONNECTIONS" && selectedConnection) {
+                                peerEmail = selectedConnection.senderEmail === userEmail ? selectedConnection.receiverEmail : selectedConnection.senderEmail;
+                            }
+                            setActiveCallPeerEmail(peerEmail);
+                        }} className={`inline-block w-full text-center py-2 rounded-lg font-bold transition-colors ${isMe ? "bg-black text-[#ccf063] hover:bg-black/80" : "bg-[#ccf063] text-black hover:bg-[#c2e45d]"}`}>
+                          Join Native Video Call
+                        </button>
+                      ) : (
+                        <a href={payload.link} target="_blank" className={`inline-block w-full text-center py-2 rounded-lg font-bold transition-colors ${isMe ? "bg-black text-[#ccf063] hover:bg-black/80" : "bg-[#ccf063] text-black hover:bg-[#c2e45d]"}`}>
+                          Join Meeting
+                        </a>
+                      )}
                    </div>
                 </div>
                 <div className={`px-4 pb-2 text-sm text-right opacity-60 ${isMe ? "text-black" : "text-white"}`}>{timeString}</div>
@@ -956,7 +992,7 @@ export default function InvestorMeetingsPage() {
               </div>
 
               {/* Chat Body */}
-              <div className="flex-1 overflow-y-auto p-6 bg-[#161616] flex flex-col">
+              <div className="flex-1 overflow-y-auto p-6 bg-[#f4f4f4] dark:bg-[#161616] flex flex-col">
                 
                 {activeTab === "DEALS" && selectedInteraction?.state === "INTRO_REQUESTED" ? (
                     // PENDING REQUEST VIEW
@@ -1154,6 +1190,18 @@ export default function InvestorMeetingsPage() {
         </div>
       )}
 
+      {activeCallRoom && activeCallPeerEmail && (
+        <NativeVideoCall
+           chatRoomId={activeCallRoom}
+           userEmail={userEmail || ""}
+           peerEmail={activeCallPeerEmail}
+           onEndCall={() => setActiveCallRoom(null)}
+        />
+      )}
     </div>
   );
 }
+
+
+
+

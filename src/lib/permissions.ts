@@ -139,14 +139,31 @@ export async function isPrimaryFounder(
   startupId: string
 ): Promise<boolean> {
   if (!userEmail || !startupId) return false;
+  const normalizedEmail = userEmail.trim().toLowerCase();
+  
   const startup = await prisma.startup.findUnique({
     where: { id: startupId },
     select: {
+      founder: true,
       founderProfile: { select: { email: true } },
     },
   });
 
-  return startup?.founderProfile?.email?.trim().toLowerCase() === userEmail.trim().toLowerCase();
+  if (startup?.founderProfile?.email?.trim().toLowerCase() === normalizedEmail) {
+    return true;
+  }
+
+  // Fallback: check if the startup's "founder" name field matches the user's account name
+  if (startup?.founder) {
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: "insensitive" } },
+    });
+    if (user?.name && user.name.toLowerCase() === startup.founder.toLowerCase()) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

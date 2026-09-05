@@ -169,7 +169,7 @@ export async function POST(req: Request) {
         chatRoomId,
         senderId,
         encryptedPayload: stringifiedPayload,
-        iv: "demo-iv-no-encrypt",
+        iv: "",
       },
     });
 

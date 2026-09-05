@@ -7,6 +7,7 @@ export type NodeStatus = "started" | "completed" | "failed" | "skipped";
 
 export interface NodeEvent {
   node: string;
+  nodeId?: string;
   status: NodeStatus;
   timestamp: number;
   preview?: string;       // Short human-readable preview of what the node produced
@@ -78,6 +79,7 @@ export class PipelineEmitter {
 
     const event: NodeEvent = {
       node,
+      nodeId: node,
       status,
       timestamp: now,
       progress,

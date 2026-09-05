@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     // mapped in Prisma for investorId right now, we fetch manually.
     const investorIds = interactions.map((i) => i.investorId);
     
-    // In our mock, the investorId is "demo-investor-id" which might not exist in the DB.
+    // In our mock, the investorId is "" which might not exist in the DB.
     // Let's see if we have them, otherwise provide mock data.
     const investors = await prisma.investor.findMany({
       where: {
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
     // 3. Assemble the response
     const enrichedData = interactions.map((interaction) => {
       const inv = investorMap[interaction.investorId] || {
-        // Fallback mock investor if "demo-investor-id" is not in DB
+        // Fallback mock investor if "" is not in DB
         name: "Demo Investor",
         firm: "Demo Ventures",
         avatarUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=250",

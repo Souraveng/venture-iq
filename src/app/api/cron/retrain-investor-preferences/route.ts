@@ -86,10 +86,21 @@ export async function POST(req: Request) {
       if (startupWeights.size === 0) continue;
 
       // 3. Fetch startup embeddings
-      const startups = await prisma.startup.findMany({
+      const startupsRaw = await prisma.startup.findMany({
         where: { id: { in: Array.from(startupWeights.keys()) } },
-        select: { id: true, name: true, category: true, embedding: true },
+        select: { id: true, name: true, category: true },
       });
+      const embeddingsRaw = await prisma.$queryRaw<Array<{id: string, embedding: string}>>`SELECT id, embedding::text FROM "Startup" WHERE id IN (${prisma.startup.fields.id})`; // Using raw is a bit tricky for IN clause, let's use Prisma.join
+      
+      const embeddingsMap = new Map();
+      if (startupWeights.size > 0) {
+        const idsArray = Array.from(startupWeights.keys());
+        const idList = idsArray.map(id => `'${id}'`).join(',');
+        const result = await prisma.$queryRawUnsafe<Array<{id: string, embedding: string}>>(`SELECT id, embedding::text FROM "Startup" WHERE id IN (${idList})`);
+        result.forEach(r => embeddingsMap.set(r.id, r.embedding ? JSON.parse(r.embedding) : null));
+      }
+
+      const startups = startupsRaw.map(s => ({ ...s, embedding: embeddingsMap.get(s.id) }));
 
       const positiveVectors: { vec: number[]; weight: number }[] = [];
       const negativeVectors: { vec: number[]; weight: number }[] = [];
@@ -144,13 +155,12 @@ export async function POST(req: Request) {
       }
 
       // 6. Save updated preference vector back to database
-      await prisma.investor.update({
-        where: { id: investor.id },
-        data: {
-          investorEmbedding: updatedVector as any,
-          activityScore: Math.min(100, (investor.activityScore || 50) + positiveVectors.length * 2),
-        },
-      });
+      const embStr = `[${updatedVector.join(",")}]`;
+      await prisma.$executeRaw`
+        UPDATE "Investor" 
+        SET "investorEmbedding" = ${embStr}::vector, "activityScore" = ${Math.min(100, (investor.activityScore || 50) + positiveVectors.length * 2)}
+        WHERE id = ${investor.id}
+      `;
 
       updatedCount++;
       updateSummaries.push({

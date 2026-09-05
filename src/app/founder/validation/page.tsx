@@ -50,7 +50,8 @@ import {
   Copy,
   Check,
   MessageSquare,
-  Maximize
+  Maximize,
+  Bell
 } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
@@ -124,198 +125,8 @@ const renderMarkdown = (text: string) => {
   });
 };
 
-const mockProjects = [
-  {
-    id: "mock-1",
-    idea: "An AI-powered hiring platform for remote engineering teams",
-    title: "AI Hiring Platform",
-    marketViability: 92,
-    technicalFeasibility: 85,
-    financialPlanning: "18 Months",
-    overallGrade: "A",
-    reports: [
-      {
-        engine: "research",
-        title: "Global Market Research Matrix",
-        summary: "Extensive market demand detected across US and European markets for automated technical screening.",
-        dataPoints: [
-          "TAM: $4.5 Billion globally for technical recruitment software.",
-          "CAGR: 12.4% over the next 5 years.",
-          "Trend: 68% of enterprise tech companies plan to increase remote hiring in 2027."
-        ],
-        confidenceScore: 94,
-        tags: ["High Demand", "B2B SaaS", "Global Reach"]
-      },
-      {
-        engine: "competitors",
-        title: "Competitive Landscape Mapping",
-        summary: "Market is crowded but highly fragmented. Legacy players suffer from poor UX and generic assessments.",
-        dataPoints: [
-          "Turing/Toptal: High margin but manual matching.",
-          "HackerRank: Strong brand but rigid testing environments.",
-          "Your Edge: LLM-native contextual interviews that simulate real pairing."
-        ],
-        confidenceScore: 88,
-        tags: ["Fragmented Market", "UX Advantage"]
-      },
-      {
-        engine: "risks",
-        title: "Risk Assessment & Mitigation",
-        summary: "Primary risks lie in AI bias and enterprise compliance (GDPR/SOC2).",
-        dataPoints: [
-          "Compliance Risk: High. Requires immediate SOC2 Type II certification.",
-          "Technical Risk: Medium. Hallucinations during automated interviews.",
-          "Mitigation: Keep 'Human in the Loop' for final hiring decisions."
-        ],
-        confidenceScore: 91,
-        tags: ["SOC2 Required", "AI Bias Risk"]
-      },
-      {
-        engine: "financials",
-        title: "Financial Runway & Unit Economics",
-        summary: "Highly scalable SaaS model. Initial burn is engineering-heavy, followed by high-margin licensing.",
-        dataPoints: [
-          "Year 1 Burn: ~$1.2M (primarily ML engineering & data pipeline).",
-          "Target ARR (Year 2): $3M at $25k ACV.",
-          "Gross Margin: 88% at scale."
-        ],
-        confidenceScore: 85,
-        tags: ["High Margin", "Enterprise ACV"]
-      },
-      {
-        engine: "pitch",
-        title: "Investor Pitch Framing",
-        summary: "Position as the 'Copilot for Technical Recruiters'. Focus on time-to-hire reduction.",
-        dataPoints: [
-          "Hook: Engineering time is your most expensive asset. Stop wasting it on bad interviews.",
-          "Core Metric: Reduce time-to-hire from 45 days to 12 days.",
-          "Ask: $2M Seed to build the proprietary evaluation models."
-        ],
-        confidenceScore: 95,
-        tags: ["Seed Stage", "Time-to-Hire"]
-      },
-      {
-        engine: "roadmap",
-        title: "Strategic Execution Roadmap",
-        summary: "Focus on deep integration with standard ATS platforms in the first 6 months.",
-        dataPoints: [
-          "Q1: Core LLM evaluation engine MVP.",
-          "Q2: Integration with Greenhouse and Lever.",
-          "Q3: Launch private beta with 10 design partners."
-        ],
-        confidenceScore: 89,
-        tags: ["Integrations", "Beta Launch"]
-      },
-      {
-        engine: "validation",
-        title: "Final Venture Validation",
-        summary: "Strong founding team and clear market need makes this a highly investable proposition.",
-        dataPoints: [
-          "Founder-Market Fit: Verified (Strong technical background).",
-          "Timing: Excellent (Post-remote work normalization).",
-          "Verdict: Proceed to Seed Fundraising."
-        ],
-        confidenceScore: 96,
-        tags: ["Investable", "A-Grade"]
-      }
-    ]
-  },
-  {
-    id: "mock-2",
-    idea: "A D2C sustainable skincare brand leveraging localized supply chains",
-    title: "Sustainable Skincare D2C",
-    marketViability: 78,
-    technicalFeasibility: 95,
-    financialPlanning: "24 Months",
-    overallGrade: "B+",
-    reports: [
-      {
-        engine: "research",
-        title: "Consumer Trend Research",
-        summary: "Clean beauty is transitioning from a niche trend to a baseline expectation for Gen Z and Millennials.",
-        dataPoints: [
-          "TAM: $14.2 Billion for clean skincare.",
-          "CAGR: 8.5% globally.",
-          "Insight: 72% of Gen Z consumers check ingredient sourcing before purchase."
-        ],
-        confidenceScore: 87,
-        tags: ["Gen Z Focus", "Clean Beauty"]
-      },
-      {
-        engine: "competitors",
-        title: "Competitor Analysis",
-        summary: "Highly saturated market. Differentiation relies entirely on brand narrative and distribution.",
-        dataPoints: [
-          "Glossier / The Ordinary: Dominant mindshare but expanding too broadly.",
-          "Local Indie Brands: Fragmented and struggle with scale.",
-          "Your Edge: Ultra-transparent localized supply chain narrative."
-        ],
-        confidenceScore: 82,
-        tags: ["Saturated Market", "Brand Driven"]
-      },
-      {
-        engine: "risks",
-        title: "Operational Risks",
-        summary: "Supply chain volatility and rising customer acquisition costs (CAC) are the primary threats.",
-        dataPoints: [
-          "Marketing Risk: High. Facebook/IG CAC is up 40% YoY.",
-          "Supply Chain Risk: Medium. Localized sourcing limits scalability.",
-          "Mitigation: Focus on organic TikTok/community growth over paid ads."
-        ],
-        confidenceScore: 89,
-        tags: ["High CAC", "Supply Chain"]
-      },
-      {
-        engine: "financials",
-        title: "Unit Economics",
-        summary: "Requires strong inventory management and high repeat purchase rates to offset initial CAC.",
-        dataPoints: [
-          "Target AOV (Average Order Value): $65.",
-          "Target Gross Margin: 75% (excluding shipping).",
-          "Goal: Achieve a 40% repeat purchase rate within 6 months."
-        ],
-        confidenceScore: 84,
-        tags: ["Inventory Heavy", "AOV Focus"]
-      },
-      {
-        engine: "pitch",
-        title: "Pitch Narrative",
-        summary: "Focus on the community-led growth model and the 'hyper-local' sustainability angle.",
-        dataPoints: [
-          "Hook: The future of beauty isn't just clean; it's grown in your backyard.",
-          "Metric: 15,000 waitlist signups with $0 marketing spend.",
-          "Ask: $1M Pre-Seed for initial inventory and brand activation."
-        ],
-        confidenceScore: 90,
-        tags: ["Pre-Seed", "Community Led"]
-      },
-      {
-        engine: "roadmap",
-        title: "Go-to-Market Roadmap",
-        summary: "Phased rollout prioritizing influencer seeding and pop-up retail.",
-        dataPoints: [
-          "Month 1-2: Finalize formulation and packaging.",
-          "Month 3: 500-person micro-influencer seeding campaign.",
-          "Month 5: Direct-to-consumer digital launch."
-        ],
-        confidenceScore: 86,
-        tags: ["Influencer Marketing", "D2C Launch"]
-      },
-      {
-        engine: "validation",
-        title: "Venture Scorecard",
-        summary: "Viable business but highly execution-dependent. Success hinges on viral marketing capabilities.",
-        dataPoints: [
-          "Execution Risk: High (Requires exceptional branding).",
-          "Market Size: Massive.",
-          "Verdict: Fundable if founders have proven marketing/brand experience."
-        ],
-        confidenceScore: 88,
-        tags: ["Execution Heavy", "B+ Grade"]
-      }
-    ]
-  }
-];
+
+
 
 const PIPELINE_STEPS = [
   { id: "input-validation", name: "Concept Classifier" },
@@ -3266,6 +3077,34 @@ export default function VentureValidationDashboardPage() {
   }, []);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+
+  // Notification bell
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifs, setNotifs] = useState<any[]>([]);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const unread = notifs.filter(n => !n.read).length;
+
+  useEffect(() => {
+    if (!userEmail) return;
+    const fetchNotifs = async () => {
+      try {
+        const res = await fetch(`/api/investor/notifications?email=${encodeURIComponent(userEmail)}&portal=founder`);
+        const json = (await res.json()) as any;
+        if (json.success) setNotifs(json.notifications || []);
+      } catch {}
+    };
+    fetchNotifs();
+    const t = setInterval(fetchNotifs, 20000);
+    return () => clearInterval(t);
+  }, [userEmail]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    if (notifOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [notifOpen]);
   const [sidebarWidth, setSidebarWidth] = useState(224);
   const [isResizing, setIsResizing] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -3444,14 +3283,14 @@ export default function VentureValidationDashboardPage() {
       const json = (await res.json()) as any;
       if (json.success) {
         if (json.data.length === 0) {
-          setProjects(mockProjects);
+          setProjects([]);
         } else {
           setProjects(json.data);
         }
       }
     } catch (err) {
       console.error("Error loading validations history:", err);
-      setProjects(mockProjects); // Fallback on error
+      setProjects([]);
     } finally {
       setLoadingHistory(false);
     }
@@ -3461,7 +3300,7 @@ export default function VentureValidationDashboardPage() {
     if (userEmail) {
       loadHistory();
     } else {
-      setProjects(mockProjects);
+      setProjects([]);
       setLoadingHistory(false);
     }
   }, [userEmail]);
@@ -3494,13 +3333,16 @@ export default function VentureValidationDashboardPage() {
     const eventSource = new EventSource(url);
 
     eventSource.addEventListener("pipeline_started", (e) => {
-      setAnalysisProgress(15);
+      setAnalysisProgress(10);
     });
 
     eventSource.addEventListener("node_event", (e) => {
       try {
         const data = JSON.parse(e.data);
-        const tabId = NODE_TO_TAB_MAP[data.nodeId];
+        const nodeId = data.nodeId || data.node;
+        if (!nodeId) return;
+
+        const tabId = NODE_TO_TAB_MAP[nodeId];
         if (tabId) {
           if (data.status === "started") {
             setNodeStartTimes(prev => ({ ...prev, [tabId]: Date.now() }));
@@ -3517,17 +3359,31 @@ export default function VentureValidationDashboardPage() {
         }
 
         setStreamEvents(prev => {
-          const index = prev.findIndex(item => item.nodeId === data.nodeId);
+          const index = prev.findIndex(item => (item.nodeId || item.node) === nodeId);
           if (index !== -1) {
             const updated = [...prev];
-            updated[index] = { ...updated[index], status: data.status, preview: data.preview || updated[index].preview };
+            updated[index] = { 
+              ...updated[index], 
+              nodeId,
+              node: nodeId,
+              status: data.status, 
+              preview: data.preview || updated[index].preview 
+            };
             return updated;
           } else {
-            return [...prev, { nodeId: data.nodeId, status: data.status, preview: data.preview, timestamp: Date.now() }];
+            return [...prev, { 
+              nodeId, 
+              node: nodeId,
+              status: data.status, 
+              preview: data.preview, 
+              timestamp: Date.now() 
+            }];
           }
         });
 
-        if (data.status === "completed" && data.preview) {
+        if (typeof data.progress === "number") {
+          setAnalysisProgress(data.progress);
+        } else if (data.status === "completed") {
           setAnalysisProgress(prev => Math.min(prev + 8, 95));
         }
       } catch (err) { }
@@ -3552,13 +3408,26 @@ export default function VentureValidationDashboardPage() {
       }
 
       setAnalysisProgress(100);
+      setStreamEvents(prev => {
+        return PIPELINE_STEPS.map(step => {
+          const existing = prev.find(item => (item.nodeId || item.node) === step.id);
+          return {
+            nodeId: step.id,
+            node: step.id,
+            status: "completed",
+            preview: existing?.preview,
+            timestamp: Date.now(),
+          };
+        });
+      });
+
       eventSource.close();
 
       setTimeout(() => {
         setIsAnalyzing(false);
         setIsAnalyzed(true);
         setActiveTab("dashboard");
-      }, 500);
+      }, 700);
     });
   };
 
@@ -3650,7 +3519,7 @@ export default function VentureValidationDashboardPage() {
     const confirmed = window.confirm("Are you sure you want to delete this project? This action cannot be undone.");
     if (!confirmed) return;
 
-    const isMockOrStub = id.startsWith("mock-") || projects.find(p => p.id === id)?.isStub;
+    const isMockOrStub = projects.find(p => p.id === id)?.isStub ?? false;
     if (isMockOrStub) {
       setProjects((prev) => prev.filter((p) => p.id !== id));
       if (activeProject?.id === id) {
@@ -3864,7 +3733,7 @@ export default function VentureValidationDashboardPage() {
   };
 
   const currentReportsArray = activeProject?.reports || [];
-  const isMockProject = activeProject?.id === "mock-1" || activeProject?.id === "mock-2";
+  const isMockProject = false;
   const reports: Record<string, AgentReport> = {
     research: currentReportsArray.find((r: any) => r.engine === "research") || (isMockProject ? defaultReports.research : { title: "Research Agent Analysis", summary: "No research analysis available yet.", dataPoints: [] }),
     competitors: currentReportsArray.find((r: any) => r.engine === "competitors") || (isMockProject ? defaultReports.competitors : { title: "Competitive Intelligence Agent", summary: "No competitive analysis available yet.", dataPoints: [] }),
@@ -3909,7 +3778,69 @@ export default function VentureValidationDashboardPage() {
             </div>
           </Link>
         </div>
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Notification Bell */}
+          {userEmail && (
+            <div ref={notifRef} className="relative">
+              <button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="p-2 rounded-xl bg-zinc-100 dark:bg-white/5 hover:bg-zinc-200 dark:hover:bg-white/10 text-zinc-600 dark:text-white/70 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-white/10 transition-all flex items-center justify-center relative"
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unread > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-extrabold text-white animate-pulse">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[200] text-xs">
+                  <div className="p-3 border-b border-black/10 dark:border-white/5 bg-black/5 dark:bg-black/20 flex justify-between items-center">
+                    <span className="font-bold text-[#18181b] dark:text-white flex items-center gap-2">
+                      <Bell className="w-3.5 h-3.5 text-[#ccf063]" /> Notifications
+                      {unread > 0 && <span className="bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">{unread} new</span>}
+                    </span>
+                    <button
+                      onClick={async () => {
+                        await fetch("/api/investor/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ markAll: true, email: userEmail }) });
+                        setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+                      }}
+                      className="text-[10px] text-[#ccf063] hover:text-zinc-900 dark:hover:text-white transition-colors font-bold"
+                    >Mark all read</button>
+                  </div>
+                  <div className="max-h-[360px] overflow-y-auto divide-y divide-black/5 dark:divide-white/5">
+                    {notifs.length === 0 ? (
+                      <div className="p-6 text-center text-black/40 dark:text-white/40 italic">No notifications</div>
+                    ) : notifs.slice(0, 10).map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={async () => {
+                          if (!n.read) {
+                            await fetch("/api/investor/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: n.id, read: true }) });
+                            setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+                          }
+                        }}
+                        className={`flex gap-3 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${!n.read ? "bg-[#ccf063]/5" : ""}`}
+                      >
+                        {!n.read && <div className="w-1 shrink-0 rounded-full bg-[#ccf063] self-stretch" />}
+                        <div className="min-w-0">
+                          <div className={`font-bold leading-snug truncate ${!n.read ? "text-[#18181b] dark:text-white" : "text-black/60 dark:text-white/60"}`}>{n.title}</div>
+                          <div className="text-[11px] text-black/50 dark:text-white/40 mt-0.5 line-clamp-2">{n.message}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-2 border-t border-black/10 dark:border-white/5 bg-black/5 dark:bg-black/20">
+                    <button
+                      onClick={() => { setNotifOpen(false); router.push("/founder/notifications"); }}
+                      className="w-full py-2 text-center text-[#ccf063] font-bold hover:bg-[#ccf063]/10 rounded-xl transition-colors text-xs"
+                    >View all notifications →</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {/* Sliding Theme Toggle (Premium Capsule Switch) */}
           {mounted && (
             <button
@@ -4236,20 +4167,20 @@ export default function VentureValidationDashboardPage() {
 
           {/* Progress loader overlay */}
           {isAnalyzing && (
-            <div className="absolute inset-0 bg-[#090909]/98 flex flex-col items-center justify-center z-20 p-6 backdrop-blur-md">
-              <div className="max-w-xl w-full bg-[#121212] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-6">
+            <div className="absolute inset-0 bg-white/95 dark:bg-[#090909]/98 flex flex-col items-center justify-center z-20 p-6 backdrop-blur-md">
+              <div className="max-w-xl w-full bg-white dark:bg-[#121212] border border-zinc-200 dark:border-white/10 rounded-2xl p-6 shadow-2xl space-y-6">
                 
                 {/* Header info */}
-                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                <div className="flex items-center justify-between border-b border-zinc-200 dark:border-white/5 pb-4">
                   <div className="flex items-center gap-3">
-                    <Brain className="w-6 h-6 text-[#ccf063] animate-pulse" />
+                    <Brain className="w-6 h-6 text-[#8a9e22] dark:text-[#ccf063] animate-pulse" />
                     <div>
-                      <h4 className="font-bold text-white text-sm font-serif">Multi-Agent Auditing Active</h4>
-                      <p className="text-xs text-white/60 font-mono">SSE Stream Connected</p>
+                      <h4 className="font-bold text-zinc-900 dark:text-white text-sm font-serif">Multi-Agent Auditing Active</h4>
+                      <p className="text-xs text-zinc-500 dark:text-white/60 font-mono">SSE Stream Connected</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="font-mono text-xs text-[#ccf063] font-bold bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                    <span className="font-mono text-xs text-[#8a9e22] dark:text-[#ccf063] font-bold bg-zinc-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-white/5">
                       Time: {Math.floor(elapsedTime / 60)}:{(elapsedTime % 60).toString().padStart(2, '0')}s
                     </span>
                   </div>
@@ -4257,67 +4188,94 @@ export default function VentureValidationDashboardPage() {
 
                 {/* Progress bar */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs text-white/70 font-mono">
+                  <div className="flex justify-between text-xs text-zinc-600 dark:text-white/70 font-mono">
                     <span>Audit Pipeline Completion</span>
                     <span>{analysisProgress}%</span>
                   </div>
-                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-zinc-200 dark:bg-white/10 rounded-full overflow-hidden">
                     <div className="h-full bg-[#ccf063] transition-all duration-500" style={{ width: `${analysisProgress}%` }} />
                   </div>
                 </div>
 
                 {/* Rich Event Timeline List */}
                 <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 select-none">
-                  {PIPELINE_STEPS.map((step) => {
-                    const event = streamEvents.find(e => e.nodeId === step.id);
-                    const status = event ? event.status : "pending";
+                  {PIPELINE_STEPS.map((step, stepIndex) => {
+                    const event = streamEvents.find(e => (e.nodeId || e.node) === step.id);
+                    let status = event ? event.status : "pending";
                     const preview = event?.preview;
+
+                    // Intelligent fallback: If later sequential steps have already started or completed, earlier steps are completed
+                    if (status === "pending") {
+                      const hasLaterActiveOrDone = streamEvents.some(e => {
+                        const idx = PIPELINE_STEPS.findIndex(s => s.id === (e.nodeId || e.node));
+                        return idx > stepIndex && (e.status === "started" || e.status === "completed");
+                      });
+                      if (hasLaterActiveOrDone) {
+                        status = "completed";
+                      }
+                    }
+
+                    const isCompleted = status === "completed" || status === "skipped";
 
                     return (
                       <div 
                         key={step.id} 
                         className={`flex items-start justify-between p-2.5 rounded-lg border transition-all duration-300 ${
                           status === "started" 
-                            ? "bg-[#ccf063]/5 border-[#ccf063]/30" 
-                            : status === "completed" 
-                            ? "bg-white/5 border-white/5 opacity-80"
+                            ? "bg-[#ccf063]/10 border-[#ccf063]/40 shadow-sm shadow-[#ccf063]/5" 
+                            : isCompleted 
+                            ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30"
                             : status === "failed"
-                            ? "bg-red-950/10 border-red-900/30 text-red-400"
-                            : "bg-transparent border-transparent opacity-30"
+                            ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/40"
+                            : "bg-zinc-50/50 dark:bg-white/[0.02] border-zinc-200 dark:border-white/5 opacity-50"
                         }`}
                       >
                         <div className="flex items-start gap-2.5 overflow-hidden">
                           {status === "started" && (
                             <Loader2 className="w-4 h-4 text-[#ccf063] animate-spin shrink-0 mt-0.5" />
                           )}
-                          {status === "completed" && (
-                            <CheckCircle2 className="w-4 h-4 text-[#ccf063] shrink-0 mt-0.5" />
+                          {isCompleted && (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-500/20 shrink-0 mt-0.5" />
                           )}
                           {status === "failed" && (
-                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                            <AlertTriangle className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
                           )}
                           {status === "pending" && (
-                            <div className="w-4 h-4 rounded-full border-2 border-white/20 shrink-0 mt-0.5" />
+                            <div className="w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-white/20 shrink-0 mt-0.5" />
                           )}
                           <div className="text-left overflow-hidden">
-                            <p className="text-xs font-bold text-white">{step.name}</p>
+                            <p className={`text-xs font-semibold ${
+                              isCompleted 
+                                ? "text-emerald-700 dark:text-emerald-300" 
+                                : status === "started" 
+                                ? "text-zinc-900 dark:text-white font-bold" 
+                                : "text-zinc-500 dark:text-white/80"
+                            }`}>
+                              {step.name}
+                            </p>
                             {preview && status !== "failed" && (
-                              <p className="text-xs text-[#ccf063] mt-0.5 truncate max-w-sm font-mono">{preview}</p>
+                              <p className="text-xs text-[#8a9e22] dark:text-[#ccf063] mt-0.5 truncate max-w-sm font-mono">{preview}</p>
                             )}
                             {status === "failed" && (
-                              <p className="text-xs text-red-400/85 mt-0.5 italic truncate max-w-sm">Failed (Check logs)</p>
+                              <p className="text-xs text-red-500 dark:text-red-400 mt-0.5 italic truncate max-w-sm">Failed (Check logs)</p>
                             )}
                           </div>
                         </div>
                         {status === "started" && (
-                          <span className="text-xs font-mono text-[#ccf063] bg-[#ccf063]/10 px-1.5 py-0.5 rounded uppercase tracking-wider animate-pulse">Running</span>
+                          <span className="text-[10px] font-mono font-bold text-[#8a9e22] dark:text-[#ccf063] bg-[#ccf063]/15 px-2 py-0.5 rounded border border-[#ccf063]/30 uppercase tracking-wider animate-pulse">Running</span>
+                        )}
+                        {isCompleted && (
+                          <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-500/30 uppercase tracking-wider flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Done
+                          </span>
                         )}
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="text-center text-xs text-white/55 italic">
+                <div className="text-center text-xs text-zinc-500 dark:text-white/55 italic">
                   Evaluating regulatory check-ins, competitor profiles, and market risks in real-time.
                 </div>
               </div>
@@ -4336,53 +4294,53 @@ export default function VentureValidationDashboardPage() {
 
               <div className="max-w-2xl w-full flex flex-col items-center justify-center z-10 animate-item text-center">
 
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-white/90 mb-6 shadow-sm backdrop-blur-sm">
-                  <Lightbulb className="w-3.5 h-3.5 text-[#ccf063]" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-full text-xs text-zinc-800 dark:text-white/90 mb-6 shadow-sm backdrop-blur-sm">
+                  <Lightbulb className="w-3.5 h-3.5 text-[#8a9e22] dark:text-[#ccf063]" />
                   <span>{activeProject && activeProject.title ? activeProject.title : "Your venture idea"}</span>
                 </div>
 
-                <h1 className="text-3xl md:text-4xl font-serif text-white leading-tight mb-4">
-                  Let's validate your <span className="text-[#ccf063] italic">venture idea.</span>
+                <h1 className="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-white leading-tight mb-4">
+                  Let's validate your <span className="text-[#8a9e22] dark:text-[#ccf063] italic">venture idea.</span>
                 </h1>
 
-                <p className="text-sm md:text-base text-white/75 mb-8 max-w-lg">
+                <p className="text-sm md:text-base text-zinc-600 dark:text-white/75 mb-8 max-w-lg">
                   Provide the 3 core pillars of your venture. Precise inputs yield highly accurate AI evaluations.
                 </p>
 
-                <div className="w-full relative flex flex-col gap-3 bg-[#151515] border border-white/10 rounded-2xl p-4 shadow-2xl">
+                <div className="w-full relative flex flex-col gap-3 bg-white dark:bg-[#151515] border border-zinc-200 dark:border-white/10 rounded-2xl p-4 shadow-xl dark:shadow-2xl">
                   <div className="text-left">
-                    <label className="text-sm text-white/70 block mb-1.5 font-mono uppercase tracking-wider">1. Target Customer (Who)</label>
+                    <label className="text-sm text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">1. Target Customer (Who)</label>
                     <input
                       value={customer}
                       onChange={(e) => { setCustomer(e.target.value); setEmptyInputError(false); }}
                       placeholder="e.g. Independent dental clinics in the US with 2-5 dentists"
-                      className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-3 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                      className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-3 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                     />
                   </div>
                   <div className="text-left">
-                    <label className="text-sm text-white/70 block mb-1.5 font-mono uppercase tracking-wider">2. The Core Problem (What)</label>
+                    <label className="text-sm text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">2. The Core Problem (What)</label>
                     <input
                       value={problem}
                       onChange={(e) => { setProblem(e.target.value); setEmptyInputError(false); }}
                       placeholder="e.g. Patient no-shows causing 15% annual revenue loss"
-                      className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-3 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                      className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-3 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                     />
                   </div>
                   <div className="text-left">
-                    <label className="text-sm text-white/70 block mb-1.5 font-mono uppercase tracking-wider">3. Proposed Solution (How)</label>
+                    <label className="text-sm text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">3. Proposed Solution (How)</label>
                     <input
                       value={solution}
                       onChange={(e) => { setSolution(e.target.value); setEmptyInputError(false); }}
                       placeholder="e.g. Automated WhatsApp deposit booking tool"
-                      className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-3 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                      className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-3 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                     />
                   </div>
 
                   {/* Progressive-disclosure toggle */}
-                  <div className="text-left border-t border-white/5 pt-3 pb-12">
+                  <div className="text-left border-t border-zinc-200 dark:border-white/5 pt-3 pb-12">
                     <button
                       onClick={() => setShowOptionalDetails(!showOptionalDetails)}
-                      className="flex items-center gap-2 text-sm font-bold text-[#ccf063]/90 hover:text-[#ccf063] transition-colors focus:outline-none cursor-pointer"
+                      className="flex items-center gap-2 text-sm font-bold text-[#8a9e22] dark:text-[#ccf063]/90 hover:text-[#6b7c1a] dark:hover:text-[#ccf063] transition-colors focus:outline-none cursor-pointer"
                     >
                       <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${showOptionalDetails ? "rotate-180" : ""}`} />
                       Add details for a deeper, more targeted analysis (Optional)
@@ -4391,39 +4349,39 @@ export default function VentureValidationDashboardPage() {
                     {showOptionalDetails && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 transition-all duration-300">
                         <div className="text-left">
-                          <label className="text-xs text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Target Geography (for region specific search)</label>
+                          <label className="text-xs text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Target Geography (for region specific search)</label>
                           <input
                             value={geography}
                             onChange={(e) => setGeography(e.target.value)}
                             placeholder="e.g. USA, India, European Union"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-2.5 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                            className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-2.5 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                           />
                         </div>
                         <div className="text-left">
-                          <label className="text-xs text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Funding Ask</label>
+                          <label className="text-xs text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Funding Ask</label>
                           <input
                             value={fundingAsk}
                             onChange={(e) => setFundingAsk(e.target.value)}
                             placeholder="e.g. $500K Seed"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-2.5 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                            className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-2.5 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                           />
                         </div>
                         <div className="text-left">
-                          <label className="text-xs text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Industry</label>
+                          <label className="text-xs text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Industry</label>
                           <input
                             value={industry}
                             onChange={(e) => setIndustry(e.target.value)}
                             placeholder="e.g. HealthTech, B2B SaaS"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-2.5 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                            className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-2.5 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                           />
                         </div>
                         <div className="text-left">
-                          <label className="text-xs text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Venture Stage</label>
+                          <label className="text-xs text-zinc-600 dark:text-white/70 block mb-1.5 font-mono uppercase tracking-wider">Venture Stage</label>
                           <input
                             value={stage}
                             onChange={(e) => setStage(e.target.value)}
                             placeholder="e.g. Pre-Seed, Idea, MVP"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg text-white text-sm p-2.5 placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors"
+                            className="w-full bg-zinc-50 dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white text-sm p-2.5 placeholder-zinc-400 dark:placeholder-white/40 focus:outline-none focus:border-zinc-400 dark:focus:border-white/30 transition-colors"
                           />
                         </div>
                       </div>
@@ -4435,7 +4393,7 @@ export default function VentureValidationDashboardPage() {
                       onClick={handleAnalyse}
                       className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${(customer.trim() && problem.trim() && solution.trim()) || query.trim()
                         ? "bg-[#ccf063] text-black hover:scale-105 cursor-pointer"
-                        : "bg-transparent border border-white/20 text-white hover:bg-white/5 cursor-not-allowed"
+                        : "bg-transparent border border-zinc-300 dark:border-white/20 text-zinc-500 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/5 cursor-not-allowed"
                         }`}
                     >
                       Analyse &rarr;
@@ -4949,3 +4907,5 @@ export default function VentureValidationDashboardPage() {
     </div>
   );
 }
+
+

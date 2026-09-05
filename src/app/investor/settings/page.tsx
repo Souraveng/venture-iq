@@ -45,7 +45,7 @@ export default function InvestorProfilePage() {
 
   // Must-Haves Form States
   const [name, setName] = useState("Himanshu");
-  const [firm, setFirm] = useState("Apex Horizon Capital");
+  const [firm, setFirm] = useState("");
   const [role, setRole] = useState("Managing Partner");
   const [avatarUrl, setAvatarUrl] = useState(userImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250");
   const [investorType, setInvestorType] = useState("Micro-VC");
@@ -68,7 +68,7 @@ export default function InvestorProfilePage() {
   const [autonomousEnabled, setAutonomousEnabled] = useState(true);
 
   // Nice-To-Haves Form States
-  const [portfolioCompanies, setPortfolioCompanies] = useState<string[]>(["NeuralFlux AI", "QuantumGrid", "Stripe", "OpenAI"]);
+  const [portfolioCompanies, setPortfolioCompanies] = useState<string[]>([]);
   const [valueAdd, setValueAdd] = useState<string[]>([
     "GTM Strategy & Enterprise Sales Loop",
     "Engineering Recruitment Network",
@@ -102,7 +102,7 @@ export default function InvestorProfilePage() {
         if (result.success && result.data) {
           const data = result.data;
           setName(data.name || userName || "Himanshu");
-          setFirm(data.firm || "Apex Horizon Capital");
+          setFirm(data.firm || "");
           setRole(data.role || "Managing Partner");
           setAvatarUrl(data.avatarUrl || userImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250");
           setInvestorType(data.investorType || "Micro-VC");

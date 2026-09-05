@@ -49,7 +49,10 @@ export async function GET(req: Request) {
         {
           signal: req.signal,
           onNodeEvent: async (nodeEvent) => {
-            await sendEvent("node_event", nodeEvent);
+            await sendEvent("node_event", {
+              ...nodeEvent,
+              nodeId: nodeEvent.nodeId || nodeEvent.node,
+            });
           }
         }
       );
