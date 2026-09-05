@@ -124,7 +124,7 @@ export default function StartupDiscoveryFeedReplicatedPage() {
             growth: `+${Math.floor(Math.random() * 80) + 80}%`,
             aiScore: `${((item.matchScore || 85) / 10).toFixed(1)}/10`,
             tam: item.valuation ? `${item.valuation} Val` : "$10M Val",
-            avatar: item.founderProfile?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+            avatar: item.founderProfile?.avatarUrl || "",
             videoUrl: item.founderProfile?.introVideoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
             aiSummary: item.aiSummary || "This founder matches your core investment thesis across stage and sector.",
             rawStartup: item
@@ -529,7 +529,7 @@ export default function StartupDiscoveryFeedReplicatedPage() {
             >
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden border border-[#ccf063]/50 shrink-0">
-                  <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" />
+                  {current.avatar ? <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-[#ccf063] font-bold">{current.name?.slice(0, 1).toUpperCase() || "?"}</span>}
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-1 font-serif truncate">
@@ -746,7 +746,7 @@ export default function StartupDiscoveryFeedReplicatedPage() {
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#ccf063]/50 shrink-0">
-                  <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" />
+                  {current.avatar ? <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-[#ccf063] font-bold">{current.name?.slice(0, 1).toUpperCase() || "?"}</span>}
                 </div>
                 <div>
                   <h3 className="text-2xl md:text-xl font-bold text-white tracking-tight flex items-center gap-1.5 font-serif group-hover:text-[#ccf063] transition-colors">

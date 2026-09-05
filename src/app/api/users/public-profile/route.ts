@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         data: {
           name: investor.name,
           tagline: investor.role || "Investor",
-          logoUrl: investor.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+          logoUrl: investor.avatarUrl || null,
           category: investor.focusSectors?.[0] || "General",
           stage: investor.preferredStages?.[0] || "All Stages",
           gatedFields: JSON.stringify({}),
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
         data: {
           name: founder.fullName || "Founder",
           tagline: founder.roleTitle || "Founder",
-          logoUrl: founder.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+          logoUrl: founder.avatarUrl || null,
           category: startup?.category || "Technology",
           stage: startup?.stage || "Early Stage",
           gatedFields: JSON.stringify({}),

@@ -44,6 +44,7 @@ interface AuthContextType {
   userEmail: string | null;
   userName: string | null;
   userImage: string | null;
+  updateUserImage: (image: string) => void;
   showVerifyModal: boolean;
   setShowVerifyModal: (show: boolean) => void;
   activeStartup: Startup;
@@ -74,6 +75,7 @@ const AuthContext = createContext<AuthContextType>({
   userEmail: null,
   userName: null,
   userImage: null,
+  updateUserImage: () => {},
   showVerifyModal: false,
   setShowVerifyModal: () => {},
   activeStartup: defaultStartup,
@@ -104,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [role, setRole] = useState<UserRole>("guest");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
@@ -358,6 +360,12 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
     signOut({ callbackUrl: "/" });
   };
 
+  const updateUserImage = (image: string) => {
+    setUserImage(image);
+    // Keep the NextAuth JWT in sync so navigation does not restore the old photo.
+    update({ image }).catch((error) => console.error("Failed to refresh profile image session:", error));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -365,6 +373,7 @@ const AuthInnerProvider = ({ children }: { children: React.ReactNode }) => {
         userEmail,
         userName,
         userImage,
+        updateUserImage,
         showVerifyModal,
         setShowVerifyModal,
         activeStartup,

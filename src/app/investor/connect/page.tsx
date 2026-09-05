@@ -23,7 +23,8 @@ import {
   Loader2,
   X,
   Sparkles,
-  Heart
+  Heart,
+  Trash2
 } from "lucide-react";
 
 function getRelativeTime(dateString: string) {
@@ -60,6 +61,45 @@ export default function ConnectHubPage() {
   
   // Comment toggle state
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
+
+  const handleSharePost = async (post: any) => {
+    const url = `${window.location.origin}/investor/connect#post-${post.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${post.name} on VentureIQ`, text: post.text, url });
+        setShareNotice("Post shared.");
+      } else {
+        const text = `${post.text}\n\n${url}`;
+        if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+        else {
+          const field = document.createElement("textarea");
+          field.value = text;
+          document.body.appendChild(field);
+          field.select();
+          document.execCommand("copy");
+          field.remove();
+        }
+        setShareNotice("Link copied to clipboard.");
+      }
+    } catch (error) {
+      if ((error as Error).name !== "AbortError") setShareNotice("Unable to share this post.");
+    } finally {
+      window.setTimeout(() => setShareNotice(null), 2500);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!userEmail || !window.confirm("Delete this post? This cannot be undone.")) return;
+    try {
+      const response = await fetch(`/api/posts/${postId}?email=${encodeURIComponent(userEmail)}`, { method: "DELETE" });
+      const result = await response.json() as { success?: boolean; error?: string };
+      if (!response.ok || !result.success) throw new Error(result.error || "Could not delete this post.");
+      setPosts((current) => current.filter((post) => post.id !== postId));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Could not delete this post.");
+    }
+  };
   const toggleComments = (postId: string) => {
     setExpandedComments(prev => ({ ...prev, [postId]: !prev[postId] }));
   };
@@ -177,7 +217,7 @@ export default function ConnectHubPage() {
           username: p.authorUsername,
           role: p.authorRole,
           email: p.authorEmail,
-          avatar: p.authorAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+          avatar: p.authorAvatar || "",
           time: `uploaded ${getRelativeTime(p.createdAt)}`,
           text: p.content,
           mediaUrl: p.mediaUrl,
@@ -409,6 +449,7 @@ export default function ConnectHubPage() {
 
   return (
     <div ref={containerRef} className="max-w-7xl mx-auto font-sans pb-12 pt-0">
+      {shareNotice && <div className="fixed right-5 top-5 z-[100] rounded-xl bg-[#ccf063] px-4 py-3 text-xs font-bold text-black shadow-2xl">{shareNotice}</div>}
       
       {/* Header Banner */}
       <div className="sticky top-0 bg-[#0e0e0e] z-30 pt-1 pb-6 mb-6 animate-item flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5">
@@ -440,6 +481,7 @@ export default function ConnectHubPage() {
           {filteredPosts.map((post) => (
             <div
               key={post.id}
+              id={`post-${post.id}`}
               className="animate-item bg-[#1f1f1f] border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl hover:border-white/20 transition-all"
             >
               {/* Header profile row */}
@@ -449,7 +491,7 @@ export default function ConnectHubPage() {
                   onClick={() => fetchProfile(post.email)}
                 >
                   <div className="w-11 h-11 rounded-full overflow-hidden border border-white/10 bg-slate-800 group-hover:border-[#ccf063] transition-colors">
-                    <img src={post.avatar} alt={post.name} className="w-full h-full object-cover" />
+                    {post.avatar ? <img src={post.avatar} alt={post.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-sm font-bold text-[#ccf063]">{post.name?.slice(0, 1).toUpperCase() || "?"}</span>}
                   </div>
                   <div>
                     <h4 className="font-bold text-white text-xs flex items-center gap-1.5 group-hover:text-[#ccf063] transition-colors">
@@ -498,6 +540,15 @@ export default function ConnectHubPage() {
                     </button>
                   </div>
                 )}
+                {post.email?.toLowerCase() === userEmail?.toLowerCase() && (
+                  <button
+                    onClick={() => handleDeletePost(post.id)}
+                    title="Delete your post"
+                    className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               {/* Text content body */}
@@ -537,6 +588,9 @@ export default function ConnectHubPage() {
                   className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" /> {post.comments} Comments
+                </button>
+                <button onClick={() => handleSharePost(post)} className="ml-auto flex items-center gap-1.5 hover:text-white transition-colors">
+                  <Share2 className="w-4 h-4" /> Share
                 </button>
               </div>
 
@@ -715,7 +769,7 @@ export default function ConnectHubPage() {
             ) : profileData ? (
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <img src={profileData.logoUrl} alt={profileData.name} className="w-16 h-16 rounded-full object-cover border border-white/10 bg-white/5" />
+                  {profileData.logoUrl ? <img src={profileData.logoUrl} alt={profileData.name} className="w-16 h-16 rounded-full object-cover border border-white/10 bg-white/5" /> : <div className="w-16 h-16 rounded-full border border-[#ccf063]/40 bg-[#ccf063]/10 text-[#ccf063] flex items-center justify-center font-bold">{profileData.name?.slice(0, 1).toUpperCase() || "?"}</div>}
                   <div>
                     <h3 className="text-xl font-bold text-white font-serif">{profileData.name}</h3>
                     <p className="text-sm text-[#ccf063]">{profileData.tagline}</p>

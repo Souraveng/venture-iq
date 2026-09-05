@@ -44,13 +44,17 @@ function InvestorPublicProfilePage() {
   const { userEmail, userName, userImage } = useAuth();
   
   const isOwnProfile = !queryEmail || queryEmail === userEmail;
-  const targetEmail = queryEmail || userEmail || "himanshu25b@gmail.com";
+  const targetEmail = queryEmail || userEmail;
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
     async function fetchProfile() {
+      if (!targetEmail) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const res = await fetch(`/api/investors/profile?email=${encodeURIComponent(targetEmail)}`);

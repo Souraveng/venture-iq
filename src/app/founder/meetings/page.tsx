@@ -168,6 +168,8 @@ export default function FounderNotificationsPage() {
   const [chatInput, setChatInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
+  const [showChatDetails, setShowChatDetails] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   
   // Social Features State
   const [replyingTo, setReplyingTo] = useState<any>(null);
@@ -695,6 +697,7 @@ export default function FounderNotificationsPage() {
                   <button onClick={() => handleChatAction(msg.id, "react", { reaction: "👍" })} className="hover:scale-125 transition-transform">👍</button>
                   <button onClick={() => handleChatAction(msg.id, "react", { reaction: "❤️" })} className="hover:scale-125 transition-transform">❤️</button>
                   <button onClick={() => setReplyingTo({ id: msg.id, text: payload.text })} className="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full text-zinc-500 dark:text-zinc-400 ml-1"><Reply className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleChatAction(msg.id, "pin")} title={msg.isPinned ? "Unpin message" : "Pin message"} className={`p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full ${msg.isPinned ? "text-[#ccf063]" : "text-zinc-500 dark:text-zinc-400"}`}><Pin className="w-3.5 h-3.5" /></button>
                 </div>
               )}
 
@@ -1115,8 +1118,8 @@ export default function FounderNotificationsPage() {
                   >
                     <ChevronRight className="w-5 h-5 rotate-180" />
                   </button>
-                  <div className="w-9 h-9 rounded-full overflow-hidden border border-white/20 relative shrink-0">
-                    <img src={activeTab === "DEALS" ? selectedInteraction?.investor.avatarUrl : undefined} alt="Avatar" className="w-full h-full object-cover" />
+                  <div className="w-9 h-9 rounded-full overflow-hidden border border-white/20 relative shrink-0 bg-[#ccf063]/10 flex items-center justify-center text-[#ccf063] text-xs font-bold">
+                    {activeTab === "DEALS" && selectedInteraction?.investor.avatarUrl ? <img src={selectedInteraction.investor.avatarUrl} alt={selectedInteraction.investor.name} className="w-full h-full object-cover" /> : (activeTab === "DEALS" ? selectedInteraction?.investor.name : (selectedConnection?.senderEmail === userEmail ? selectedConnection?.receiverEmail : selectedConnection?.senderEmail))?.slice(0, 1).toUpperCase()}
                     {activeTab === "DEALS" && selectedInteraction?.state === "MUTUAL_MATCH" && (
                       <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#ccf063] rounded-full border-2 border-[#1f1f1f]"></div>
                     )}
@@ -1135,7 +1138,7 @@ export default function FounderNotificationsPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70 transition-colors">
+                  <button onClick={() => setShowChatDetails(!showChatDetails)} title="Deal room details" className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${showChatDetails ? "bg-[#ccf063] text-black" : "bg-white/5 hover:bg-white/10 text-white/70"}`}>
                     <Building2 className="w-4 h-4" />
                   </button>
                   <button className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/70 transition-colors">
@@ -1143,6 +1146,21 @@ export default function FounderNotificationsPage() {
                   </button>
                 </div>
               </div>
+
+              {showChatDetails && (
+                <aside className="absolute right-3 top-[68px] z-30 w-72 bg-[#1b1b1b] border border-white/10 rounded-2xl shadow-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div><p className="text-xs font-bold text-white">Deal room details</p><p className="text-[10px] text-[#ccf063] mt-0.5">End-to-end encrypted</p></div>
+                    <Lock className="w-4 h-4 text-[#ccf063]" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-center">
+                    <div className="rounded-xl bg-white/5 p-2"><p className="text-lg font-bold text-white">{decryptedMessages.length}</p><p className="text-[9px] uppercase text-white/45">Messages</p></div>
+                    <div className="rounded-xl bg-white/5 p-2"><p className="text-lg font-bold text-white">{decryptedMessages.filter((message: any) => message.isPinned).length}</p><p className="text-[9px] uppercase text-white/45">Pinned</p></div>
+                  </div>
+                  <button onClick={() => { setShowChatDetails(false); setScheduleOpen(true); }} className="w-full py-2 rounded-lg bg-[#ccf063] text-black text-xs font-bold">Schedule follow-up</button>
+                  <p className="text-[10px] leading-relaxed text-white/45">Share documents, terms, meeting cards, or contact details from the + menu. Activity stays in this room.</p>
+                </aside>
+              )}
 
               {/* Chat Body */}
               <div className="flex-1 overflow-y-auto p-6 bg-[#f4f4f4] dark:bg-[#161616] flex flex-col">
@@ -1253,6 +1271,9 @@ export default function FounderNotificationsPage() {
                       disabled={isSending}
                       className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#ccf063] focus:bg-white/10 transition-all disabled:opacity-50"
                     />
+                    <button onClick={() => setShowQuickReplies(!showQuickReplies)} title="Quick replies" className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors shrink-0 ${showQuickReplies ? "bg-[#ccf063] text-black" : "bg-white/10 hover:bg-white/20 text-white"}`}>
+                      <Smile className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={handleSendText}
                       disabled={!chatInput.trim() || isSending}
@@ -1261,6 +1282,13 @@ export default function FounderNotificationsPage() {
                       <Send className="w-4 h-4" />
                     </button>
                   </div>
+                  {showQuickReplies && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {["Thanks — reviewing this now.", "Could you share the latest deck?", "Let’s schedule a 20-minute follow-up.", "I’ll send an update by tomorrow."].map((reply) => (
+                        <button key={reply} onClick={() => { setChatInput(reply); setShowQuickReplies(false); }} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] text-white/70 hover:border-[#ccf063]/60 hover:text-[#ccf063] transition-colors">{reply}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </>

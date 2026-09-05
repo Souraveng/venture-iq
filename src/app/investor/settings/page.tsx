@@ -36,7 +36,7 @@ import {
 export default function InvestorProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { userEmail, userName, userImage } = useAuth();
+  const { userEmail, userName, userImage, updateUserImage } = useAuth();
   const [activeTab, setActiveTab] = useState<"profile" | "matching" | "deal" | "danger">("profile");
 
   // Loading & Database Sync States
@@ -50,34 +50,26 @@ export default function InvestorProfilePage() {
     if (!file) return;
     setUploadingPhoto(true);
     try {
-      const configRes = await fetch("/api/upload-config");
-      const config = await configRes.json() as any;
-      const workerUrl = config.workerUrl || "";
-      const workerSecret = config.workerSecret || "";
-      if (!workerUrl) throw new Error("Upload not configured");
-      const fileKey = `avatars/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-      const uploadUrl = `${workerUrl}/${fileKey}`;
-      const res = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Authorization": `Bearer ${workerSecret}`, "Content-Type": file.type },
-        body: file
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      setAvatarUrl(uploadUrl);
+      const formData = new FormData();
+      formData.append("photo", file);
+      const res = await fetch("/api/profile/photo", { method: "POST", body: formData });
+      const data = await res.json() as { success?: boolean; photoUrl?: string; error?: string };
+      if (!res.ok || !data.success || !data.photoUrl) throw new Error(data.error || "Upload failed");
+      setAvatarUrl(data.photoUrl);
+      updateUserImage(data.photoUrl);
     } catch (e) {
       console.error("Photo upload failed:", e);
-      const blobUrl = URL.createObjectURL(file);
-      setAvatarUrl(blobUrl);
+      alert(e instanceof Error ? e.message : "Unable to upload profile photo.");
     } finally {
       setUploadingPhoto(false);
     }
   };
 
   // Must-Haves Form States
-  const [name, setName] = useState("Himanshu");
+  const [name, setName] = useState(userName || "");
   const [firm, setFirm] = useState("");
   const [role, setRole] = useState("Managing Partner");
-  const [avatarUrl, setAvatarUrl] = useState(userImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250");
+  const [avatarUrl, setAvatarUrl] = useState(userImage || "");
   const [investorType, setInvestorType] = useState("Micro-VC");
   const [thesis, setThesis] = useState(
     "Backing ambitious technical founders building high-margin AI infrastructure and next-gen enterprise tools."
@@ -125,16 +117,17 @@ export default function InvestorProfilePage() {
     async function fetchProfile() {
       setLoading(true);
       try {
-        const activeEmail = userEmail || "himanshu25b@gmail.com";
+        if (!userEmail) return;
+        const activeEmail = userEmail;
         const res = await fetch(`/api/investors/profile?email=${encodeURIComponent(activeEmail)}`);
         const result = (await res.json()) as any;
 
         if (result.success && result.data) {
           const data = result.data;
-          setName(data.name || userName || "Himanshu");
+          setName(data.name || userName || "");
           setFirm(data.firm || "");
           setRole(data.role || "Managing Partner");
-          setAvatarUrl(data.avatarUrl || userImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250");
+          setAvatarUrl(data.avatarUrl || userImage || "");
           setInvestorType(data.investorType || "Micro-VC");
           setThesis(data.thesis || "Backing ambitious technical founders building high-margin AI infrastructure.");
           if (data.focusSectors?.length) setFocusSectors(data.focusSectors);
@@ -194,7 +187,8 @@ export default function InvestorProfilePage() {
     setSavedSuccess(false);
 
     try {
-      const activeEmail = userEmail || "himanshu25b@gmail.com";
+      if (!userEmail) throw new Error("Please sign in before saving your profile.");
+      const activeEmail = userEmail;
       const payload = {
         email: activeEmail,
         name,
@@ -382,11 +376,7 @@ export default function InvestorProfilePage() {
               {/* Profile Avatar & Header Info */}
               <div className="flex items-center gap-4 bg-black/40 p-4 rounded-xl border border-white/5 animate-item">
                 <div className="relative group shrink-0">
-                  <img
-                    src={avatarUrl}
-                    alt={name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-[#ccf063]"
-                  />
+                  {avatarUrl ? <img src={avatarUrl} alt={name || "Profile photo"} className="w-16 h-16 rounded-full object-cover border-2 border-[#ccf063]" /> : <div className="w-16 h-16 rounded-full border-2 border-[#ccf063] bg-[#ccf063]/10 text-[#ccf063] flex items-center justify-center font-bold">{(name || "?").slice(0, 1).toUpperCase()}</div>}
                   <label className="absolute inset-0 flex items-center justify-center rounded-full cursor-pointer bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
                     <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }} />
                     {uploadingPhoto ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Camera className="w-5 h-5 text-white" />}

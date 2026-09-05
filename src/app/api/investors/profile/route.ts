@@ -39,7 +39,7 @@ export async function GET(req: Request) {
         data: {
           email: emailClean,
           name: dbUser?.name || emailClean.split("@")[0],
-          avatarUrl: dbUser?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+          avatarUrl: dbUser?.image || null,
           investorType: "Individual Angel",
           role: "Managing Partner",
         },

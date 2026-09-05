@@ -44,7 +44,7 @@ function FounderProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryEmail = searchParams?.get("email");
-  const { userEmail, userName, userImage } = useAuth();
+  const { userEmail, userName, userImage, updateUserImage } = useAuth();
   
   const isOwnProfile = !queryEmail || queryEmail === userEmail;
   const targetEmail = queryEmail || userEmail;
@@ -59,25 +59,16 @@ function FounderProfilePage() {
     if (!file) return;
     setUploadingPhoto(true);
     try {
-      const configRes = await fetch("/api/upload-config");
-      const config = await configRes.json() as any;
-      const workerUrl = config.workerUrl || "";
-      const workerSecret = config.workerSecret || "";
-      if (!workerUrl) throw new Error("Upload not configured");
-      const fileKey = `avatars/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-      const uploadUrl = `${workerUrl}/${fileKey}`;
-      const res = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Authorization": `Bearer ${workerSecret}`, "Content-Type": file.type },
-        body: file
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      setEditForm(prev => ({ ...prev, avatarUrl: uploadUrl }));
+      const formData = new FormData();
+      formData.append("photo", file);
+      const res = await fetch("/api/profile/photo", { method: "POST", body: formData });
+      const data = await res.json() as { success?: boolean; photoUrl?: string; error?: string };
+      if (!res.ok || !data.success || !data.photoUrl) throw new Error(data.error || "Upload failed");
+      setEditForm(prev => ({ ...prev, avatarUrl: data.photoUrl! }));
+      updateUserImage(data.photoUrl);
     } catch (e) {
       console.error("Photo upload failed:", e);
-      // Fallback: use local blob URL for preview
-      const blobUrl = URL.createObjectURL(file);
-      setEditForm(prev => ({ ...prev, avatarUrl: blobUrl }));
+      alert(e instanceof Error ? e.message : "Unable to upload profile photo.");
     } finally {
       setUploadingPhoto(false);
     }
@@ -309,7 +300,7 @@ function FounderProfilePage() {
           <h2 className="text-4xl font-serif text-white italic">Founder Profile</h2>
           {isOwnProfile ? (
             <p className="text-xs text-[#c5c9b2] mt-1">
-              Connected Account: <span className="text-white font-semibold">{userEmail || "himanshu25b@gmail.com"}</span> • PostgreSQL DB Synced
+              Connected Account: <span className="text-white font-semibold">{userEmail || "Not signed in"}</span> • PostgreSQL DB Synced
             </p>
           ) : (
              <p className="text-xs text-[#c5c9b2] mt-1">

@@ -160,7 +160,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       // The 'user' object is only passed the first time this callback is called (e.g. upon login)
       if (user) {
         token.role = (user as any).role || "founder";
@@ -170,6 +170,9 @@ export const authOptions: NextAuthOptions = {
           token.picture = (user as any).image;
         }
       }
+      if (trigger === "update" && session?.image) {
+        token.picture = session.image;
+      }
       
       // ONLY query DB if we are explicitly updating the token OR if roles are completely missing 
       // (like during an initial Google OAuth sign in where user.role wasn't provided)
@@ -177,12 +180,13 @@ export const authOptions: NextAuthOptions = {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email },
-            select: { role: true, roles: true, onboarded: true },
+            select: { role: true, roles: true, onboarded: true, image: true },
           });
           if (dbUser) {
             token.role = dbUser.role || token.role || "founder";
             token.roles = dbUser.roles && dbUser.roles.length > 0 ? dbUser.roles : [token.role];
             token.onboarded = dbUser.onboarded;
+            token.picture = dbUser.image || token.picture;
           }
         } catch (err) {
           console.error("Error fetching user in NextAuth JWT callback:", err);

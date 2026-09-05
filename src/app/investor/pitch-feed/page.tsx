@@ -325,7 +325,7 @@ export default function InvestorPitchFeedPage() {
 
         {/* Thumbnail */}
         <div className="w-full md:w-48 h-32 rounded-xl overflow-hidden bg-black shrink-0 relative">
-          <img src={item.logoUrl || "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=400&q=80"} alt={item.name} className="w-full h-full object-cover opacity-50" />
+          {item.logoUrl ? <img src={item.logoUrl} alt={item.name} className="w-full h-full object-cover opacity-50" /> : <div className="w-full h-full bg-gradient-to-br from-[#ccf063]/20 to-[#131313]" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-2 left-3 right-3 text-white">
             <h3 className="font-serif font-bold text-lg truncate group-hover:text-[#ccf063] transition-colors">{item.name}</h3>

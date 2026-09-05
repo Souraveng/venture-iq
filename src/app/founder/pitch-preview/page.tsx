@@ -72,7 +72,7 @@ function PitchPreviewContent() {
                 sam: found.sam || "TBD",
                 som: found.som || "TBD",
                 tags: [found.category || "Tech", found.location ? found.location.split(',')[0] : "Global"],
-                avatar: found.founderProfile?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(found.founder || "F")}&backgroundColor=ccf063&textColor=000000`,
+                avatar: found.founderProfile?.avatarUrl || "",
                 videoUrl: found.founderProfile?.introVideoUrl?.includes(".mp4") ? found.founderProfile.introVideoUrl : (found.introVideoUrl || "https://www.w3schools.com/html/mov_bbb.mp4"),
                 aiSummary: found.problemText || found.coreProblem || "AI summary generated from startup due-diligence data.",
                 match: "92%",
@@ -151,7 +151,7 @@ function PitchPreviewContent() {
           <div className="hidden md:flex flex-col w-[320px] bg-[#111111] p-6 rounded-3xl border border-white/5 shadow-2xl self-end mb-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full overflow-hidden border border-[#ccf063]/30">
-                <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" />
+                {current.avatar ? <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-[#ccf063] font-bold">{current.name?.slice(0, 1).toUpperCase() || "?"}</span>}
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5 font-serif group-hover:text-[#ccf063] transition-colors">
@@ -339,7 +339,7 @@ function PitchPreviewContent() {
                   <div className="flex justify-between items-center mb-5 pb-4 border-b border-white/10">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full overflow-hidden border border-[#ccf063]/30">
-                        <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" />
+                        {current.avatar ? <img src={current.avatar} alt={current.name} className="w-full h-full object-cover" /> : <span className="w-full h-full flex items-center justify-center text-[#ccf063] font-bold">{current.name?.slice(0, 1).toUpperCase() || "?"}</span>}
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white font-serif flex items-center gap-1.5">

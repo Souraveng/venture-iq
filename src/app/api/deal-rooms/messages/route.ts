@@ -81,7 +81,7 @@ export async function GET(req: Request) {
 
     // Use raw SQL to fetch messages — bypasses outdated Prisma client schema
     const messages = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"
+      `SELECT id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", reactions, "readAt", "replyToId", "isPinned"
        FROM "ChatMessage"
        WHERE "chatRoomId" = $1
        ORDER BY "createdAt" ASC`,
@@ -105,7 +105,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { chatRoomId, senderId, messagePayload } = body;
+    const { chatRoomId, senderId, messagePayload, replyToId } = body;
 
     if (!chatRoomId || !senderId || messagePayload === undefined) {
       return NextResponse.json(
@@ -136,14 +136,15 @@ export async function POST(req: Request) {
     const now = new Date();
 
     const inserted = await prisma.$queryRawUnsafe<any[]>(
-      `INSERT INTO "ChatMessage" (id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt")
-       VALUES ($1, $2, $3, $4, $5, $6::timestamp)
-       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"`,
+      `INSERT INTO "ChatMessage" (id, "chatRoomId", "senderId", "encryptedPayload", iv, "replyToId", "createdAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7::timestamp)
+       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", reactions, "readAt", "replyToId", "isPinned"`,
       newId,
       chatRoomId,
       senderId,
       stringifiedPayload,
       "",
+      replyToId || null,
       now
     );
 
@@ -186,7 +187,7 @@ export async function PUT(req: Request) {
     // Use raw SQL to update — bypasses outdated Prisma client schema
     const updated = await prisma.$queryRawUnsafe<any[]>(
       `UPDATE "ChatMessage" SET "encryptedPayload" = $1 WHERE id = $2
-       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"`,
+       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", reactions, "readAt", "replyToId", "isPinned"`,
       encryptedPayload,
       messageId
     );

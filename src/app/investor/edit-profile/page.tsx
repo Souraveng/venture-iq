@@ -17,14 +17,16 @@ import {
   Building2,
   ChevronLeft,
   User,
-  Sliders
+  Sliders,
+  Camera,
+  Loader2
 } from "lucide-react";
 import { useSessionStorage } from "@/hooks/useSessionStorage";
 
 export default function InvestorEditProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { userEmail, userName, userImage } = useAuth();
+  const { userEmail, userName, userImage, updateUserImage } = useAuth();
   
   // Tab states
   const [activeTab, setActiveTab] = useState<"profile" | "matching" | "deal" | "social">("profile");
@@ -33,6 +35,7 @@ export default function InvestorEditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Profile Identity & Credentials (TAB 1)
   const [username, setUsername] = useSessionStorage('inv-username', "");
@@ -78,12 +81,30 @@ export default function InvestorEditProfilePage() {
   const [newValueAdd, setNewValueAdd] = useState("");
   const [showValueAddInput, setShowValueAddInput] = useState(false);
 
+  const handlePhotoUpload = async (file: File) => {
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+      const response = await fetch("/api/profile/photo", { method: "POST", body: formData });
+      const data = await response.json() as { success?: boolean; photoUrl?: string; error?: string };
+      if (!response.ok || !data.success || !data.photoUrl) throw new Error(data.error || "Upload failed");
+      setAvatarUrl(data.photoUrl);
+      updateUserImage(data.photoUrl);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Unable to upload profile photo.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   // Fetch Profile from DB on Load
   useEffect(() => {
     async function fetchProfile() {
       setLoading(true);
       try {
-        const activeEmail = userEmail || "himanshu25b@gmail.com";
+        if (!userEmail) return;
+        const activeEmail = userEmail;
         const res = await fetch(`/api/investors/profile?email=${encodeURIComponent(activeEmail)}`);
         const result = (await res.json()) as any;
 
@@ -147,7 +168,8 @@ export default function InvestorEditProfilePage() {
     setSavedSuccess(false);
 
     try {
-      const activeEmail = userEmail || "himanshu25b@gmail.com";
+      if (!userEmail) throw new Error("Please sign in before saving your profile.");
+      const activeEmail = userEmail;
       const payload = {
         email: activeEmail,
         username,
@@ -369,15 +391,17 @@ export default function InvestorEditProfilePage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[#c5c9b2] uppercase font-bold tracking-wider text-[9px]">Avatar / Photo URL</label>
-                  <input
-                    type="text"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    className="w-full bg-[#131313] border border-white/10 rounded-xl px-3.5 py-2.5 text-white focus:border-[#ccf063] outline-none"
-                    placeholder="https://images.unsplash.com/..."
-                  />
+                <div className="space-y-2 sm:col-span-2">
+                  <label className="text-[#c5c9b2] uppercase font-bold tracking-wider text-[9px]">Profile photo</label>
+                  <div className="flex items-center gap-3">
+                    {avatarUrl ? <img src={avatarUrl} alt={name || "Profile photo"} className="w-12 h-12 rounded-full object-cover border border-[#ccf063]/60" /> : <div className="w-12 h-12 rounded-full bg-[#ccf063]/10 border border-[#ccf063]/60 flex items-center justify-center text-[#ccf063] font-bold">{(name || "?").slice(0, 1).toUpperCase()}</div>}
+                    <label className="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-[#ccf063]/40 px-3 py-2 text-xs font-semibold text-[#ccf063] hover:bg-[#ccf063]/10 transition-colors">
+                      {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                      {uploadingPhoto ? "Uploading..." : "Change photo"}
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" disabled={uploadingPhoto} onChange={(event) => { const file = event.target.files?.[0]; if (file) handlePhotoUpload(file); event.currentTarget.value = ""; }} />
+                    </label>
+                    <span className="text-[10px] text-white/40">JPG, PNG, WebP or GIF · max 5 MB</span>
+                  </div>
                 </div>
 
                 <div className="space-y-1">
