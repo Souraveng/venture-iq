@@ -236,14 +236,24 @@ export default function FounderPitchRoomSetupPage() {
   useEffect(() => {
     if (!userName || !activeStartup?.name) return;
     
-    // Automatically start in edit mode if empty
-    fetch(`/api/startups?founder=${encodeURIComponent(userName)}`)
+    // Fetch startup data - prefer email-based lookup (reliable), fallback to name
+    const fetchUrl = userEmail
+      ? `/api/startups?founderEmail=${encodeURIComponent(userEmail)}`
+      : `/api/startups?founder=${encodeURIComponent(userName)}`;
+
+    fetch(fetchUrl)
       .then((res) => res.json())
       .then((json: any) => {
         if (json.success && json.data) {
-          const found = json.data.find(
-            (s: any) => s.founder.toLowerCase() === userName.toLowerCase() && s.name.toLowerCase() === activeStartup?.name?.toLowerCase()
-          );
+          const allStartups: any[] = json.data;
+          
+          // Find the startup that matches the current activeStartup (by id first, then name)
+          const found = allStartups.find(
+            (s: any) => 
+              (activeStartup?.id && s.id === activeStartup.id) ||
+              s.name.toLowerCase() === activeStartup?.name?.toLowerCase()
+          ) || allStartups[0]; // fallback to first startup if no match
+
           if (found) {
             const updatedPitch = {
               ...pitch,
@@ -285,8 +295,6 @@ export default function FounderPitchRoomSetupPage() {
               som: found.som || pitch.som || "",
               useOfFunds: found.useOfFunds || pitch.useOfFunds || [],
               teamRoster: found.teamRoster || pitch.teamRoster || [],
-              
-              // Pre-seed specific fields mapping
               ideaStage: found.ideaStage || "",
               whyNow: found.whyNow || "",
               uniqueInsight: found.uniqueInsight || "",
@@ -300,7 +308,8 @@ export default function FounderPitchRoomSetupPage() {
               differentiation: found.differentiation || "",
               ipAssets: found.ipAssets || "",
               keyMilestone: found.keyMilestone || "",
-              vision: found.vision || ""
+              vision: found.vision || "",
+              isPublished: found.isPublished || false,
             };
             setPitch(updatedPitch);
             setEditForm(updatedPitch);
@@ -309,7 +318,6 @@ export default function FounderPitchRoomSetupPage() {
               setIsOtherRound(true);
             }
             
-            // If new/empty project, set to edit mode automatically
             if (!found.tagline || !found.targetAmount || !found.pitchDeckUrl) {
               setIsEditing(true);
             }
@@ -321,7 +329,7 @@ export default function FounderPitchRoomSetupPage() {
         console.error("Failed to fetch startup data:", err);
         setLoading(false);
       });
-  }, [userName, activeStartup.name]);
+  }, [userEmail, userName, activeStartup?.id, activeStartup?.name]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {

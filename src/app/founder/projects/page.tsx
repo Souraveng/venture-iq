@@ -27,7 +27,7 @@ interface FormErrors {
 export default function MyStartupProjectsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { setActiveStartup, userName } = useAuth();
+  const { setActiveStartup, userName, userEmail } = useAuth();
 
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,13 +153,13 @@ export default function MyStartupProjectsPage() {
 
   const handleOpenDashboard = (proj: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    setActiveStartup({ name: proj.name, verified: proj.verified });
+    setActiveStartup({ name: proj.name, verified: proj.verified, id: proj.id, isPublished: proj.isPublished });
     router.push("/founder/fundraising");
   };
 
   const handleEditProject = (proj: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    setActiveStartup({ name: proj.name, verified: proj.verified });
+    setActiveStartup({ name: proj.name, verified: proj.verified, id: proj.id, isPublished: proj.isPublished });
     router.push("/founder/pitch-setup");
   };
 
@@ -177,6 +177,8 @@ export default function MyStartupProjectsPage() {
         },
         body: JSON.stringify({
           ...formData,
+          founder: formData.founder || userName || "",
+          founderEmail: userEmail || undefined,
           valuation: formData.valuation || "0",
           targetAmount: formData.targetAmount || "0",
           raisedAmount: "0",
@@ -215,7 +217,7 @@ export default function MyStartupProjectsPage() {
         setTouched({});
 
         // Switch to the newly created project and navigate to the pitch setup to fill out details
-        setActiveStartup({ name: newProj.name, verified: newProj.verified });
+        setActiveStartup({ name: newProj.name, verified: newProj.verified, id: newProj.id, isPublished: false });
         router.push("/founder/pitch-setup");
       } else {
         alert(json.error || "Failed to create project");
