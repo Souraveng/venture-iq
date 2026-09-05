@@ -130,34 +130,34 @@ model Investor {
   email                String?  @unique
   username             String?  @unique
   name                 String
-  firm                 String?  @default("Horizon Capital")
-  avatarUrl            String?  @default("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250")
+  firm                 String?
+  avatarUrl            String?
   investorType         String   @default("Individual Angel")
-  role                 String?  @default("Managing Partner")
-  focusSectors         String[] @default(["AI/ML", "ClimateTech", "FinTech"])
-  preferredStages      String[] @default(["Pre-Seed", "Seed", "Series A"])
-  preferredInstruments String[] @default(["SAFE", "Priced Equity"])
-  minCheckSize         String   @default("$50K")
-  maxCheckSize         String   @default("$250K")
-  checkSize            String   @default("$50K - $250K")
-  thesis               String?  @default("Backing visionary founders building decentralized infrastructure for a sustainable future.")
+  role                 String?
+  focusSectors         String[] @default([])
+  preferredStages      String[] @default([])
+  preferredInstruments String[] @default([])
+  minCheckSize         String   @default("")
+  maxCheckSize         String   @default("")
+  checkSize            String   @default("")
+  thesis               String?
   verified             Boolean  @default(true)
   accreditationStatus  String   @default("Accredited Investor (Verified)")
   activityStatus       String   @default("Actively deploying this quarter")
 
   // Nice-To-Haves
-  portfolioCompanies String[] @default(["NeuralFlux AI", "QuantumGrid", "Stripe", "OpenAI"])
-  portfolioCount     Int      @default(14)
-  valueAdd           String[] @default(["GTM Strategy", "Recruiting Network", "Technical Advisory"])
-  geoPreferences     String   @default("Global (US, Europe, India)")
-  investmentStyle    String   @default("Active Lead / Board Seat")
-  decisionSpeed      String   @default("1-2 weeks")
-  followOnCapacity   String   @default("Yes - 50% pro-rata reserved")
-  responseRate       String   @default("98%")
-  trustScore         String   @default("9.9/10")
-  location           String   @default("San Francisco, CA")
-  linkedIn           String?  @default("https://linkedin.com")
-  twitter            String?  @default("https://x.com")
+  portfolioCompanies String[] @default([])
+  portfolioCount     Int      @default(0)
+  valueAdd           String[] @default([])
+  geoPreferences     String   @default("")
+  investmentStyle    String   @default("")
+  decisionSpeed      String   @default("")
+  followOnCapacity   String   @default("")
+  responseRate       String   @default("")
+  trustScore         String   @default("")
+  location           String   @default("")
+  linkedIn           String?
+  twitter            String?
 
   // Onboarding Additions
   isLeadInvestor      Boolean?
@@ -314,22 +314,22 @@ model Founder {
   id                String   @id @default(uuid())
   email             String?  @unique
   username          String?  @unique
-  fullName          String   @default("Himanshu")
-  roleTitle         String   @default("CEO & Technical Co-Founder")
-  avatarUrl         String   @default("https://lh3.googleusercontent.com/aida-public/AB6AXuDaz0vajZVDPtuLJjcSxPL8p5BWx3GiZsjMemx6e_8R9511kM3AJXp1l4vL5dp9CNwHwsgdL0vd0Fi4xbCkKcxduivKJr89MWcpGq2_nDytgxZJ2t4JbrUfVHN_f-UgvO7qGaW5AhM0cRj77HbCy6EiUr4fV_UFPt8WeXW8HwfkA8-kqiThdFmDG57SPwkUQbNTzWTem3yezpexHGnlB1ctN_RhQVb4kIUWh8jxU95PK9XugWpw0qir")
-  location          String   @default("San Francisco, CA")
-  linkedinUrl       String   @default("https://linkedin.com/in/himanshu")
+  fullName          String   @default("")
+  roleTitle         String   @default("")
+  avatarUrl         String   @default("")
+  location          String   @default("")
+  linkedinUrl       String   @default("")
   commitment        String   @default("Full-time")
-  equityStake       String   @default("32.5")
-  startupName       String   @default("NeuralNexus AI")
-  startupLink       String   @default("/founder/profile-venture")
-  aboutQuote        String   @default("Building autonomous agent workflow engines for high-velocity engineering teams.")
-  aboutText         String   @default("10+ years in AI systems and distributed infrastructure. Serial entrepreneur focused on high-performance deeptech solutions and enterprise agent automation.")
-  domainExpertise   String[] @default(["AI/ML Systems", "Distributed Infrastructure", "Enterprise Automation"])
-  keySkills         String[] @default(["Product Strategy", "System Architecture", "Go-To-Market Execution"])
-  teamSize          String   @default("3")
+  equityStake       String   @default("")
+  startupName       String   @default("")
+  startupLink       String   @default("/founder/fundraising")
+  aboutQuote        String   @default("")
+  aboutText         String   @default("")
+  domainExpertise   String[] @default([])
+  keySkills         String[] @default([])
+  teamSize          String   @default("")
   verificationBadge String   @default("Identity Verified (Tier 1)")
-  introVideoUrl     String   @default("https://vimeo.com/123456789")
+  introVideoUrl     String   @default("")
   background        Json[]   @default([])
 
   startups Startup[]

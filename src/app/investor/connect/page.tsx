@@ -53,6 +53,11 @@ export default function ConnectHubPage() {
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Follow state
+  const [followed, setFollowed] = useState<Set<string>>(new Set());
+  // Connection status map: email -> "PENDING" | "ACCEPTED" | null
+  const [connectionStatus, setConnectionStatus] = useState<Record<string, string>>({});
+  
   // Comment toggle state
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const toggleComments = (postId: string) => {
@@ -131,7 +136,34 @@ export default function ConnectHubPage() {
   // Initial Fetch
   useEffect(() => {
     fetchPosts();
-  }, []);
+    if (userEmail) {
+      fetchFollowAndConnections();
+    }
+  }, [userEmail]);
+
+  const fetchFollowAndConnections = async () => {
+    if (!userEmail) return;
+    try {
+      // Fetch follow state
+      const fr = await fetch(`/api/follows?email=${encodeURIComponent(userEmail)}`);
+      const fj = (await fr.json()) as any;
+      if (fj.success) setFollowed(new Set(fj.following || []));
+
+      // Fetch connection status
+      const cr = await fetch(`/api/connections?email=${encodeURIComponent(userEmail)}`);
+      const cj = (await cr.json()) as any;
+      if (cj.success && Array.isArray(cj.requests)) {
+        const map: Record<string, string> = {};
+        cj.requests.forEach((req: any) => {
+          const other = req.senderEmail === userEmail ? req.receiverEmail : req.senderEmail;
+          map[other] = req.status;
+        });
+        setConnectionStatus(map);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -199,20 +231,47 @@ export default function ConnectHubPage() {
 
   const handleConnectClick = async (postId: string, receiverEmail: string) => {
     if (!userEmail || !receiverEmail) return;
-    
-    // Optimistic UI Update
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, connected: true } : p));
+    const currentStatus = connectionStatus[receiverEmail];
 
+    if (currentStatus === "ACCEPTED" || currentStatus === "PENDING") {
+      // Disconnect
+      setConnectionStatus(prev => { const n = {...prev}; delete n[receiverEmail]; return n; });
+      try {
+        await fetch(`/api/connections?senderEmail=${encodeURIComponent(userEmail)}&receiverEmail=${encodeURIComponent(receiverEmail)}`, { method: "DELETE" });
+      } catch (e) {
+        console.error(e);
+        setConnectionStatus(prev => ({ ...prev, [receiverEmail]: currentStatus }));
+      }
+    } else {
+      // Connect
+      setConnectionStatus(prev => ({ ...prev, [receiverEmail]: "PENDING" }));
+      try {
+        await fetch("/api/connections", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ senderEmail: userEmail, receiverEmail })
+        });
+      } catch (e) {
+        console.error(e);
+        setConnectionStatus(prev => { const n = {...prev}; delete n[receiverEmail]; return n; });
+      }
+    }
+  };
+
+  const handleFollow = async (followingEmail: string) => {
+    if (!userEmail) return;
+    const next = new Set(followed);
+    if (next.has(followingEmail)) next.delete(followingEmail);
+    else next.add(followingEmail);
+    setFollowed(next);
     try {
-      await fetch("/api/connections", {
+      await fetch("/api/follows", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senderEmail: userEmail, receiverEmail })
+        body: JSON.stringify({ followerEmail: userEmail, followingEmail })
       });
     } catch (e) {
       console.error(e);
-      // Revert on error
-      setPosts(prev => prev.map(p => p.id === postId ? { ...p, connected: false } : p));
     }
   };
 
@@ -406,24 +465,38 @@ export default function ConnectHubPage() {
                 </div>
 
                 {post.email !== userEmail && (
-                  <button
-                    onClick={() => handleConnectClick(post.id, post.email)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
-                      post.connected
-                        ? "bg-white/5 border border-white/10 text-white/55"
-                        : "bg-[#ccf063] hover:bg-[#c2e45d] text-black"
-                    }`}
-                  >
-                    {post.connected ? (
-                      <>
-                        <Check className="w-3 h-3" /> Pending
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-3 h-3" /> Connect
-                      </>
-                    )}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Follow/Unfollow */}
+                    <button
+                      onClick={() => handleFollow(post.email)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                        followed.has(post.email)
+                          ? "bg-white/5 border border-white/10 text-white/50 hover:border-red-500/50 hover:text-red-400"
+                          : "bg-white/10 border border-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      {followed.has(post.email) ? "Following" : "+ Follow"}
+                    </button>
+                    {/* Connect/Disconnect */}
+                    <button
+                      onClick={() => handleConnectClick(post.id, post.email)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
+                        connectionStatus[post.email] === "ACCEPTED"
+                          ? "bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400"
+                          : connectionStatus[post.email] === "PENDING"
+                          ? "bg-white/5 border border-white/10 text-white/55"
+                          : "bg-[#ccf063] hover:bg-[#c2e45d] text-black"
+                      }`}
+                    >
+                      {connectionStatus[post.email] === "ACCEPTED" ? (
+                        <><Check className="w-3 h-3" /> Connected</>
+                      ) : connectionStatus[post.email] === "PENDING" ? (
+                        <><Check className="w-3 h-3" /> Pending</>
+                      ) : (
+                        <><UserPlus className="w-3 h-3" /> Connect</>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
 

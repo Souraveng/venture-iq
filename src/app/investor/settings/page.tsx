@@ -28,7 +28,9 @@ import {
   ChevronLeft,
   User,
   Sliders,
-  AlertTriangle
+  AlertTriangle,
+  Camera,
+  Loader2
 } from "lucide-react";
 
 export default function InvestorProfilePage() {
@@ -42,6 +44,34 @@ export default function InvestorProfilePage() {
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [dbConnected, setDbConnected] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const configRes = await fetch("/api/upload-config");
+      const config = await configRes.json() as any;
+      const workerUrl = config.workerUrl || "";
+      const workerSecret = config.workerSecret || "";
+      if (!workerUrl) throw new Error("Upload not configured");
+      const fileKey = `avatars/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const uploadUrl = `${workerUrl}/${fileKey}`;
+      const res = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${workerSecret}`, "Content-Type": file.type },
+        body: file
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      setAvatarUrl(uploadUrl);
+    } catch (e) {
+      console.error("Photo upload failed:", e);
+      const blobUrl = URL.createObjectURL(file);
+      setAvatarUrl(blobUrl);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   // Must-Haves Form States
   const [name, setName] = useState("Himanshu");
@@ -351,11 +381,17 @@ export default function InvestorProfilePage() {
 
               {/* Profile Avatar & Header Info */}
               <div className="flex items-center gap-4 bg-black/40 p-4 rounded-xl border border-white/5 animate-item">
-                <img
-                  src={avatarUrl}
-                  alt={name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-[#ccf063]"
-                />
+                <div className="relative group shrink-0">
+                  <img
+                    src={avatarUrl}
+                    alt={name}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-[#ccf063]"
+                  />
+                  <label className="absolute inset-0 flex items-center justify-center rounded-full cursor-pointer bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }} />
+                    {uploadingPhoto ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Camera className="w-5 h-5 text-white" />}
+                  </label>
+                </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <h4 className="text-base font-bold text-white">{name}</h4>

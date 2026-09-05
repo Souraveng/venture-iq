@@ -86,4 +86,31 @@ export async function PUT(req: Request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+// DELETE - remove/disconnect a connection
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const senderEmail = searchParams.get("senderEmail");
+    const receiverEmail = searchParams.get("receiverEmail");
 
+    if (id) {
+      await prisma.connectionRequest.delete({ where: { id } });
+    } else if (senderEmail && receiverEmail) {
+      await prisma.connectionRequest.deleteMany({
+        where: {
+          OR: [
+            { senderEmail, receiverEmail },
+            { senderEmail: receiverEmail, receiverEmail: senderEmail }
+          ]
+        }
+      });
+    } else {
+      return NextResponse.json({ success: false, error: "Provide id or senderEmail+receiverEmail" }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true, action: "disconnected" });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

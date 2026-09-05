@@ -25,7 +25,9 @@ import {
   Share2,
   MessageSquare,
   Heart,
-  X
+  X,
+  Camera,
+  Loader2
 } from "lucide-react";
 
 
@@ -51,6 +53,35 @@ function FounderProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const configRes = await fetch("/api/upload-config");
+      const config = await configRes.json() as any;
+      const workerUrl = config.workerUrl || "";
+      const workerSecret = config.workerSecret || "";
+      if (!workerUrl) throw new Error("Upload not configured");
+      const fileKey = `avatars/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const uploadUrl = `${workerUrl}/${fileKey}`;
+      const res = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${workerSecret}`, "Content-Type": file.type },
+        body: file
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      setEditForm(prev => ({ ...prev, avatarUrl: uploadUrl }));
+    } catch (e) {
+      console.error("Photo upload failed:", e);
+      // Fallback: use local blob URL for preview
+      const blobUrl = URL.createObjectURL(file);
+      setEditForm(prev => ({ ...prev, avatarUrl: blobUrl }));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   // Profile data state (Synced with Azure PostgreSQL)
   const [activeTab, setActiveTab] = useState("PROFILE");
@@ -337,11 +368,11 @@ function FounderProfilePage() {
             </span>
           </div>
 
-          <div className="mt-10 mb-6">
+          <div className="mt-10 mb-6 relative group">
             <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-[#ccf063]/30 ring-8 ring-[#ccf063]/5 bg-slate-800 flex items-center justify-center text-3xl font-extrabold text-[#ccf063]">
-              {profile.avatarUrl ? (
+              {(isEditing ? editForm.avatarUrl : profile.avatarUrl) ? (
                 <img
-                  src={profile.avatarUrl}
+                  src={isEditing ? editForm.avatarUrl : profile.avatarUrl}
                   alt={profile.fullName}
                   className="w-full h-full object-cover"
                 />
@@ -349,6 +380,12 @@ function FounderProfilePage() {
                 profile.fullName.slice(0, 2).toUpperCase()
               )}
             </div>
+            {isEditing && (
+              <label className="absolute inset-0 flex items-center justify-center rounded-full cursor-pointer bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }} />
+                {uploadingPhoto ? <Loader2 className="w-7 h-7 text-white animate-spin" /> : <Camera className="w-7 h-7 text-white" />}
+              </label>
+            )}
           </div>
 
           {!isEditing ? (
