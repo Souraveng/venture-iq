@@ -133,11 +133,9 @@ export async function GET(request: NextRequest) {
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as any;
-    const { id, founder, name, tagline, targetAmount, valuation, category, location, traction, roundType, stage, isPublished, introVideoUrl, ...rest } = body;
+    const { id, founder, name, tagline, targetAmount, valuation, category, location, traction, roundType, stage, isPublished, introVideoUrl, founderEmail, ...rest } = body;
 
     // Strict founder profile resolution: prefer email match over name match
-    // This prevents creating duplicate profiles when the user's display name has typos
-    const founderEmail = body.founderEmail; // passed from frontend with session email
     let founderProfile = null;
     
     // 1. Try to find by email first (most reliable)
