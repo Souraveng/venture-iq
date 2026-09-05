@@ -163,8 +163,19 @@ export default function StartupDiscoveryFeedReplicatedPage() {
     }
   };
 
+  // Wait for auth to load userEmail before calling matchmaking
   useEffect(() => {
-    loadFeed();
+    if (userEmail) {
+      loadFeed();
+    }
+  }, [userEmail]);
+
+  // Fallback: if auth is slow, still load after 2s (handles anon/fallback case)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStartups(prev => { if (prev.length === 0) { loadFeed(); } return prev; });
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   const trackEvent = async (eventType: string, targetStartupId?: string) => {

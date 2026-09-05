@@ -78,7 +78,15 @@ export async function POST(req: Request) {
     }
 
     if (!investor) {
-      return NextResponse.json({ success: false, error: "Investor not found" }, { status: 404 });
+      // Investor profile not in DB yet (new user) — use generic fallback profile
+      // so they can still browse the feed
+      investor = {
+        id: investorEmail || "anonymous",
+        email: investorEmail || null,
+        focusSectors: ["AI/ML", "FinTech", "SaaS", "DeepTech"],
+        preferredStages: ["Pre-Seed", "Seed", "Series A"],
+        thesis: "Early stage technology startups",
+      };
     }
 
     // 2. Fetch past interactions for active feedback learning
