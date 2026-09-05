@@ -24,12 +24,37 @@ export default function StartupVerificationApplicationPage() {
   const [legalName, setLegalName] = useState("");
   const [regNumber, setRegNumber] = useState("");
   const [jurisdiction, setJurisdiction] = useState("");
-  const [directors, setDirectors] = useState([
-    { name: "Swapn Kumar", role: "Primary Director", uploaded: true }
+  const [directors, setDirectors] = useState<{name: string, role: string, uploaded: boolean}[]>([
+    { name: activeStartup?.founder || "", role: "Primary Director", uploaded: false }
   ]);
+  const [docs, setDocs] = useState({
+    cert: false,
+    bank: false,
+    address: false
+  });
 
   const handleStartVerification = () => {
-
+    setActiveStartup({ ...activeStartup, verified: true });
+  };
+  
+  const handleAddDirector = () => {
+    setDirectors([...directors, { name: "", role: "Director", uploaded: false }]);
+  };
+  
+  const handleRemoveDirector = (index: number) => {
+    setDirectors(directors.filter((_, i) => i !== index));
+  };
+  
+  const handleDirectorChange = (index: number, field: string, value: string) => {
+    const newDirectors = [...directors];
+    newDirectors[index] = { ...newDirectors[index], [field]: value };
+    setDirectors(newDirectors);
+  };
+  
+  const toggleUpload = (index: number) => {
+    const newDirectors = [...directors];
+    newDirectors[index] = { ...newDirectors[index], uploaded: !newDirectors[index].uploaded };
+    setDirectors(newDirectors);
   };
 
   useEffect(() => {
@@ -175,29 +200,52 @@ export default function StartupVerificationApplicationPage() {
 
             <div className="space-y-3">
               {directors.map((dir, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-black/40 border border-white/5 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-white text-xs">
-                      SK
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-white">{dir.name}</h4>
-                      <p className="text-sm text-[#c5c9b2]/60">{dir.role}</p>
+                <div key={idx} className="p-4 rounded-xl bg-black/40 border border-white/5 flex flex-col gap-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-white text-xs shrink-0">
+                        {dir.name ? dir.name.substring(0, 2).toUpperCase() : "?"}
+                      </div>
+                      <div className="w-full space-y-2 pr-4">
+                        <input 
+                          type="text" 
+                          value={dir.name}
+                          onChange={(e) => handleDirectorChange(idx, "name", e.target.value)}
+                          placeholder="Director Name"
+                          className="w-full bg-transparent border-b border-white/10 text-white font-bold focus:outline-none focus:border-[#ccf063] pb-1"
+                        />
+                        <input 
+                          type="text" 
+                          value={dir.role}
+                          onChange={(e) => handleDirectorChange(idx, "role", e.target.value)}
+                          placeholder="Role"
+                          className="w-full bg-transparent border-b border-white/10 text-[#c5c9b2]/60 text-sm focus:outline-none focus:border-[#ccf063] pb-1"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-md text-sm text-white/50 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-[#ccf063]" /> ID Uploaded
-                    </span>
-                    <button className="text-red-400 hover:text-red-500 p-1">
-                      <Trash2 className="w-4 h-4" />
+                  <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                    <button 
+                      onClick={() => toggleUpload(idx)}
+                      className={`px-2.5 py-1 border rounded-md text-sm flex items-center gap-1 transition-colors ${dir.uploaded ? "bg-white/5 border-white/10 text-white/50" : "bg-[#ccf063]/10 border-[#ccf063]/30 text-[#ccf063]"}`}
+                    >
+                      {dir.uploaded ? (
+                        <><CheckCircle2 className="w-3 h-3 text-[#ccf063]" /> ID Uploaded</>
+                      ) : (
+                        <><Upload className="w-3 h-3" /> Upload ID</>
+                      )}
                     </button>
+                    {directors.length > 1 && (
+                      <button onClick={() => handleRemoveDirector(idx)} className="text-red-400 hover:text-red-500 p-1">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
 
-            <button className="w-full py-2.5 border border-dashed border-white/20 hover:border-[#ccf063] rounded-xl text-xs font-semibold text-white/50 hover:text-[#ccf063] flex items-center justify-center gap-1 transition-all">
+            <button onClick={handleAddDirector} className="w-full py-2.5 border border-dashed border-white/20 hover:border-[#ccf063] rounded-xl text-xs font-semibold text-white/50 hover:text-[#ccf063] flex items-center justify-center gap-1 transition-all cursor-pointer">
               <Plus className="w-4 h-4" /> Add Another Director
             </button>
           </div>
@@ -228,17 +276,17 @@ export default function StartupVerificationApplicationPage() {
               Compliance (KYC)
             </h3>
             <div className="space-y-3 text-xs">
-              <div className="p-3.5 bg-black/45 border border-red-500/20 rounded-xl flex items-center justify-between text-white/80">
+              <div className={`p-3.5 bg-black/45 border rounded-xl flex items-center justify-between text-white/80 transition-colors ${docs.cert ? "border-[#ccf063]/50 text-[#ccf063]" : "border-red-500/20"}`}>
                 <span>Certificate of Incorporation</span>
-                <Upload className="w-4 h-4 text-red-400 cursor-pointer" />
+                {docs.cert ? <CheckCircle2 className="w-4 h-4 text-[#ccf063]" /> : <Upload className="w-4 h-4 text-red-400 cursor-pointer hover:scale-110" onClick={() => setDocs({...docs, cert: true})} />}
               </div>
-              <div className="p-3.5 bg-black/45 border border-white/5 rounded-xl flex items-center justify-between text-white/80">
+              <div className={`p-3.5 bg-black/45 border rounded-xl flex items-center justify-between text-white/80 transition-colors ${docs.bank ? "border-[#ccf063]/50 text-[#ccf063]" : "border-white/5"}`}>
                 <span>Bank Statement (Last 3m)</span>
-                <Upload className="w-4 h-4 text-white/40 cursor-pointer" />
+                {docs.bank ? <CheckCircle2 className="w-4 h-4 text-[#ccf063]" /> : <Upload className="w-4 h-4 text-white/40 cursor-pointer hover:scale-110 hover:text-white" onClick={() => setDocs({...docs, bank: true})} />}
               </div>
-              <div className="p-3.5 bg-black/45 border border-white/5 rounded-xl flex items-center justify-between text-white/80">
+              <div className={`p-3.5 bg-black/45 border rounded-xl flex items-center justify-between text-white/80 transition-colors ${docs.address ? "border-[#ccf063]/50 text-[#ccf063]" : "border-white/5"}`}>
                 <span>Proof of Address</span>
-                <Upload className="w-4 h-4 text-white/40 cursor-pointer" />
+                {docs.address ? <CheckCircle2 className="w-4 h-4 text-[#ccf063]" /> : <Upload className="w-4 h-4 text-white/40 cursor-pointer hover:scale-110 hover:text-white" onClick={() => setDocs({...docs, address: true})} />}
               </div>
             </div>
           </div>

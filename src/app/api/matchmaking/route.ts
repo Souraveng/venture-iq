@@ -152,19 +152,30 @@ export async function POST(req: Request) {
       }
     }
 
-    // 5. Rank Startups natively using Azure Cosmos DB Vector Search
-    // This allows us to scale to millions of startups instantly without looping in-memory
+    // 5. Rank Startups natively using PostgreSQL pgvector
     const cosmosMatches = await searchMatchingStartups(investorVector, 50);
     
     // Filter out startups the investor has already passed on
-    const validMatches = cosmosMatches.filter(m => !passedStartupIds.has(m.id));
+    let validMatches = cosmosMatches.filter(m => !passedStartupIds.has(m.id));
 
-    if (validMatches.length === 0) {
-      return NextResponse.json({ success: true, data: [] });
+    let matchIds = validMatches.map(m => m.id);
+    const cosmosScoreMap = new Map(validMatches.map(m => [m.id, m.score]));
+
+    // Fallback: If vector search returns no results (e.g. embeddings not generated yet), fetch latest published startups
+    if (matchIds.length === 0) {
+      const fallbackStartups = await prisma.startup.findMany({
+        where: { isPublished: true, id: { notIn: Array.from(passedStartupIds) } },
+        orderBy: { id: 'desc' },
+        take: 10,
+        select: { id: true }
+      });
+      matchIds = fallbackStartups.map(s => s.id);
+      matchIds.forEach(id => cosmosScoreMap.set(id, 0.5)); // Default score
     }
 
-    const matchIds = validMatches.map(m => m.id);
-    const cosmosScoreMap = new Map(validMatches.map(m => [m.id, m.score]));
+    if (matchIds.length === 0) {
+      return NextResponse.json({ success: true, data: [] });
+    }
 
     // 6. Fetch ONLY the matched startups from Prisma
     const candidateStartups = await prisma.startup.findMany({

@@ -9,7 +9,13 @@ interface Startup {
   id?: string;
   name: string;
   verified: boolean;
-  role?: string; // added to track role in the UI if needed
+  role?: string;
+  founder?: string;
+  founderProfile?: any;
+  isPublished?: boolean;
+  tagline?: string;
+  category?: string;
+  stage?: string;
 }
 
 interface Team {

@@ -36,6 +36,14 @@ export async function GET(req: NextRequest) {
         id: true,
         name: true,
         verified: true,
+        founder: true,
+        tagline: true,
+        category: true,
+        stage: true,
+        isPublished: true,
+        founderProfile: {
+          select: { id: true, fullName: true, avatarUrl: true, introVideoUrl: true }
+        }
       }
     });
 

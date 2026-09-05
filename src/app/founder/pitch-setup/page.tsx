@@ -65,7 +65,7 @@ export default function FounderPitchRoomSetupPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
-  const { userName, activeStartup, setActiveStartup } = useAuth();
+  const { userName, userEmail, activeStartup, setActiveStartup } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
   
   // Edit mode state
@@ -680,7 +680,8 @@ export default function FounderPitchRoomSetupPage() {
         solutionText: editForm.solutionText,
         videoFormat: editForm.videoFormat,
         gatedFields: editForm.gatedFields,
-        isPublished: isPublished
+        isPublished: isPublished,
+        founderEmail: userEmail || undefined
       };
 
       const res = await fetch("/api/startups", {
