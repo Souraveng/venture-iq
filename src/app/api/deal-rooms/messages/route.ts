@@ -81,7 +81,7 @@ export async function GET(req: Request) {
 
     // Use raw SQL to fetch messages — bypasses outdated Prisma client schema
     const messages = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", "isPinned", reactions, "readAt", "replyToId"
+      `SELECT id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"
        FROM "ChatMessage"
        WHERE "chatRoomId" = $1
        ORDER BY "createdAt" ASC`,
@@ -136,9 +136,9 @@ export async function POST(req: Request) {
     const now = new Date().toISOString();
 
     const inserted = await prisma.$queryRawUnsafe<any[]>(
-      `INSERT INTO "ChatMessage" (id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", "isPinned")
-       VALUES ($1, $2, $3, $4, $5, $6, false)
-       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", "isPinned"`,
+      `INSERT INTO "ChatMessage" (id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt")
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"`,
       newId,
       chatRoomId,
       senderId,
@@ -186,7 +186,7 @@ export async function PUT(req: Request) {
     // Use raw SQL to update — bypasses outdated Prisma client schema
     const updated = await prisma.$queryRawUnsafe<any[]>(
       `UPDATE "ChatMessage" SET "encryptedPayload" = $1 WHERE id = $2
-       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt", "isPinned"`,
+       RETURNING id, "chatRoomId", "senderId", "encryptedPayload", iv, "createdAt"`,
       encryptedPayload,
       messageId
     );
